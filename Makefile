@@ -107,7 +107,7 @@ LDFLAGS += -DSTM32F103xB
 LDFLAGS += -T$(LINKER)
 LDFLAGS += -Wl,--gc-sections
 # Enable Semihosting  <---------------------------Make notes as to what this is.
-LINKFLAGS += --sepcs=rdimon.specs -lc -lrdimon
+LDFLAGS += --specs=rdimon.specs -lc -lrdimon
 ################################################################################
 
 # TODO: Enhance to take into account different case of file extension
@@ -177,6 +177,9 @@ upload: $(TARGET).hex
 	$(GDB) $(TARGET).hex -s $(TARGET).o
 # The line above starts GDB, it passes the hex binary
 
+# For the debug target compile with an added DEBUG definition that is
+# interpreted by the pre-processor. i.e. #ifdef DEBUG ...... #endif
+debug: CPPFLAGS += -DDEBUG
 debug: $(TARGET).elf
 	@echo "[UPLOAD] $(TARGET).elf"
 	@echo "[GDB]"
