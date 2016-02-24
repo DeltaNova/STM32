@@ -135,7 +135,7 @@ LINKFLAGS += --sepcs=rdimon.specs -lc -lrdimon
 ################################################################################
 
 # PHONY - Targets that do not represent files.
-.PHONY: all clean debug upload target
+.PHONY: all clean debug upload target size
 
 all:
 	@echo $(SOURCES)
@@ -168,7 +168,7 @@ $(TARGET).elf: $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
 size: $(TARGET).elf
-	@echo "TODO: Implement make size"
+	$(SIZE) -A -d $(TARGET).elf
 
 # TODO: Add a check for local .gdbinit
 upload: $(TARGET).hex
