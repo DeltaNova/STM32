@@ -1,7 +1,14 @@
 # STM32 Makefile for GNU Toolchain
 #
 # Usage:
-#       make test
+#		make		- Builds "target" by default
+#		make all	- Builds "target" by default
+#		make target - Builds "target" by default
+#		make size	- Reports size of .elf binary
+#		make upload - Upload built .hex via GDB
+#		make debug  - Upload built .elf via GDB (with Text User Interface)
+#		make clean  - Clean build files from project directory
+#       make mx 	- Launches STM32CubeMX (if installed)
 ################################################################################
 ######################### START CONFIG SECTION #################################
 ################################################################################
@@ -10,6 +17,7 @@
 # PATH_PROJECT_DIR = $(CURDIR)
 
 DEVICE = STM32F103XB
+DEVICE_STM_HEADER = STM32F103xB
 DEVICE_LOWER = stm32f103xb
 DEVICE_FAMILY = STM32F1xx
 DEVICE_FAMILY_LOWER = stm32f1xx
@@ -42,15 +50,15 @@ ifndef TARGET
 TARGET = default_target
 endif
 # Set the path to the project directory if not defined.
-# ~ points to current users home directory
-# The $(wildcard ...) function forces expansion when setting variables.
-# TODO: Would this be better being set to $(CURDIR) dif of executing Makefile?
+# Default project directory set to $(CURDIR), directory of executing Makefile.
 ifndef PATH_PROJECT_DIR
-PATH_PROJECT_DIR = $(wildcard ~)
+PATH_PROJECT_DIR = $(CURDIR)
 endif
 ################################################################################
+# Insert Blank Line in Terminal Output
+$(info )
+################################################################################
 # NOTE: Use a local modified version of Cube Linker, Cube version (V1.3.0)buggy
-# TODO: Improve how Makefile handles custom linker files with different names.
 # If a local Linker file is found use that, otherwise revert to Cube version.
 ifeq ("","$(wildcard $(PATH_PROJECT_DIR)*.ld)")
 # Using CMSIS Linker
@@ -63,7 +71,7 @@ $(info [CUSTOM] [LINKER] $(LINKER))
 endif
 ################################################################################
 # Check for project specific startup file to use instead of CMSIS version.
-# TODO: Improve how Makefile handles custom startup files with different names and types.
+# TODO: Improve how Makefile handles custom startup files with different names.
 ifeq ("","$(wildcard $(PATH_PROJECT_DIR)startup*.s)")
 # Using CMSIS Startup File
 	STARTUP = $(CMSIS_STARTUP)
@@ -147,9 +155,7 @@ CPPFLAGS += -mlittle-endian
 # Generate core that executes in Thumb states <------TODO: What does this mean??
 CPPFLAGS += -mthumb
 # Device compiling for
-#CPPFLAGS += -D$(DEVICE)
-# TODO: Move this hardcoded variable up to the top with the others
-CPPFLAGS += -DSTM32F103xB
+CPPFLAGS += -D$(DEVICE_STM_HEADER)
 # Optimise for size
 CPPFLAGS += -Os
 # Compile but do not link
@@ -171,17 +177,16 @@ LIBS += $(STMCUBE_REPO)$(STMCUBE_PATH2)
 LDFLAGS += -mcpu=$(MCPU)
 LDFLAGS += -mlittle-endian
 LDFLAGS += -mthumb
-# TODO: Move this hardcoded variable up to the top with the others
-LDFLAGS += -DSTM32F103xB
+LDFLAGS += -D$(DEVICE_STM_HEADER)
 LDFLAGS += -T$(LINKER)
 LDFLAGS += -Wl,--gc-sections
 # Enable Semihosting  <-------------------- TODO: Make notes as to what this is.
 LDFLAGS += --specs=rdimon.specs -lc -lrdimon
 ################################################################################
-
-# TODO: Enhance to take into account different case of file extension
 # Compiling Object Files From C Files
 %.o : %.c
+	$(CC) $(CPPFLAGS) $< -o $(notdir $@)
+%.o : %.C
 	$(CC) $(CPPFLAGS) $< -o $(notdir $@)
 # Compiling Object Files From C Files in Cube32 Dir
 %.o : $(SYSTEM_PATH)%.c
@@ -189,8 +194,12 @@ LDFLAGS += --specs=rdimon.specs -lc -lrdimon
 # Compiling Object Files From C++ Files
 %.o : %.cpp
 	$(CXX) $(CPPFLAGS) $< -o $(notdir $@)
+%.o : %.CPP
+	$(CXX) $(CPPFLAGS) $< -o $(notdir $@)
 # Compiling Object Files From S Files
 %.o : %.s
+	$(CC) $(CPPFLAGS) $< -o $(notdir $@)
+%.o : %.S
 	$(CC) $(CPPFLAGS) $< -o $(notdir $@)
 # Compiling Object Files From S Files in Cube32 Dir
 %.o : $(CMSIS_STARTUP_PATH)%.s
@@ -204,18 +213,9 @@ LDFLAGS += --specs=rdimon.specs -lc -lrdimon
 ################################################################################
 
 # PHONY - Targets that do not represent files.
-.PHONY: all clean debug upload target size mx check
+.PHONY: all clean debug upload target size mx
 
-all:
-	@echo $(SOURCES)
-	@echo $(LIBS)
-	@echo ""
-	@echo ""
-	@echo "LDFLAGS: $(LDFLAGS)"
-	@echo ""
-	@echo ~
-	@echo $(OBJECTS)
-	@echo $(PATH_PROJECT_DIR)
+all: target
 
 target: $(TARGET).hex
 
@@ -232,8 +232,9 @@ $(TARGET).hex: $(TARGET).elf
 
 #Compile elf binary from object files
 $(TARGET).elf: $(OBJECTS)
+	@echo ""
 	@echo "[LD] $(TARGET).elf"
-	@echo " Linking: $(OBJECTS)"
+	@echo "[LINKING] $(OBJECTS)"
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
 size: $(TARGET).elf
