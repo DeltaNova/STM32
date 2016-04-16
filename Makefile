@@ -15,7 +15,7 @@ DEVICE_FAMILY = STM32F1xx
 DEVICE_FAMILY_LOWER = stm32f1xx
 
 # Location of the STM32CUBE Files
-STMCUBEMX = $(wildcard ~)/Software/STM32/STM32CubeMX/
+STMCUBEMX = $(wildcard ~)/Software/STM32/STM32CubeMX
 STMCUBE_REPO = $(STMCUBEMX)/Repository/STM32Cube_FW_F1_V1.3.0/
 
 STMCUBE_PATH = Drivers/CMSIS/Device/ST/STM32F1xx/
@@ -86,6 +86,11 @@ else
 $(info [CUSTOM] [SYSTEM] $(SYSTEM))
 endif
 ################################################################################
+# Check for .gdbint file
+ifeq ("","$(wildcard $(PATH_PROJECT_DIR).gdbinit)")
+$(warning Unable to locate .gdbinit, you might want to create one; it's useful)
+endif
+################################################################################
 # Insert Blank Line in Terminal Output
 $(info )
 
@@ -107,20 +112,24 @@ OBJDUMP	= $(PREFIX)-objdump
 SIZE	= $(PREFIX)-size
 GDB		= $(PREFIX)-gdb
 ################################################################################
-
 # Check that the main project file is available
+ifeq ("","$(wildcard $(PATH_PROJECT_DIR)$(TARGET).c $(PATH_PROJECT_DIR)$(TARGET).cpp)")
+$(warning Target Source Not Found)
+$(error Expected $(PATH_PROJECT_DIR)$(TARGET).c or $(PATH_PROJECT_DIR)$(TARGET).cpp)
+endif
+# Check for too many project files
 PROJECT_FILE := $(wildcard $(TARGET).c $(TARGET).cpp)
-ifdef PROJECT_FILE
 ifneq "$(words $(PROJECT_FILE))" "1"
-$(error More than one project file in this directory!)
+$(warning More than one project file in this directory!)
+$(error Remove or Rename: $(PROJECT_FILE))
 endif
-endif
-# TODO: Add a check for a missing project file
 ################################################################################
 # Automatically determine the sources
 SOURCES := $(wildcard *.c *.cc *.cpp *.C *.s)
 SOURCES += $(STARTUP)
-#SOURCES += $(SYSTEM) # Not required if system file in project root. Fails if added twice.
+# TODO: Check if this is needed when using the CMSIS SYSTEM file.
+#       Could be made part of the CMSIS/CUSTOM SYSTEM file check.
+#SOURCES += $(SYSTEM) # Not req if system file in proj dir. Fail if added twice.
 DIR = $(dir $(TARGET))
 
 OBJECTS += $(wildcard *.o)
@@ -135,10 +144,11 @@ CPPFLAGS += -g
 CPPFLAGS += -mcpu=$(MCPU)
 # Compile for little endian target
 CPPFLAGS += -mlittle-endian
-# Generate core that executes in Thumb states <----------- What does this mean??
+# Generate core that executes in Thumb states <------TODO: What does this mean??
 CPPFLAGS += -mthumb
 # Device compiling for
 #CPPFLAGS += -D$(DEVICE)
+# TODO: Move this hardcoded variable up to the top with the others
 CPPFLAGS += -DSTM32F103xB
 # Optimise for size
 CPPFLAGS += -Os
@@ -161,10 +171,11 @@ LIBS += $(STMCUBE_REPO)$(STMCUBE_PATH2)
 LDFLAGS += -mcpu=$(MCPU)
 LDFLAGS += -mlittle-endian
 LDFLAGS += -mthumb
+# TODO: Move this hardcoded variable up to the top with the others
 LDFLAGS += -DSTM32F103xB
 LDFLAGS += -T$(LINKER)
 LDFLAGS += -Wl,--gc-sections
-# Enable Semihosting  <---------------------------Make notes as to what this is.
+# Enable Semihosting  <-------------------- TODO: Make notes as to what this is.
 LDFLAGS += --specs=rdimon.specs -lc -lrdimon
 ################################################################################
 
@@ -228,7 +239,6 @@ $(TARGET).elf: $(OBJECTS)
 size: $(TARGET).elf
 	$(SIZE) -A -d $(TARGET).elf
 
-# TODO: Add a check for local .gdbinit
 upload: $(TARGET).hex
 	@echo "[UPLOAD] $(TARGET).hex"
 	@echo "[GDB]"
@@ -254,11 +264,3 @@ clean:
 # Launch STMCubeMX GUI
 mx:
 	$(STMCUBEMX)
-
-# Check for certain files in the project directory. <--------- Under Development
-check:
-ifeq ("","$(wildcard $(PATH_PROJECT_DIR)startup*)")
-	@echo "File Not Found"
-else
-	@echo "File Found"
-endif
