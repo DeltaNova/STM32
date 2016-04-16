@@ -183,7 +183,7 @@ debug: CPPFLAGS += -DDEBUG
 debug: $(TARGET).elf
 	@echo "[UPLOAD] $(TARGET).elf"
 	@echo "[GDB]"
-	$(GDB) $(TARGET).elf
+	$(GDB) $(TARGET).elf -tui
 
 # Clean up build files
 clean:
