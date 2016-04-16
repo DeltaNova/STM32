@@ -3,10 +3,11 @@
 # Usage:
 #       make test
 ################################################################################
-TARGET = hello
-# ~ points to current users home directory
-# Need to use the $(wildcard ...) function to force expansion when setting variables.
-PATH_PROJECT_DIR = $(wildcard ~)/STM32/test4/
+######################### START CONFIG SECTION #################################
+################################################################################
+#Uncomment and set the following as required
+# TARGET = default_target
+# PATH_PROJECT_DIR = $(CURDIR)
 
 DEVICE = STM32F103XB
 DEVICE_LOWER = stm32f103xb
@@ -14,22 +15,79 @@ DEVICE_FAMILY = STM32F1xx
 DEVICE_FAMILY_LOWER = stm32f1xx
 
 # Location of the STM32CUBE Files
-STMCUBEROOT = $(wildcard ~)/Downloads/STM32Cube_FW_F1_V1.3.0/
+STMCUBEMX = $(wildcard ~)/Software/STM32/STM32CubeMX/
+STMCUBE_REPO = $(STMCUBEMX)/Repository/STM32Cube_FW_F1_V1.3.0/
+
 STMCUBE_PATH = Drivers/CMSIS/Device/ST/STM32F1xx/
 STMCUBE_PATH2 = Drivers/CMSIS/Include/
 
-# NOTE: Using local modified version of Cube Linker, Cube version (V1.3.0)buggy
-#LINKER = $(STMCUBEROOT)$(STMCUBE_PATH)Source/Templates/gcc/linker/$(DEVICE)_FLASH.ld
-LINKER = $(DEVICE)_FLASH.ld
-# TODO: Check to see if there is a LINKER in the project directory and if so use
-#       that over the Cube LINKER
+CMSIS_LINKER_PATH =$(STMCUBE_REPO)$(STMCUBE_PATH)Source/Templates/gcc/linker/
+CMSIS_LINKER = $(CMSIS_LINKER_PATH)$(DEVICE)_FLASH.ld
 
-STARTUP_PATH = $(STMCUBEROOT)$(STMCUBE_PATH)Source/Templates/gcc/
-STARTUP = $(STMCUBEROOT)$(STMCUBE_PATH)Source/Templates/gcc/startup_$(DEVICE_LOWER).s
-# TODO: Check to see if there is a STARTUP in the project directory and
-#       if so use that over the Cube STARTUP
-SYSTEM_PATH = $(STMCUBEROOT)$(STMCUBE_PATH)Source/Templates/
-SYSTEM = $(STMCUBEROOT)$(STMCUBE_PATH)Source/Templates/system_$(DEVICE_FAMILY_LOWER).c
+CMSIS_STARTUP_PATH = $(STMCUBE_REPO)$(STMCUBE_PATH)Source/Templates/gcc/
+CMSIS_STARTUP = $(CMSIS_STARTUP_PATH)startup_$(DEVICE_LOWER).s
+
+CMSIS_SYSTEM_PATH = $(STMCUBE_REPO)$(STMCUBE_PATH)Source/Templates/
+CMSIS_SYSTEM = $(CMSIS_SYSTEM_PATH)system_$(DEVICE_FAMILY_LOWER).c
+
+# Custom File Paths
+CUSTOM_LINKER = Custom_$(DEVICE)_FLASH.ld
+CUSTOM_STARTUP = startup_$(DEVICE_LOWER).s
+CUSTOM_SYSTEM = system_stm32f1xx.c
+################################################################################
+######################## END CONFIG SECTION ####################################
+################################################################################
+# Set the TARGET name if not defined
+ifndef TARGET
+TARGET = default_target
+endif
+# Set the path to the project directory if not defined.
+# ~ points to current users home directory
+# The $(wildcard ...) function forces expansion when setting variables.
+# TODO: Would this be better being set to $(CURDIR) dif of executing Makefile?
+ifndef PATH_PROJECT_DIR
+PATH_PROJECT_DIR = $(wildcard ~)
+endif
+################################################################################
+# NOTE: Use a local modified version of Cube Linker, Cube version (V1.3.0)buggy
+# TODO: Improve how Makefile handles custom linker files with different names.
+# If a local Linker file is found use that, otherwise revert to Cube version.
+ifeq ("","$(wildcard $(PATH_PROJECT_DIR)*.ld)")
+# Using CMSIS Linker
+	LINKER = $(CMSIS_LINKER)
+$(info [CMSIS]  [LINKER] $(LINKER))
+else
+# Using Custom Project Linker
+	LINKER = $(CUSTOM_LINKER)
+$(info [CUSTOM] [LINKER] $(LINKER))
+endif
+################################################################################
+# Check for project specific startup file to use instead of CMSIS version.
+# TODO: Improve how Makefile handles custom startup files with different names and types.
+ifeq ("","$(wildcard $(PATH_PROJECT_DIR)startup*.s)")
+# Using CMSIS Startup File
+	STARTUP = $(CMSIS_STARTUP)
+$(info [CMSIS]  [STARTUP] $(STARTUP))
+else
+# Using Custom Project Startup File
+	STARTUP = $(CUSTOM_STARTUP)
+$(info [CUSTOM] [STARTUP] $(STARTUP))
+endif
+################################################################################
+# Check for project specific system file to use instead of CMSIS version.
+# TODO: Improve how Makefile handles custom system files with different names.
+ifeq ("","$(wildcard $(PATH_PROJECT_DIR)system*.c)")
+# Using CMSIS System File
+	SYSTEM = $(CMSIS_SYSTEM)
+$(info [CMSIS]  [SYSTEM] $(SYSTEM))
+else
+# Using Project System File
+	SYSTEM = $(CUSTOM_SYSTEM)
+$(info [CUSTOM] [SYSTEM] $(SYSTEM))
+endif
+################################################################################
+# Insert Blank Line in Terminal Output
+$(info )
 
 # MCPU variable for GCC
 MCPU = cortex-m3
@@ -58,11 +116,11 @@ $(error More than one project file in this directory!)
 endif
 endif
 # TODO: Add a check for a missing project file
-
+################################################################################
 # Automatically determine the sources
 SOURCES := $(wildcard *.c *.cc *.cpp *.C *.s)
 SOURCES += $(STARTUP)
-SOURCES += $(SYSTEM)
+#SOURCES += $(SYSTEM) # Not required if system file in project root. Fails if added twice.
 DIR = $(dir $(TARGET))
 
 OBJECTS += $(wildcard *.o)
@@ -92,9 +150,9 @@ CPPFLAGS += $(addprefix -I, $(LIBS))
 
 # Libaray Search Paths
 # Path to $(DEVICE).h system_$(DEVICE).h
-LIBS += $(STMCUBEROOT)$(STMCUBE_PATH)Include/
+LIBS += $(STMCUBE_REPO)$(STMCUBE_PATH)Include/
 # Path to cmsis_ghh.h core_cm3.h
-LIBS += $(STMCUBEROOT)$(STMCUBE_PATH2)
+LIBS += $(STMCUBE_REPO)$(STMCUBE_PATH2)
 
 #LDFLAGS += -Wl, --gc-sections
 #LDFLAGS += --gc-sections -Wl,
@@ -124,7 +182,7 @@ LDFLAGS += --specs=rdimon.specs -lc -lrdimon
 %.o : %.s
 	$(CC) $(CPPFLAGS) $< -o $(notdir $@)
 # Compiling Object Files From S Files in Cube32 Dir
-%.o : $(STARTUP_PATH)%.s
+%.o : $(CMSIS_STARTUP_PATH)%.s
 	$(CC) $(CPPFLAGS) $< -o $(notdir $@)
 
 ################################################################################
@@ -135,7 +193,7 @@ LDFLAGS += --specs=rdimon.specs -lc -lrdimon
 ################################################################################
 
 # PHONY - Targets that do not represent files.
-.PHONY: all clean debug upload target size
+.PHONY: all clean debug upload target size mx check
 
 all:
 	@echo $(SOURCES)
@@ -146,6 +204,7 @@ all:
 	@echo ""
 	@echo ~
 	@echo $(OBJECTS)
+	@echo $(PATH_PROJECT_DIR)
 
 target: $(TARGET).hex
 
@@ -159,7 +218,6 @@ OBJECTS := $(addsuffix .o, $(notdir $(basename $(SOURCES))))
 # Covert elf binary to hex
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -O ihex $< $@
-
 
 #Compile elf binary from object files
 $(TARGET).elf: $(OBJECTS)
@@ -192,3 +250,15 @@ clean:
 	@echo "[REMOVE] $(TARGET).lst"; rm -f $(TARGET).lst
 	@echo "[REMOVE] $(TARGET).hex"; rm -f $(TARGET).hex
 	@echo "[REMOVE] *.o"; rm *.o
+
+# Launch STMCubeMX GUI
+mx:
+	$(STMCUBEMX)
+
+# Check for certain files in the project directory. <--------- Under Development
+check:
+ifeq ("","$(wildcard $(PATH_PROJECT_DIR)startup*)")
+	@echo "File Not Found"
+else
+	@echo "File Found"
+endif
