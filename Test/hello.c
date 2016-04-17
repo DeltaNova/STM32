@@ -1,4 +1,4 @@
-// Basic STM32 demo that runs the internal oscillator,
+// Basic STM32 demo that runs from the internal oscillator,
 // flashes an LED and writes out serial data.
 
 #include "stm32f103xb.h"
