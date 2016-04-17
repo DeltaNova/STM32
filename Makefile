@@ -264,4 +264,4 @@ clean:
 
 # Launch STMCubeMX GUI
 mx:
-	$(STMCUBEMX)
+	$(STMCUBEMX)/STM32CubeMX
