@@ -11,6 +11,8 @@ extern void initialise_monitor_handles(void);
 
 void ClockSetup();
 void MCO();
+void LSE_Setup();
+
 void semihost(void) {
     // Initialise Semihost requirement based on DEBUG flag setting
     #ifdef DEBUG
@@ -49,6 +51,7 @@ int main(void) {
     semihost(); // Add semihost functionality
     ClockSetup();
     //MCO(); // Working - MCO = 8MHZ
+    //LSE_Setup(); // Work In Progress
     semihostmsg(0); // Send Semihost Message
     while(1){
     delay(1000);
@@ -56,6 +59,18 @@ int main(void) {
     };
 }
 
+void LSE_Setup(){
+
+    RCC->APB1ENR = 0x00000000; // Reset RCC-APB1ENR to defaults
+    RCC->APB1ENR |= 0x08000000;// Enable backup interface clock
+    RCC->BDCR = 0x00000000; // Reset RCC->BDCR to defaults.
+
+    RCC->BDCR |= 0x00000001;            // Turn on LSE Oscillator
+    while(!(RCC->BDCR & 0x00000002));   // Wait until LSE ready & stable
+
+    RCC->BDCR |= 0x00000100;    // Select LSE as RTC Source
+    RCC->BDCR |= 0x00008000;    // Enable RTC
+}
 
 void ClockSetup() {
     RCC->CR |= 0x00000001; // Turn on HSI Oscillator
