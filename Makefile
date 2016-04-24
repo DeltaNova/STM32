@@ -239,6 +239,7 @@ $(TARGET).elf: $(OBJECTS)
 
 size: $(TARGET).elf
 	$(SIZE) -A -d $(TARGET).elf
+	$(SIZE) -B $(TARGET).elf
 
 upload: $(TARGET).hex
 	@echo "[UPLOAD] $(TARGET).hex"
