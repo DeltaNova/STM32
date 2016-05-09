@@ -60,6 +60,10 @@ int main(void) {
 }
 
 void LSE_Setup(){
+    // TODO: Suspect this needs a few more register options to work.
+    //      - Configure pins??
+    // Try DBP bit in PWR_CR, ref 7.3.9 RCC_BDCR
+    //  - Appears backup domain write protected after reset.
 
     RCC->APB1ENR = 0x00000000; // Reset RCC-APB1ENR to defaults
     RCC->APB1ENR |= 0x08000000;// Enable backup interface clock
