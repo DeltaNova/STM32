@@ -137,13 +137,18 @@ uint8_t bufferRead(volatile struct Buffer *buffer, uint8_t *byte){
 
 uint8_t bufferPeek(volatile struct Buffer *buffer, uint8_t *byte){
     /*
-    One trick is in defining the last_index. When the buffer has just wrapped
+    https://hackaday.com/2015/10/29/embed-with-elliot-going-round-with-circular-buffers/
+    "One trick is in defining the last_index. When the buffer has just wrapped
     around, newest_index can be equal to zero. Subtracting one from that (to go
     back to the last written character) will end up with a negative number in
     that case. Adding another full BUFFER_SIZE to the index prevents the value
     from ever going negative, and the extra factor of BUFFER_SIZE gets knocked
-    out by the modulo operation anyway.
+    out by the modulo operation anyway."
     */
+    // bufferPeek looks inside the buffer at the last byte stored and stores its
+    // value at the location pointed to by the byte variable.
+
+
     uint8_t last_index = ((BUFFER_SIZE + (buffer->newest_index) - 1) % BUFFER_SIZE);
 
     // Is the buffer empty?
@@ -165,7 +170,7 @@ int main(void){
     // This is the data to put into the buffer.
     uint8_t data2store [] = "Print Me To Screen Later\n";
 
-    std::cout << "We will start by storing a message in the buffer\n";
+    std::cout << "Test 1: We will start by storing a message in the buffer\n";
 
     // Zero Counter
     uint8_t i = 0;
@@ -184,12 +189,42 @@ int main(void){
         }
     }
 
-    std::cout << "We now have data in the buffer, time to read it\n";
+    std::cout << "Test 2: We now have data in the buffer, time to read it\n";
 
     uint8_t tempCharStorage; // Location in memory to store the read byte
     // While there is data in the buffer
     while(bufferRead(&buffer, &tempCharStorage) == 0){
         std::cout << tempCharStorage;
     }
+    // The buffer is now empty.
+
+    std::cout << "\nTest 3: Try out bufferPeek()\n";
+
+    uint8_t check_byte; // Storage for output of bufferPeek()
+    // Lets add some data to the buffer.
+
+    // This is the data to put into the buffer.
+    uint8_t data2store2 [] = "Hello\n";
+    // Zero Counter
+    uint8_t j = 0;
+
+    // While there continues to be data to store in the buffer.
+    while(j < sizeof(data2store2) - 1){
+        // Store data byte in buffer unless it is full
+        if(bufferWrite(&buffer, data2store2[j]) == 0){
+            // Increment counter
+            j++;
+            // Obtain the buffer status and store the last byte as check_byte
+            uint8_t buffer_status = bufferPeek(&buffer, &check_byte);
+            if ( buffer_status == 0 && check_byte == 'l'){
+            std::cout << "The letter 'l' has been stored in the buffer\n";
+            }
+
+        }else{
+            std::cout << "Buffer is Full!\n";
+            break;
+        }
+    }
+
     return 0;
 }
