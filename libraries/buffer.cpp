@@ -33,8 +33,14 @@
 
 #define BUFFER_SIZE  16
 
-//#include <stdint.h> // uint8_t
 #include <iostream> // std::cout
+/*
+Begin by defining an instance of the Buffer called buffer.
+No Data, newest_index = 0, oldest_index = 0
+Defined globally so it can be used by both interruts
+and main program functions.
+*/
+volatile struct Buffer buffer {{},0,0};
 
 /*
     COMPILE:
@@ -162,34 +168,44 @@ uint8_t bufferPeek(volatile struct Buffer *buffer, uint8_t *byte){
     return 0; // Buffer OK
     }
 
+void test1(){
+  /*
+  Test 1: Writing to the buffer
+  */
+  // This is the data to put into the buffer.
+  uint8_t data2store [] = "Print Me To Screen Later\n";
+  std::cout << "Test 1: We will start by storing a message in the buffer\n";
+  uint8_t i = 0;  // Zero Counter
+
+  // While there continues to be data to store in the buffer.
+  while(i < sizeof(data2store) - 1){
+    // TODO: Test for buffer full
+    // Store data byte in buffer unless it is full
+    if(bufferWrite(&buffer, data2store[i]) == 0){
+        // Increment counter
+        i++;
+    }else{
+        std::cout << "Buffer is Full!\n";
+        break;
+    }
+  }
+}
+
+void test2(){
+  /*
+  Test 2:
+  */
+}
+
+void test3(){
+  /*
+  Test 3:
+  */
+}
 
 int main(void){
     std::cout << "This is a test of a circular buffer.\n";
-    // Begin by defining an instance of the Buffer called buffer.
-    // No Data, newest_index = 0, oldest_index = 0
-    volatile struct Buffer buffer {{},0,0};
-
-    // This is the data to put into the buffer.
-    uint8_t data2store [] = "Print Me To Screen Later\n";
-
-    std::cout << "Test 1: We will start by storing a message in the buffer\n";
-
-    // Zero Counter
-    uint8_t i = 0;
-
-    // While there continues to be data to store in the buffer.
-    while(i < sizeof(data2store) - 1){
-
-        // TODO: Test for buffer full
-        // Store data byte in buffer unless it is full
-        if(bufferWrite(&buffer, data2store[i]) == 0){
-            // Increment counter
-            i++;
-        }else{
-            std::cout << "Buffer is Full!\n";
-            break;
-        }
-    }
+    test1();
 
     std::cout << "Test 2: We now have data in the buffer, time to read it\n";
 
