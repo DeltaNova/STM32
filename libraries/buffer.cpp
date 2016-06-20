@@ -75,10 +75,11 @@ struct Buffer {
 };
 
 uint8_t bufferWrite(volatile struct Buffer *buffer, uint8_t byte){
-    // Pointer to Buffer Structure passed to function as argument.
-    // volatile because the buffer needs to be updated via interrupts.
-    // Ref: http://hackaday.com/2015/08/18/embed-with-elliot-the-volatile-keyword/
-
+    /*
+    Pointer to Buffer Structure passed to function as argument.
+    volatile because the buffer needs to be updated via interrupts.
+    Ref: http://hackaday.com/2015/08/18/embed-with-elliot-the-volatile-keyword/
+    */
     /*
     Ref:
     www.hackaday.com/2015/10/29/embed-with-elliot-going-round-with-circular-buffers/
@@ -112,11 +113,13 @@ uint8_t bufferWrite(volatile struct Buffer *buffer, uint8_t byte){
 }
 
 uint8_t bufferRead(volatile struct Buffer *buffer, uint8_t *byte){
-    // Pointer to Buffer Structure passed to function as argument.
-    // volatile because the buffer needs to be updated via interrupts.
-    // Ref: http://hackaday.com/2015/08/18/embed-with-elliot-the-volatile-keyword/
-    // Pointer to location for read byte to be stored passed as argument,
-    // required as return value is for buffer status.
+    /*
+    Pointer to Buffer Structure passed to function as argument.
+    volatile because the buffer needs to be updated via interrupts.
+    Ref: http://hackaday.com/2015/08/18/embed-with-elliot-the-volatile-keyword/
+    Pointer to location for read byte to be stored passed as argument,
+    required as return value is for buffer status.
+    */
 
     // Is the buffer empty?
     if (buffer->newest_index == buffer->oldest_index){
@@ -147,7 +150,6 @@ uint8_t bufferPeek(volatile struct Buffer *buffer, uint8_t *byte){
     */
     // bufferPeek looks inside the buffer at the last byte stored and stores its
     // value at the location pointed to by the byte variable.
-
 
     uint8_t last_index = ((BUFFER_SIZE + (buffer->newest_index) - 1) % BUFFER_SIZE);
 
