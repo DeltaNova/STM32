@@ -1,4 +1,4 @@
-// buffer.cpp - Circular Buffer Example
+// buffer.cpp - Circular Buffer
 
 /*
   The MIT License (MIT)
@@ -29,11 +29,14 @@
     June 2016 M.Tunstall - Modified example based on these original works
         https://hackaday.com/2015/10/29/embed-with-elliot-going-round-with-circular-buffers/
         https://github.com/hexagon5un/embed_with_elliot-circular_buffer
+    July 2016 M.Tunstall
+        - Moved library test code to buffer_test.cpp
+        - Moved struct definition to header file
 */
 
 #define BUFFER_SIZE  16
-
-//#include <stdint.h> // uint8_t
+#include "buffer.h"
+#include <stdint.h> // uint8_t
 #include <iostream> // std::cout
 
 /*
@@ -67,12 +70,6 @@
     sense to define say a small, standard, large Buffer struct and then allow
     the user to define additional sizes as required?
 */
-// Data Structure of Buffer
-struct Buffer {
-    uint8_t data[BUFFER_SIZE];
-    uint8_t newest_index;
-    uint8_t oldest_index;
-};
 
 uint8_t bufferWrite(volatile struct Buffer *buffer, uint8_t byte){
     // Pointer to Buffer Structure passed to function as argument.
@@ -161,70 +158,3 @@ uint8_t bufferPeek(volatile struct Buffer *buffer, uint8_t *byte){
     }
 
 
-int main(void){
-    std::cout << "This is a test of a circular buffer.\n";
-    // Begin by defining an instance of the Buffer called buffer.
-    // No Data, newest_index = 0, oldest_index = 0
-    volatile struct Buffer buffer {{},0,0};
-
-    // This is the data to put into the buffer.
-    uint8_t data2store [] = "Print Me To Screen Later\n";
-
-    std::cout << "Test 1: We will start by storing a message in the buffer\n";
-
-    // Zero Counter
-    uint8_t i = 0;
-
-    // While there continues to be data to store in the buffer.
-    while(i < sizeof(data2store) - 1){
-
-        // TODO: Test for buffer full
-        // Store data byte in buffer unless it is full
-        if(bufferWrite(&buffer, data2store[i]) == 0){
-            // Increment counter
-            i++;
-        }else{
-            std::cout << "Buffer is Full!\n";
-            break;
-        }
-    }
-
-    std::cout << "Test 2: We now have data in the buffer, time to read it\n";
-
-    uint8_t tempCharStorage; // Location in memory to store the read byte
-    // While there is data in the buffer
-    while(bufferRead(&buffer, &tempCharStorage) == 0){
-        std::cout << tempCharStorage;
-    }
-    // The buffer is now empty.
-
-    std::cout << "\nTest 3: Try out bufferPeek()\n";
-
-    uint8_t check_byte; // Storage for output of bufferPeek()
-    // Lets add some data to the buffer.
-
-    // This is the data to put into the buffer.
-    uint8_t data2store2 [] = "Hello\n";
-    // Zero Counter
-    uint8_t j = 0;
-
-    // While there continues to be data to store in the buffer.
-    while(j < sizeof(data2store2) - 1){
-        // Store data byte in buffer unless it is full
-        if(bufferWrite(&buffer, data2store2[j]) == 0){
-            // Increment counter
-            j++;
-            // Obtain the buffer status and store the last byte as check_byte
-            uint8_t buffer_status = bufferPeek(&buffer, &check_byte);
-            if ( buffer_status == 0 && check_byte == 'l'){
-            std::cout << "The letter 'l' has been stored in the buffer\n";
-            }
-
-        }else{
-            std::cout << "Buffer is Full!\n";
-            break;
-        }
-    }
-
-    return 0;
-}
