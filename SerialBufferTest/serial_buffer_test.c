@@ -1,27 +1,24 @@
 // STM32F103 Serial Setup & Test with Buffer
-
+////////////////////////////////////////////////////////////////////////////////
+#include "buffer.h"
+#include <stdint.h> // uint8_t
 #include "stm32f103xb.h"
 
+// Create buffers - Size defined by buffer.h or variable for compiler.
+volatile struct Buffer serial_tx_buffer {{},0,0};
+volatile struct Buffer serial_rx_buffer {{},0,0};
 
 void ClockSetup();
 void SerialSetup();
 void SerialSendByte(uint8_t);
 uint8_t SerialReadByte();
-
-void delay(int count)
-{
-    // volatile so that the compiler doesn't optimise it out
-    volatile int i;
-
-    for (i = 0; i < count; i++)
-    {
-    }
-}
-
-// Main - Called by the startup code.
+void delay(int);
+////////////////////////////////////////////////////////////////////////////////
+// Main - This function is called by the startup code.
 int main(void) {
     ClockSetup();
     SerialSetup();
+
     while(1){
     delay(1000);
     SerialSendByte(0x48);  // H
@@ -40,6 +37,17 @@ int main(void) {
     SerialSendByte(0x21);  // !
     SerialSendByte(0x00);  //
     };
+}
+
+
+void SerialBufferSend(){
+    // Send the contents of the serial_tx_buffer
+
+    // First thing is to load the buffer with data to send.
+}
+
+void SerialBufferReceive(){
+    // Receive data to the serial_rx_buffer
 }
 
 void ClockSetup() {
@@ -125,7 +133,6 @@ void SerialSendByte(uint8_t data2send){
     USART1->DR = data2send;
     return;
     }
-
 uint8_t SerialReadByte(){
     // Not Tested
     // Wait until RXNE = 1 (indicates DR ready to be read)
@@ -133,3 +140,13 @@ uint8_t SerialReadByte(){
     uint8_t readData = (uint8_t)(USART1->DR & 0xFF); // Read Data
     return(readData);
     }
+
+void delay(int count)
+{
+    // volatile so that the compiler doesn't optimise it out
+    volatile int i;
+
+    for (i = 0; i < count; i++)
+    {
+    }
+}
