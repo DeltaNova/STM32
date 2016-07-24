@@ -1,5 +1,4 @@
 // buffer_test.cpp - Circular Buffer Example testing buffer.h/buffer.cpp
-#define BUFFER_SIZE  16
 #include "buffer.h"
 #include <stdint.h> // uint8_t
 #include <iostream> // std::cout
@@ -8,9 +7,6 @@
     -------
     g++ -std=gnu++11 -L buffer -W -o buffer_test buffer_test.cpp buffer.cpp
 */
-
-
-
 
 int main(void){
     std::cout << "This is a test of a circular buffer.\n";

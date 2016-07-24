@@ -1,8 +1,13 @@
 // buffer.h - Circular Buffer
 
+// Set BUFFER_SIZE by adding -D BUFFER_SIZE=32 for example when compiling
+
+#ifndef BUFFER_SIZE
+#define BUFFER_SIZE  16     // Set a default buffer size.
+#endif
+
 #ifndef BUFFER_H
 #define BUFFER_H
-
 #include "buffer.h"
 #include <stdint.h> // uint8_t
 #include <iostream> // std::cout

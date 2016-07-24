@@ -32,9 +32,10 @@
     July 2016 M.Tunstall
         - Moved library test code to buffer_test.cpp
         - Moved struct definition to header file
+        - Added LoadBuffer function
 */
 
-#define BUFFER_SIZE  16
+
 #include "buffer.h"
 #include <stdint.h> // uint8_t
 #include <iostream> // std::cout
