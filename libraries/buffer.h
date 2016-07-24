@@ -31,5 +31,6 @@ struct Buffer {
 uint8_t bufferWrite(volatile struct Buffer *buffer, uint8_t byte);
 uint8_t bufferRead(volatile struct Buffer *buffer, uint8_t *byte);
 uint8_t bufferPeek(volatile struct Buffer *buffer, uint8_t *byte);
+uint8_t LoadBuffer(volatile struct Buffer *loadbuffer, uint8_t *data_array, uint8_t array_size);
 
 #endif // BUFFER_H

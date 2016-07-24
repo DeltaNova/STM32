@@ -157,4 +157,32 @@ uint8_t bufferPeek(volatile struct Buffer *buffer, uint8_t *byte){
     return 0; // Buffer OK
     }
 
+uint8_t LoadBuffer(volatile struct Buffer *loadbuffer, uint8_t *data_array, uint8_t array_size){
+    // Loads an array of data into a buffer
+    // Returns:
+    //      0 if load successful
+    //      2 if buffer filled before/during load completion.
+
+    // DEV NOTE:
+    // C++ does not copy an array when an array is passed into a function. When
+    // passing an array as an argument to a function, a fixed array decays into a
+    // pointer, and the pointer is passed to the function.
+    // Array size needs to be passed as an additional variable.
+
+    // Zero Counter
+    uint8_t i = 0;
+    uint8_t buffer_status = 0;
+
+    // While there continues to be data to store in the buffer.
+    while(i < array_size - 1){
+        // Store data byte in buffer unless it is full
+        if(bufferWrite(*&loadbuffer, data_array[i]) == 0){
+            i++;    // Increment counter
+        }else{
+            buffer_status = 2; // Buffer is Full!
+            break;
+        }
+    }
+    return buffer_status;
+}
 

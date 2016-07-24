@@ -9,6 +9,9 @@
     g++ -std=gnu++11 -L buffer -W -o buffer_test buffer_test.cpp buffer.cpp
 */
 
+
+
+
 int main(void){
     std::cout << "This is a test of a circular buffer.\n";
     // Begin by defining an instance of the Buffer called buffer.
@@ -17,28 +20,15 @@ int main(void){
 
     // This is the data to put into the buffer.
     uint8_t data2store [] = "Print Me To Screen Later\n";
-
+    ////////////////////////////////////////////////////////////////////////////
+    // TEST 1
     std::cout << "Test 1: We will start by storing a message in the buffer\n";
 
-    // Zero Counter
-    uint8_t i = 0;
+    LoadBuffer(&buffer, data2store, sizeof(data2store)); // Put data into the buffer
 
-    // While there continues to be data to store in the buffer.
-    while(i < sizeof(data2store) - 1){
-
-        // TODO: Test for buffer full
-        // Store data byte in buffer unless it is full
-        if(bufferWrite(&buffer, data2store[i]) == 0){
-            // Increment counter
-            i++;
-        }else{
-            std::cout << "Buffer is Full!\n";
-            break;
-        }
-    }
-
+    ////////////////////////////////////////////////////////////////////////////
+    // TEST 2
     std::cout << "Test 2: We now have data in the buffer, time to read it\n";
-
     uint8_t tempCharStorage; // Location in memory to store the read byte
     // While there is data in the buffer
     while(bufferRead(&buffer, &tempCharStorage) == 0){
@@ -46,6 +36,8 @@ int main(void){
     }
     // The buffer is now empty.
 
+    ////////////////////////////////////////////////////////////////////////////
+    // TEST 3
     std::cout << "\nTest 3: Try out bufferPeek()\n";
 
     uint8_t check_byte; // Storage for output of bufferPeek()
@@ -76,3 +68,5 @@ int main(void){
 
     return 0;
 }
+
+
