@@ -4,20 +4,28 @@
 #include <stdint.h> // uint8_t
 #include "stm32f103xb.h"
 
-// Create buffers - Size defined by buffer.h or variable for compiler.
-volatile struct Buffer serial_tx_buffer {{},0,0};
-volatile struct Buffer serial_rx_buffer {{},0,0};
 
+
+// Strings
+uint8_t test_message[] = "Does it work?\n";
+
+// Function Declarations
 void ClockSetup();
 void SerialSetup();
 void SerialSendByte(uint8_t);
 uint8_t SerialReadByte();
 void delay(int);
+void SerialBufferSend(volatile struct Buffer &serial_tx_buffer);
+void SerialBufferReceive();
 ////////////////////////////////////////////////////////////////////////////////
 // Main - This function is called by the startup code.
-int main(void) {
+int main() {
     ClockSetup();
     SerialSetup();
+
+    // Create buffers - Size defined by buffer.h or variable for compiler.
+    volatile struct Buffer serial_tx_buffer {{}, 0, 0};
+    //volatile struct Buffer serial_rx_buffer {{}, 0, 0};
 
     while(1){
     delay(1000);
@@ -37,13 +45,21 @@ int main(void) {
     SerialSendByte(0x21);  // !
     SerialSendByte(0x00);  //
     };
+
+    // Load Serial_TX_Buffer
+    LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
+
 }
 
 
-void SerialBufferSend(){
+void SerialBufferSend(volatile struct Buffer &serial_tx_buffer){
     // Send the contents of the serial_tx_buffer
+    uint8_t tempCharStorage; // Location in memory to store the read byte
+    // While there is data in the buffer
 
-    // First thing is to load the buffer with data to send.
+    while(bufferRead(&serial_tx_buffer, &tempCharStorage) == 0){
+        SerialSendByte(tempCharStorage);
+    }
 }
 
 void SerialBufferReceive(){
@@ -132,7 +148,8 @@ void SerialSendByte(uint8_t data2send){
     // Put data2send into Data Register
     USART1->DR = data2send;
     return;
-    }
+}
+
 uint8_t SerialReadByte(){
     // Not Tested
     // Wait until RXNE = 1 (indicates DR ready to be read)
