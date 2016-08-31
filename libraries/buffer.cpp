@@ -38,7 +38,6 @@
 
 #include "buffer.h"
 #include <stdint.h> // uint8_t
-#include <iostream> // std::cout
 
 /*
     COMPILE:
@@ -187,3 +186,4 @@ uint8_t LoadBuffer(volatile struct Buffer *loadbuffer, uint8_t *data_array, uint
     return buffer_status;
 }
 
+//int main(){}

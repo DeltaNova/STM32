@@ -10,7 +10,7 @@
 #define BUFFER_H
 #include "buffer.h"
 #include <stdint.h> // uint8_t
-#include <iostream> // std::cout
+
 // Data Structure of Buffer
 struct Buffer {
     uint8_t data[BUFFER_SIZE];
