@@ -133,8 +133,9 @@ $(error Remove or Rename: $(PROJECT_FILE))
 endif
 ################################################################################
 # Automatically determine the sources
-SOURCES := $(wildcard *.c *.cc *.cpp *.C *.s)
+SOURCES += $(wildcard *.c *.cc *.cpp *.C *.s)
 SOURCES += $(STARTUP)
+$(info [Sources] $(SOURCES))
 # TODO: Check if this is needed when using the CMSIS SYSTEM file.
 #       Could be made part of the CMSIS/CUSTOM SYSTEM file check.
 #SOURCES += $(SYSTEM) # Not req if system file in proj dir. Fail if added twice.
