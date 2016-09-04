@@ -6,8 +6,7 @@
 
 
 
-// Strings
-uint8_t test_message[] = "Does it work?\n";
+
 
 // Function Declarations
 void ClockSetup();
@@ -24,9 +23,12 @@ int main() {
     SerialSetup();
 
     // Create buffers - Size defined by buffer.h or variable for compiler.
-    volatile struct Buffer serial_tx_buffer {{}, 0, 0};
+    volatile struct Buffer serial_tx_buffer {{},0,0};
     //volatile struct Buffer serial_rx_buffer {{}, 0, 0};
-
+    // Strings
+    //uint8_t test_message[] = "Does it work?\n"; //Size 15
+    uint8_t test_message[] = "Works!\n"; //Size 7
+    /* This block works but never exits. Commenting out.
     while(1){
     delay(1000);
     SerialSendByte(0x48);  // H
@@ -45,9 +47,34 @@ int main() {
     SerialSendByte(0x21);  // !
     SerialSendByte(0x00);  //
     };
+     */
+    while(1){ // Required to prevent SIGTRAP - Infinite loop.
+        // Load Serial_TX_Buffer
+        // The buffer is loaded with the contents of test_message[]
+        // The status of the buffer is loaded into 'a'
+        // The 'H' character is printer to the serial port to confirm operation
+        // The buffer status 'a' is the printed.
+        // Delay for readability.
 
-    // Load Serial_TX_Buffer
-    LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
+        // Expected Output
+        // ---------------
+        // With test_message size 7 the output on the serial port will be:
+        // H0H0H2H2H2H2.....
+        // The code loops twice without the buffer being filled (H0H0)
+        // from that point the buffer is full (H2H2H2H2...)
+        // ----
+        // With test_message size 15 the output on the serial port will be:
+        // H2H2H2H2H2H2.....
+        // The buffer is filled on the first pass through the loop (H2H2H2H2...)
+        // ----
+
+        //LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
+        uint8_t a = LoadBuffer(&serial_tx_buffer, test_message, 7);
+        SerialSendByte(0x48); //H
+        // Send Buffer Status
+        SerialSendByte(0x30 + a); // 0x30 offset to push into ASCII number range
+        delay(8000000); //1 Second Delay
+    }
 
 }
 
