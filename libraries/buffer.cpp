@@ -172,15 +172,26 @@ uint8_t LoadBuffer(volatile struct Buffer *loadbuffer, uint8_t *data_array, uint
     // Zero Counter
     uint8_t i = 0;
     uint8_t buffer_status = 0;
-
+    /*
     // While there continues to be data to store in the buffer.
     while(i < array_size - 1){
         // Store data byte in buffer unless it is full
-        if(bufferWrite(*&loadbuffer, data_array[i]) == 0){
+        if(bufferWrite(loadbuffer, data_array[i]) == 0){
             i++;    // Increment counter
         }else{
             buffer_status = 2; // Buffer is Full!
             break;
+        }
+    }
+    */
+    // While there continues to be data to store in the buffer.
+    while((i < (array_size -1)) && (buffer_status == 0)){
+        // Store data byte in buffer unless it is full
+        if(bufferWrite(loadbuffer, data_array[i]) == 0){
+            i++;    // Increment counter
+        }else{
+            buffer_status = 2; // Buffer is Full!
+
         }
     }
     return buffer_status;
