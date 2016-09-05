@@ -4,10 +4,6 @@
 #include <stdint.h> // uint8_t
 #include "stm32f103xb.h"
 
-
-
-
-
 // Function Declarations
 void ClockSetup();
 void SerialSetup();
@@ -16,6 +12,7 @@ uint8_t SerialReadByte();
 void delay(int);
 void SerialBufferSend(volatile struct Buffer &serial_tx_buffer);
 void SerialBufferReceive();
+void SerialSendString(uint8_t *array, uint8_t array_length);
 ////////////////////////////////////////////////////////////////////////////////
 // Main - This function is called by the startup code.
 int main() {
@@ -26,28 +23,9 @@ int main() {
     volatile struct Buffer serial_tx_buffer {{},0,0};
     //volatile struct Buffer serial_rx_buffer {{}, 0, 0};
     // Strings
-    //uint8_t test_message[] = "Does it work?\n"; //Size 15
+    uint8_t test_message2[] = "Does it work?\n"; //Size 15
     uint8_t test_message[] = "Works!\n"; //Size 7
-    /* This block works but never exits. Commenting out.
-    while(1){
-    delay(1000);
-    SerialSendByte(0x48);  // H
-    SerialSendByte(0x65);  // e
-    SerialSendByte(0x6c);  // l
-    SerialSendByte(0x6c);  // l
-    SerialSendByte(0x6f);  // o
-    SerialSendByte(0x00);  //
-    SerialSendByte(0x57);  // W
-    SerialSendByte(0x6f);  // o
-    SerialSendByte(0x72);  // r
-    SerialSendByte(0x6c);  // l
-    SerialSendByte(0x64);  // d
-    SerialSendByte(0x21);  // !
-    SerialSendByte(0x21);  // !
-    SerialSendByte(0x21);  // !
-    SerialSendByte(0x00);  //
-    };
-     */
+
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
         // Load Serial_TX_Buffer
         // The buffer is loaded with the contents of test_message[]
@@ -74,15 +52,22 @@ int main() {
         // Send Buffer Status
         SerialSendByte(0x30 + a); // 0x30 offset to push into ASCII number range
         delay(8000000); //1 Second Delay
+        
+        // Send the contents of the serial_tx_buffer
+        SerialBufferSend(&serial_tx_buffer);
+        delay(8000000); //1 Second Delay
+        
+        // Send string directly from array.
+        SerialSendString(&test_message2,15);
+        delay(8000000); //1 Second Delay
     }
-
 }
-
 
 void SerialBufferSend(volatile struct Buffer &serial_tx_buffer){
     // Send the contents of the serial_tx_buffer
-    uint8_t tempCharStorage; // Location in memory to store the read byte
-    // While there is data in the buffer
+    uint8_t tempCharStorage; // Location in memory to store the byte to send
+    // While there is data in the buffer, read a byte from the buffer
+    // and store it in tempCharStorage. Send this byte via the serial port.
 
     while(bufferRead(&serial_tx_buffer, &tempCharStorage) == 0){
         SerialSendByte(tempCharStorage);
@@ -175,6 +160,12 @@ void SerialSendByte(uint8_t data2send){
     // Put data2send into Data Register
     USART1->DR = data2send;
     return;
+}
+
+void SerialSendString(uint8_t *array, uint8_t array_length){
+    for(uint8_t i = 0; i<array_length; ++i){
+        SerialSendByte(array[i]);
+    }
 }
 
 uint8_t SerialReadByte(){
