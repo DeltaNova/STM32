@@ -157,6 +157,12 @@ void SerialSendByte(uint8_t data2send){
     return;
 }
 
+void SerialSendString(uint8_t *array, uint8_t array_length){
+    for(uint8_t i = 0; i<array_length; ++i){
+        SerialSendByte(array[i]);
+    }
+}
+
 uint8_t SerialReadByte(){
     // Not Tested
     // Wait until RXNE = 1 (indicates DR ready to be read)
