@@ -12,6 +12,7 @@ uint8_t SerialReadByte();
 void delay(int);
 void SerialBufferSend(volatile struct Buffer &serial_tx_buffer);
 void SerialBufferReceive();
+void SerialSendString(uint8_t *array, uint8_t array_length);
 ////////////////////////////////////////////////////////////////////////////////
 // Main - This function is called by the startup code.
 int main() {
@@ -22,7 +23,7 @@ int main() {
     volatile struct Buffer serial_tx_buffer {{},0,0};
     //volatile struct Buffer serial_rx_buffer {{}, 0, 0};
     // Strings
-    //uint8_t test_message[] = "Does it work?\n"; //Size 15
+    uint8_t test_message2[] = "Does it work?\n"; //Size 15
     uint8_t test_message[] = "Works!\n"; //Size 7
 
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
@@ -54,6 +55,10 @@ int main() {
         
         // Send the contents of the serial_tx_buffer
         SerialBufferSend(&serial_tx_buffer);
+        delay(8000000); //1 Second Delay
+        
+        // Send string directly from array.
+        SerialSendString(&test_message2,15);
         delay(8000000); //1 Second Delay
     }
 }
