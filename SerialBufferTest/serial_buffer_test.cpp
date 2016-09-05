@@ -10,7 +10,7 @@ void SerialSetup();
 void SerialSendByte(uint8_t);
 uint8_t SerialReadByte();
 void delay(int);
-void SerialBufferSend(volatile struct Buffer &serial_tx_buffer);
+void SerialBufferSend(volatile struct Buffer *serial_tx_buffer);
 void SerialBufferReceive();
 void SerialSendString(uint8_t *array, uint8_t array_length);
 ////////////////////////////////////////////////////////////////////////////////
@@ -36,15 +36,13 @@ int main() {
 
         // Expected Output
         // ---------------
-        // With test_message size 7 the output on the serial port will be:
-        // H0H0H2H2H2H2.....
-        // The code loops twice without the buffer being filled (H0H0)
-        // from that point the buffer is full (H2H2H2H2...)
+        // With test_message size 7 the output on the serial port will be: H0
+        // Next contents of the serial_tx_buffer is sent: "Works!"
+        // Then sending a string directly: "Does it work?\n"
         // ----
-        // With test_message size 15 the output on the serial port will be:
-        // H2H2H2H2H2H2.....
-        // The buffer is filled on the first pass through the loop (H2H2H2H2...)
+        // H0Works!Does it work?\n
         // ----
+
 
         //LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
         uint8_t a = LoadBuffer(&serial_tx_buffer, test_message, 7);
@@ -52,24 +50,24 @@ int main() {
         // Send Buffer Status
         SerialSendByte(0x30 + a); // 0x30 offset to push into ASCII number range
         delay(8000000); //1 Second Delay
-        
-        // Send the contents of the serial_tx_buffer
+
+        // Send the contents of the serial_tx_buffer (Should be "Works!")
         SerialBufferSend(&serial_tx_buffer);
         delay(8000000); //1 Second Delay
-        
-        // Send string directly from array.
-        SerialSendString(&test_message2,15);
+
+        // Send string directly from array. (Should be "Does it work?\n")
+        SerialSendString(test_message2,15);
         delay(8000000); //1 Second Delay
     }
 }
 
-void SerialBufferSend(volatile struct Buffer &serial_tx_buffer){
+void SerialBufferSend(volatile struct Buffer *serial_tx_buffer){
     // Send the contents of the serial_tx_buffer
     uint8_t tempCharStorage; // Location in memory to store the byte to send
     // While there is data in the buffer, read a byte from the buffer
     // and store it in tempCharStorage. Send this byte via the serial port.
 
-    while(bufferRead(&serial_tx_buffer, &tempCharStorage) == 0){
+    while(bufferRead(serial_tx_buffer, &tempCharStorage) == 0){
         SerialSendByte(tempCharStorage);
     }
 }
@@ -176,8 +174,7 @@ uint8_t SerialReadByte(){
     return(readData);
     }
 
-void delay(int count)
-{
+void delay(int count){
     // volatile so that the compiler doesn't optimise it out
     volatile int i;
 
