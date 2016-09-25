@@ -12,7 +12,8 @@ void SerialSetup();
 void delay(int);
 
 void SerialBufferReceive();
-
+volatile uint8_t flag_overrun = 0; // Monitors SerialRx Overrun
+volatile struct Buffer serial_rx_buffer {{},0,0};
 ////////////////////////////////////////////////////////////////////////////////
 // Main - This function is called by the startup code.
 int main() {
@@ -21,10 +22,11 @@ int main() {
 
     // Create buffers - Size defined by buffer.h or variable for compiler.
     volatile struct Buffer serial_tx_buffer {{},0,0};
-    //volatile struct Buffer serial_rx_buffer {{}, 0, 0};
+
     // Strings
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
 
+    __enable_irq();
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
         //LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
         uint8_t a = LoadBuffer(&serial_tx_buffer, test_message, 10);
@@ -32,6 +34,15 @@ int main() {
 
         // Send Buffer Status
         SerialSendByte(0x30 + a);   // 0x30 offset to push into ASCII number range
+        SerialSendByte(0x20);       // Send Space
+
+        if (flag_overrun == true){
+            SerialSendByte(0x31);   // Send Overrun True
+            flag_overrun = 0;       // Reset Flag
+        }else{
+            SerialSendByte(0x30);
+        }
+
         SerialSendByte(0x0A);       // Send Line Feed
         SerialSendByte(0x0D);       // Send CR
         delay(8000000);             //1 Second Delay
@@ -39,7 +50,10 @@ int main() {
         // Send the contents of the serial_tx_buffer (Should be "Waiting!")
         SerialBufferSend(&serial_tx_buffer);
         delay(80000000);            //10 Second Delay
+
+        SerialBufferSend(&serial_rx_buffer);
     }
+
 }
 
 void SerialBufferReceive(){
@@ -121,6 +135,14 @@ void SerialSetup(){
     USART1->CR1 |= 0x00000008;
     // Enable USAER Rx
     USART1->CR1 |= 0x00000004;
+
+    // USART1 Interrupts
+    // -----------------
+    // Only the RXNEIE interrupt will be enabled, this will trigger on:
+    //      RXNE - Received data ready to be read
+    //      ORE  - Overrun error detected
+    // All other USART1 interrupts will be disabled.
+    USART1->CR1 |= 0x00000020;
 }
 
 void delay(int count){
@@ -132,9 +154,26 @@ void delay(int count){
     }
 }
 
-//void USART_ISRHandler(void){
-//    // USART IRQ Triggered
-//}
+void USART1_ISRHandler(void){
+    // USART IRQ Triggered
+
+    // Disable IRQ
+    __disable_irq();
+    // Read USART_SR & determine RXNE or ORE
+    // If no overrun read the received data to the buffer and return
+    // If overrun, increment flag_overrun, store the data to buffer and return.
+
+    if (USART1->SR & 0x00000008){
+        // If Overrun detected increment flag
+        flag_overrun = flag_overrun + 1;
+    }
+
+    // Store byte in buffer
+    uint8_t data = USART1->DR; // Reads lowest 8bits of 32bits
+    bufferWrite(&serial_rx_buffer, data);
+    // Enable IRQ
+    __enable_irq();
+}
 
 
 
