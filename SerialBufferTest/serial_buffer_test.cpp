@@ -23,46 +23,29 @@ int main() {
     volatile struct Buffer serial_tx_buffer {{},0,0};
     //volatile struct Buffer serial_rx_buffer {{}, 0, 0};
     // Strings
-    uint8_t test_message2[] = "Does it work?\n"; //Size 15
-    uint8_t test_message[] = "Works!\n"; //Size 7
+    uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
 
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
-        // Load Serial_TX_Buffer
-        // The buffer is loaded with the contents of test_message[]
-        // The status of the buffer is loaded into 'a'
-        // The 'H' character is printer to the serial port to confirm operation
-        // The buffer status 'a' is the printed.
-        // Delay for readability.
-
-        // Expected Output
-        // ---------------
-        // With test_message size 7 the output on the serial port will be: H0
-        // Next contents of the serial_tx_buffer is sent: "Works!"
-        // Then sending a string directly: "Does it work?\n"
-        // ----
-        // H0Works!Does it work?\n
-        // ----
-
-
         //LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
-        uint8_t a = LoadBuffer(&serial_tx_buffer, test_message, 7);
-        SerialSendByte(0x48); //H
+        uint8_t a = LoadBuffer(&serial_tx_buffer, test_message, 10);
+
+
         // Send Buffer Status
-        SerialSendByte(0x30 + a); // 0x30 offset to push into ASCII number range
-        delay(8000000); //1 Second Delay
+        SerialSendByte(0x30 + a);   // 0x30 offset to push into ASCII number range
+        SerialSendByte(0x0A);       // Send Line Feed
+        SerialSendByte(0x0D);       // Send CR
+        delay(8000000);             //1 Second Delay
 
-        // Send the contents of the serial_tx_buffer (Should be "Works!")
+        // Send the contents of the serial_tx_buffer (Should be "Waiting!")
         SerialBufferSend(&serial_tx_buffer);
-        delay(8000000); //1 Second Delay
-
-        // Send string directly from array. (Should be "Does it work?\n")
-        SerialSendString(test_message2,15);
-        delay(8000000); //1 Second Delay
+        delay(80000000);            //10 Second Delay
     }
 }
 
 void SerialBufferReceive(){
-    // Receive data to the serial_rx_buffer
+    // Receives data to the serial_rx_buffer
+    // TODO: Setup the interrupts to trigger when a byte is received.
+    // Store the received byte in the serial_rx_buffer
 }
 
 void ClockSetup() {
@@ -148,3 +131,11 @@ void delay(int count){
     {
     }
 }
+
+//void USART_ISRHandler(void){
+//    // USART IRQ Triggered
+//}
+
+
+
+
