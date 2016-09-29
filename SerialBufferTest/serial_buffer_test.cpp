@@ -27,8 +27,21 @@ int main() {
     // Strings
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
 
+    //LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
+    LoadBuffer(&serial_tx_buffer, test_message, 10);
+    SerialBufferSend(&serial_tx_buffer);
+
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
 
+        // The loop will poll the RXNE bit, if set there is data to read.
+        // If there is data, read it and transmit it back as confirmation.
+
+        if (USART1->SR & 0x00000020){ // Read SR, check if RXNE Set
+            uint8_t data = USART1->DR;
+            SerialSendByte(data);
+            SerialSendByte(0x0A);       // Send Line Feed
+            SerialSendByte(0x0D);       // Send CR
+        }
 
         /*
         // Send Buffer Status
