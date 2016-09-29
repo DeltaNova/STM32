@@ -11,6 +11,7 @@ void SerialSetup();
 
 void delay(int);
 
+void SerialReceiveEcho();
 void SerialBufferReceive();
 volatile uint8_t flag_overrun = 0; // Monitors SerialRx Overrun
 volatile uint8_t flag_test = 0; // Test Flag
@@ -35,13 +36,8 @@ int main() {
 
         // The loop will poll the RXNE bit, if set there is data to read.
         // If there is data, read it and transmit it back as confirmation.
+        SerialReceiveEcho();
 
-        if (USART1->SR & 0x00000020){ // Read SR, check if RXNE Set
-            uint8_t data = USART1->DR;
-            SerialSendByte(data);
-            SerialSendByte(0x0A);       // Send Line Feed
-            SerialSendByte(0x0D);       // Send CR
-        }
 
         /*
         // Send Buffer Status
@@ -72,10 +68,30 @@ int main() {
 
 }
 
-void SerialBufferReceive(){
+void SerialReceiveEcho(){
+    // Check if RXNE flag in USART1->SR, read data if set.
+    // Echoes data back to sending terminal.
+
+    while (USART1->SR & 0x00000020){ // Read SR, check if RXNE Set
+        uint8_t data = USART1->DR;
+        // Echo Data to Terminal
+        SerialSendByte(data);       // Return Rx Byte
+        SerialSendByte(0x0A);       // Send Line Feed
+        SerialSendByte(0x0D);       // Send CR
+        // Store Data In Buffer
+        bufferWrite(&serial_rx_buffer,data);
+        bufferWrite(&serial_rx_buffer,0x0A);
+        bufferWrite(&serial_rx_buffer,0x0D);
+        // Send back contents of the rx_buffer.
+        SerialBufferSend(&serial_rx_buffer);
+    }
+}
+
+void SerialBufferReceive(uint8_t rx_data){
     // Receives data to the serial_rx_buffer
     // TODO: Setup the interrupts to trigger when a byte is received.
     // Store the received byte in the serial_rx_buffer
+
 }
 
 void ClockSetup() {
