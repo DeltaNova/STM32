@@ -27,7 +27,8 @@ int main() {
 
     // Strings
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
-
+    uint8_t bufferStatus = 1; // Start as 1 indicating empty buffer.
+    uint8_t tmp_byte = 0x00;
     //LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
     LoadBuffer(&serial_tx_buffer, test_message, 10);
     SerialBufferSend(&serial_tx_buffer);
@@ -36,8 +37,13 @@ int main() {
 
         // The loop will poll the RXNE bit, if set there is data to read.
         // If there is data, read it and transmit it back as confirmation.
-        SerialReceiveEcho();
+        //SerialReceiveEcho();
 
+        // Obtain status of rx buffer, Status 0 = holds data, 1 = empty
+        bufferStatus = bufferPeek(&serial_rx_buffer,&tmp_byte);
+        if (bufferStatus == 0){                     // If data in buffer
+            SerialBufferSend(&serial_rx_buffer);    // Transmit buffer content
+        }
 
         /*
         // Send Buffer Status
@@ -179,8 +185,11 @@ void SerialSetup(){
     USART1->CR3 = 0x00000000; // Default Values to prevent IRQ
 
     // DEBUG: Disable USART Interrupts for the moment.
-    //NVIC_SetPriority(USART1_IRQn,1); // Set Interrupt Priority
-    //NVIC_EnableIRQ(USART1_IRQn); // IRQ 37
+
+    // TODO: Check these priority values.
+    NVIC_SetPriorityGrouping(0);
+    NVIC_SetPriority(USART1_IRQn,1); // Set Interrupt Priority
+    NVIC_EnableIRQ(USART1_IRQn); // IRQ 37
 }
 
 void delay(int count){
@@ -199,10 +208,10 @@ void USART1_IRQHandler(void){
     //  If overrun, increment flag_overrun, store the data to buffer and return.
     //  If no overrun read the received data to the buffer and return
 
-    if (USART1->SR & 0x00000008){  // Read Status register
-        // If Overrun detected increment flag (ORE Set)
-        flag_overrun = flag_overrun + 1;
-    }
+    //if (USART1->SR & 0x00000008){  // Read Status register
+    //    // If Overrun detected increment flag (ORE Set)
+    //    flag_overrun = flag_overrun + 1;
+    //}
 
     // Store byte in buffer
     while (USART1->SR & 0x00000020){ // Read Status register
@@ -212,7 +221,7 @@ void USART1_IRQHandler(void){
     }
 
     // Increment flag to show interrupt has triggered
-    flag_test = flag_test + 1;
+    //flag_test = flag_test + 1;
     //NVIC_ClearPendingIRQ(USART1_IRQn); // Makes no difference
 }
 
