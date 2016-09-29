@@ -27,12 +27,10 @@ int main() {
     // Strings
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
 
-    //__enable_irq();
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
-        //LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
-        uint8_t a = LoadBuffer(&serial_tx_buffer, test_message, 10);
 
 
+        /*
         // Send Buffer Status
         SerialSendByte(0x30 + a);   // 0x30 offset to push into ASCII number range
         SerialSendByte(0x20);       // Send Space
@@ -56,6 +54,7 @@ int main() {
         //delay(80000000);            //10 Second Delay
         delay(40000000);            // 5 Second Delay
         //SerialBufferSend(&serial_rx_buffer);
+        */
     }
 
 }
@@ -150,8 +149,9 @@ void SerialSetup(){
     USART1->CR2 = 0x00000000; // Default Values to prevent IRQ
     USART1->CR3 = 0x00000000; // Default Values to prevent IRQ
 
-    NVIC_SetPriority(USART1_IRQn,1); // Set Interrupt Priority
-    NVIC_EnableIRQ(USART1_IRQn); // IRQ 37
+    // DEBUG: Disable USART Interrupts for the moment.
+    //NVIC_SetPriority(USART1_IRQn,1); // Set Interrupt Priority
+    //NVIC_EnableIRQ(USART1_IRQn); // IRQ 37
 }
 
 void delay(int count){
