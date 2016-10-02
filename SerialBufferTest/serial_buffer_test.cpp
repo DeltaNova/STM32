@@ -5,6 +5,8 @@
 #include <stdint.h> // uint8_t
 #include "stm32f103xb.h"
 
+#include <stdio.h> // Provides printf (Semihosting)
+extern "C" void initialise_monitor_handles(void);
 // Function Declarations
 void ClockSetup();
 void SerialSetup();
@@ -19,6 +21,7 @@ volatile struct Buffer serial_rx_buffer {{},0,0};
 ////////////////////////////////////////////////////////////////////////////////
 // Main - This function is called by the startup code.
 int main() {
+    initialise_monitor_handles();
     ClockSetup();
     SerialSetup();
 
@@ -205,7 +208,7 @@ void delay(int count){
 }
 
 void USART1_IRQHandler(void){
-
+    printf("IRQ");
     // USART IRQ Triggered
     //  Read USART_SR & determine RXNE or ORE
     //  If overrun, increment flag_overrun, store the data to buffer and return.
