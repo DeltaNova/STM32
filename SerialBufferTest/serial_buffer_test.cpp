@@ -32,7 +32,7 @@ int main() {
     //LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
     LoadBuffer(&serial_tx_buffer, test_message, 10);
     SerialBufferSend(&serial_tx_buffer);
-
+    __enable_irq();
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
 
         // The loop will poll the RXNE bit, if set there is data to read.
@@ -42,9 +42,10 @@ int main() {
         // Obtain status of rx buffer, Status 0 = holds data, 1 = empty
         bufferStatus = bufferPeek(&serial_rx_buffer,&tmp_byte);
         if (bufferStatus == 0){                     // If data in buffer
+
             SerialBufferSend(&serial_rx_buffer);    // Transmit buffer content
         }
-
+        //SerialBufferSend(&serial_rx_buffer);
         /*
         // Send Buffer Status
         SerialSendByte(0x30 + a);   // 0x30 offset to push into ASCII number range
@@ -187,8 +188,10 @@ void SerialSetup(){
     // DEBUG: Disable USART Interrupts for the moment.
 
     // TODO: Check these priority values.
-    NVIC_SetPriorityGrouping(0);
-    NVIC_SetPriority(USART1_IRQn,1); // Set Interrupt Priority
+    //NVIC_SetPriorityGrouping((uint32_t)0x3); // Set Group 4
+    uint32_t priorityGroup = NVIC_GetPriorityGrouping();
+    uint32_t priority = NVIC_EncodePriority(priorityGroup,1,0);
+    NVIC_SetPriority(USART1_IRQn,priority); // Set Interrupt Priority
     NVIC_EnableIRQ(USART1_IRQn); // IRQ 37
 }
 
@@ -214,7 +217,7 @@ void USART1_IRQHandler(void){
     //}
 
     // Store byte in buffer
-    while (USART1->SR & 0x00000020){ // Read Status register
+    if (USART1->SR & 0x00000020){ // Read Status register
         // If Read Data Register not empty (RXNE Set)
         uint8_t data = (uint8_t)(USART1->DR & 0xFF); // Read Data resgister, Reads lowest 8bits of 32.
         bufferWrite(&serial_rx_buffer, data);
