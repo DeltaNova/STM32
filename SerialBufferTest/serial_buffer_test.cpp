@@ -2,17 +2,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "buffer.h"
 #include "serial.h"
-#include <stdint.h> // uint8_t
+#include <stdint.h>                     // uint8_t
 #include "stm32f103xb.h"
-
-#include <stdio.h> // Provides printf (Semihosting)
-extern "C" void initialise_monitor_handles(void);
+////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 void ClockSetup();
 void SerialSetup();
-
 void delay(int);
-
 void SerialReceiveEcho();
 void SerialBufferReceive();
 volatile uint8_t flag_overrun = 0; // Monitors SerialRx Overrun
@@ -21,7 +17,6 @@ volatile struct Buffer serial_rx_buffer {{},0,0};
 ////////////////////////////////////////////////////////////////////////////////
 // Main - This function is called by the startup code.
 int main() {
-    initialise_monitor_handles();
     ClockSetup();
     SerialSetup();
 
@@ -36,6 +31,7 @@ int main() {
     LoadBuffer(&serial_tx_buffer, test_message, 10);
     SerialBufferSend(&serial_tx_buffer);
     __enable_irq();
+
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
 
         // The loop will poll the RXNE bit, if set there is data to read.
@@ -49,6 +45,7 @@ int main() {
             SerialBufferSend(&serial_rx_buffer);    // Transmit buffer content
         }
         //SerialBufferSend(&serial_rx_buffer);
+
         /*
         // Send Buffer Status
         SerialSendByte(0x30 + a);   // 0x30 offset to push into ASCII number range
@@ -191,10 +188,11 @@ void SerialSetup(){
     // DEBUG: Disable USART Interrupts for the moment.
 
     // TODO: Check these priority values.
-    //NVIC_SetPriorityGrouping((uint32_t)0x3); // Set Group 4
-    uint32_t priorityGroup = NVIC_GetPriorityGrouping();
-    uint32_t priority = NVIC_EncodePriority(priorityGroup,1,0);
-    NVIC_SetPriority(USART1_IRQn,priority); // Set Interrupt Priority
+    NVIC_SetPriorityGrouping(3); // Set Group 4
+    //uint32_t priorityGroup = NVIC_GetPriorityGrouping();
+    //uint32_t priority = NVIC_EncodePriority(priorityGroup,1,0);
+    //NVIC_SetPriority(USART1_IRQn,priority); // Set Interrupt Priority
+    NVIC_SetPriority(USART1_IRQn,1);
     NVIC_EnableIRQ(USART1_IRQn); // IRQ 37
 }
 
@@ -208,7 +206,7 @@ void delay(int count){
 }
 
 void USART1_IRQHandler(void){
-    printf("IRQ");
+
     // USART IRQ Triggered
     //  Read USART_SR & determine RXNE or ORE
     //  If overrun, increment flag_overrun, store the data to buffer and return.
