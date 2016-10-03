@@ -6,6 +6,10 @@
 #include "stm32f103xb.h"
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
+
+// http://stackoverflow.com/questions/12543076/usart-receive-interrupt-stm32
+extern "C" void USART1_IRQHandler(void); // Solves Interrupt Problem
+
 void ClockSetup();
 void SerialSetup();
 void delay(int);
