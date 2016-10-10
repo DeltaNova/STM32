@@ -35,6 +35,8 @@ void SerialSendString(uint8_t *array, uint8_t array_length){
         SerialSendByte(array[i]);
     }
 }
+/*
+    // Needs rewrite to declare buffers
 
 void SerialReceiveEcho(){
     // Checks if RXNE flag in USART1->SR, read data if set.
@@ -54,7 +56,7 @@ void SerialReceiveEcho(){
         SerialBufferSend(&serial_rx_buffer);
     }
 }
-
+*/
 void SerialSetup(){
     // USART1 using PA9 - Tx, PA10 - Rx
     // Baud 9600,N,8,1 without HW flow control
