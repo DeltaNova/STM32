@@ -41,9 +41,6 @@ int main() {
     __enable_irq();  // Is this needed??
 
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
-
-        //SerialReceiveEcho(); // Polls RXNE for data (no interrupts)
-
         // Obtain status of rx buffer, Status 0 = holds data, 1 = empty
         bufferStatus = bufferPeek(&serial_rx_buffer,&tmp_byte);
         if (bufferStatus == 0){                     // If data in buffer
@@ -52,24 +49,6 @@ int main() {
     }
 }
 
-void SerialReceiveEcho(){
-    // Check if RXNE flag in USART1->SR, read data if set.
-    // Echoes data back to sending terminal.
-
-    while (USART1->SR & 0x00000020){ // Read SR, check if RXNE Set
-        uint8_t data = USART1->DR;
-        // Echo Data to Terminal
-        SerialSendByte(data);       // Return Rx Byte
-        SerialSendByte(0x0A);       // Send Line Feed
-        SerialSendByte(0x0D);       // Send CR
-        // Store Data In Buffer
-        bufferWrite(&serial_rx_buffer,data);
-        bufferWrite(&serial_rx_buffer,0x0A);
-        bufferWrite(&serial_rx_buffer,0x0D);
-        // Send back contents of the rx_buffer.
-        SerialBufferSend(&serial_rx_buffer);
-    }
-}
 
 
 

@@ -18,5 +18,11 @@ void SerialBufferSend(volatile struct Buffer *serial_tx_buffer);
 
 void SerialSendString(uint8_t *array, uint8_t array_length);
 
+// SerialReceiveEcho();
+// --------------------
+// Checks if RXNE flag in USART1->SR, read data if set.
+// Echoes data back to sending terminal.
+void SerialReceiveEcho();
+
 void SerialSetup(); // Setup USART1 & IRQ Priority
 #endif // SERIAL_H
