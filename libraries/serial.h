@@ -7,6 +7,9 @@
 #include "buffer.h"      // Uses circular buffers.
 #include <stdint.h> // uint8_t
 
+// Currently this is written for USART1 only
+
+
 void SerialSendByte(uint8_t);
 
 uint8_t SerialReadByte();
@@ -15,4 +18,5 @@ void SerialBufferSend(volatile struct Buffer *serial_tx_buffer);
 
 void SerialSendString(uint8_t *array, uint8_t array_length);
 
+void SerialSetup(); // Setup USART1 & IRQ Priority
 #endif // SERIAL_H

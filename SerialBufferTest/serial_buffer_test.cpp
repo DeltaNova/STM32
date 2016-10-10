@@ -116,52 +116,6 @@ void ClockSetup() {
     return;
 }
 */
-void SerialSetup(){
-    // USART1 using PA9 - Tx, PA10 - Rx
-    // Baud 9600,N,8,1 without HW flow control
-    // Assume 72MHz Sysclk
-
-    // Enable GPIOA Clock & Alternate Function Clock
-    RCC->APB2ENR |= 0x00000005;
-
-    // NOTE: Could Combine the following into a single statement.
-    // Set PA9 as Push-Pull Output, Alternate Function, Low Speed (2MHz)
-    GPIOA->CRH &= ~0x000000f0; // Reset PA 9 bits before setting on next line
-    GPIOA->CRH |= 0x000000a0;
-    // Set PA10 as Floating Input
-    GPIOA->CRH &= ~0x00000f00; // Reset PA10 bits before setting on next line
-    GPIOA->CRH |= 0x00000400;
-
-    // Enable ABP USART Clock
-    RCC->APB2ENR |= 0x00004000;
-
-    // Set Baud Rate to 9600 (Based on 72MHz Sysclk)
-    USART1->BRR = 0x1D4C;
-
-    // Enable USART
-    USART1->CR1 = 0x00002000;
-    // Enable USART Tx (Auto sends idle frame??)
-    USART1->CR1 |= 0x00000008;
-    // Enable USART Rx
-    USART1->CR1 |= 0x00000004;
-
-    // USART1 Interrupts
-    // -----------------
-    // Only the RXNEIE interrupt will be enabled, this will trigger on:
-    //      RXNE - Received data ready to be read
-    //      ORE  - Overrun error detected
-    // All other USART1 interrupts will be disabled.
-    USART1->CR1 |= 0x00000020;
-    USART1->CR2 = 0x00000000; // Default Values to prevent IRQ
-    USART1->CR3 = 0x00000000; // Default Values to prevent IRQ
-
-    NVIC_SetPriorityGrouping(3); // Set Group 4
-    //uint32_t priorityGroup = NVIC_GetPriorityGrouping();
-    //uint32_t priority = NVIC_EncodePriority(priorityGroup,1,0);
-    //NVIC_SetPriority(USART1_IRQn,priority); // Set Interrupt Priority
-    NVIC_SetPriority(USART1_IRQn,1);
-    NVIC_EnableIRQ(USART1_IRQn); // IRQ 37
-}
 
 void delay(int count){
     // volatile so that the compiler doesn't optimise it out
