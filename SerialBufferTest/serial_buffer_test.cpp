@@ -6,77 +6,49 @@
 #include "stm32f103xb.h"
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
-
+// ---------------------
 // http://stackoverflow.com/questions/12543076/usart-receive-interrupt-stm32
 extern "C" void USART1_IRQHandler(void); // Solves Interrupt Problem
-
-void ClockSetup();
-void SerialSetup();
-void delay(int);
-void SerialReceiveEcho();
-void SerialBufferReceive();
+void ClockSetup();  // Setup the system clock sources
+void SerialSetup(); // Setup USART1
+void delay(int);    // Simple Delay
+void SerialReceiveEcho(); // Serial Test Function - Echos Received Data
 volatile uint8_t flag_overrun = 0; // Monitors SerialRx Overrun
-volatile uint8_t flag_test = 0; // Test Flag
+
+////////////////////////////////////////////////////////////////////////////////
+// Buffers
+// -------
+// Create buffers - Size defined by buffer.h or variable for compiler.
+volatile struct Buffer serial_tx_buffer {{},0,0};
 volatile struct Buffer serial_rx_buffer {{},0,0};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Main - This function is called by the startup code.
+// ---------------------------------------------------
 int main() {
     ClockSetup();
     SerialSetup();
-
-    // Create buffers - Size defined by buffer.h or variable for compiler.
-    volatile struct Buffer serial_tx_buffer {{},0,0};
 
     // Strings
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
     uint8_t bufferStatus = 1; // Start as 1 indicating empty buffer.
     uint8_t tmp_byte = 0x00;
-    //LoadBuffer(&serial_tx_buffer, test_message, sizeof(test_message));
+
     LoadBuffer(&serial_tx_buffer, test_message, 10);
     SerialBufferSend(&serial_tx_buffer);
-    __enable_irq();
+
+    __enable_irq();  // Is this needed??
 
     while(1){ // Required to prevent SIGTRAP - Infinite loop.
 
-        // The loop will poll the RXNE bit, if set there is data to read.
-        // If there is data, read it and transmit it back as confirmation.
-        //SerialReceiveEcho();
+        //SerialReceiveEcho(); // Polls RXNE for data (no interrupts)
 
         // Obtain status of rx buffer, Status 0 = holds data, 1 = empty
         bufferStatus = bufferPeek(&serial_rx_buffer,&tmp_byte);
         if (bufferStatus == 0){                     // If data in buffer
-
             SerialBufferSend(&serial_rx_buffer);    // Transmit buffer content
         }
-        //SerialBufferSend(&serial_rx_buffer);
-
-        /*
-        // Send Buffer Status
-        SerialSendByte(0x30 + a);   // 0x30 offset to push into ASCII number range
-        SerialSendByte(0x20);       // Send Space
-
-        if (flag_overrun == true){
-            SerialSendByte(0x31);   // Send Overrun True
-            flag_overrun = 0;       // Reset Flag
-        }else{
-            SerialSendByte(0x30);
-        }
-
-        SerialSendByte(0x20);       // Send Space
-        SerialSendByte(0x30 + flag_test); // Send Flag Test value
-
-        SerialSendByte(0x0A);       // Send Line Feed
-        SerialSendByte(0x0D);       // Send CR
-        delay(8000000);             //1 Second Delay
-
-        // Send the contents of the serial_tx_buffer (Should be "Waiting!")
-        SerialBufferSend(&serial_tx_buffer);
-        //delay(80000000);            //10 Second Delay
-        delay(40000000);            // 5 Second Delay
-        //SerialBufferSend(&serial_rx_buffer);
-        */
     }
-
 }
 
 void SerialReceiveEcho(){
@@ -97,14 +69,6 @@ void SerialReceiveEcho(){
         SerialBufferSend(&serial_rx_buffer);
     }
 }
-
-void SerialBufferReceive(uint8_t rx_data){
-    // Receives data to the serial_rx_buffer
-    // TODO: Setup the interrupts to trigger when a byte is received.
-    // Store the received byte in the serial_rx_buffer
-
-}
-
 void ClockSetup() {
     RCC->CR |= 0x00000001; // Turn on HSI Oscillator (8MHz)
     while(!(RCC->CR & 0x00000002)); // Wait for HSI Oscillator to stabalise.
@@ -167,7 +131,7 @@ void SerialSetup(){
     GPIOA->CRH |= 0x00000400;
 
     // Enable ABP USART Clock
-    RCC-> APB2ENR |= 0x00004000;
+    RCC->APB2ENR |= 0x00004000;
 
     // Set Baud Rate to 9600 (Based on 72MHz Sysclk)
     USART1->BRR = 0x1D4C;
@@ -189,9 +153,6 @@ void SerialSetup(){
     USART1->CR2 = 0x00000000; // Default Values to prevent IRQ
     USART1->CR3 = 0x00000000; // Default Values to prevent IRQ
 
-    // DEBUG: Disable USART Interrupts for the moment.
-
-    // TODO: Check these priority values.
     NVIC_SetPriorityGrouping(3); // Set Group 4
     //uint32_t priorityGroup = NVIC_GetPriorityGrouping();
     //uint32_t priority = NVIC_EncodePriority(priorityGroup,1,0);
@@ -227,10 +188,6 @@ void USART1_IRQHandler(void){
         uint8_t data = (uint8_t)(USART1->DR & 0xFF); // Read Data resgister, Reads lowest 8bits of 32.
         bufferWrite(&serial_rx_buffer, data);
     }
-
-    // Increment flag to show interrupt has triggered
-    //flag_test = flag_test + 1;
-    //NVIC_ClearPendingIRQ(USART1_IRQn); // Makes no difference
 }
 
 
