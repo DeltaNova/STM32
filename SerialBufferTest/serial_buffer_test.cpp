@@ -45,13 +45,6 @@ int main() {
     }
 }
 
-void delay(int count){
-    // volatile so that the compiler doesn't optimise it out
-    volatile int i;
-    for (i = 0; i < count; i++){
-    }
-}
-
 void USART1_IRQHandler(void){
     // USART IRQ Triggered
     if (USART1->SR & 0x00000020){ // Read Status reg, check if RXNE Set
@@ -60,7 +53,3 @@ void USART1_IRQHandler(void){
         bufferWrite(&serial_rx_buffer, data);
     }
 }
-
-
-
-
