@@ -1,5 +1,6 @@
 // STM32F103 Serial Setup & Test with Buffer
 ////////////////////////////////////////////////////////////////////////////////
+#include "clock.h"      // Setup system and peripheral clocks
 #include "buffer.h"
 #include "serial.h"
 #include <stdint.h>                     // uint8_t
@@ -69,6 +70,7 @@ void SerialReceiveEcho(){
         SerialBufferSend(&serial_rx_buffer);
     }
 }
+/*
 void ClockSetup() {
     RCC->CR |= 0x00000001; // Turn on HSI Oscillator (8MHz)
     while(!(RCC->CR & 0x00000002)); // Wait for HSI Oscillator to stabalise.
@@ -113,7 +115,7 @@ void ClockSetup() {
     RCC->CFGR |= 0x07000000; // Set Main Clk Output to PLL/2
     return;
 }
-
+*/
 void SerialSetup(){
     // USART1 using PA9 - Tx, PA10 - Rx
     // Baud 9600,N,8,1 without HW flow control
