@@ -37,10 +37,60 @@ int main(void) {
 
 
 void I2CSetup() {
+    // Ref: Datasheet DS5319 Section 5.3.16 I2C Interface Characteristics
+
     // ABP1 Bus Speed should be 36MHz
+    // I2C1 SDA - PB9
+    // I2C1 SCL - PB8
+
+    // Enable I2C1 Peripheral Clock
+    RCC->APB1ENR |= 0x00200000;
+
+    // Configure Ports
+    // Enable Port B Clock & Alternate Function Clock
+    RCC->APB2ENR |= 0x00000009;
+
+    // Remap I2C1 to use PB8,PB9
+    AFIO->MAPR |= 0x00000002;
+
+
+    // Setup Ports
+    // Max Speed set to 2MHz as I2C Fast Mode is 400kHz Max.
+
+    // PORT B9 - SDA
+    GPIOB->CRH &= ~0x000000F0; // Reset PB 9 bits before setting on next line
+    GPIOB->CRH |= 0x000000E0;  // AF Open Drain, Max 2MHz
+    // PORT B8 - SCL
+    GPIOB->CRH &= ~0x0000000F; // Reset PB 8 bits before setting on next line
+    GPIOB->CRH |= 0x0000000E;  // AF Open Drain, Max 2MHz
 
 
 
+
+
+
+    // I2C Master Mode
+    // Setup Timings I2C_CR2 based on 36MHz Peripheral Clock
+    I2C1->CR2 = 0x0024;
+
+    // Config Clock Control Reg
+    // Ref: Datasheet Table 41 SCL Frequency
+    //  400kHz = 0x801E - Fast Mode
+    //  100kHz = 0x00B4 - Standard Mode
+    I2C1->CCR = 0x00B4;
+
+    // Setup Rise Time
+    // Fast Mode     - TRISE = 11 = 0x000B
+    // Standard Mode - TRISE = 37 = 0x0025
+    I2C1->TRISE = 0x0025;
+
+    // Program I2C_CR1 to enable peripheral
+    // Only enable after all setup operations complete.
+    I2C1->CR1 |= 0x0001;
+
+
+    // Move outside of Setup
+    // Set START bit in I2C_CR1 to generate start condition
 }
 
 void I2CRead(uint8_t NumberBytesToRead, uint8_t slaveAddress)
