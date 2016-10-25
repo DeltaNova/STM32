@@ -88,9 +88,17 @@ void I2CSetup() {
     // Only enable after all setup operations complete.
     I2C1->CR1 |= 0x0001;
 
+}
 
-    // Move outside of Setup
-    // Set START bit in I2C_CR1 to generate start condition
+void I2CStart()
+{
+    // Set Start Condition by setting START bit
+    // Master/Slave bit set once Busy bit clear.
+    
+    I2C1->CR1 |= 0x0100;
+    
+    // Wait for MSL = 1 (& Busy = 0)
+    while(!(I2C1->SR2 & 0x0001));
 }
 
 void I2CRead(uint8_t NumberBytesToRead, uint8_t slaveAddress)
