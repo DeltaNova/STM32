@@ -65,10 +65,6 @@ void I2CSetup() {
     GPIOB->CRH |= 0x0000000E;  // AF Open Drain, Max 2MHz
 
 
-
-
-
-
     // I2C Master Mode
     // Setup Timings I2C_CR2 based on 36MHz Peripheral Clock
     I2C1->CR2 = 0x0024;
