@@ -196,6 +196,12 @@ void I2CReadMode(uint8_t SlaveAddr)  // TODO: Combine with I2CWriteMode as almos
 
 void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
 {
+    // Dev Note:
+    // There are a number of calls to enable/disable interrupts in this section.
+    // This is related to limitations in the silicon errata sheet.
+    // ES096 - STM32F10xx8 (Rev12)  Which covers F10xx8/B devices.
+    // Details: Section 2.13.2, Workaround 2.
+
     uint16_t flag_reset = 0;
     uint8_t Buffer[255]; // Define Buffer
     uint8_t *pBuffer = Buffer; // Pointer to Buffer start location
@@ -283,16 +289,28 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
             NumberBytesToRead = NumberBytesToRead - 1;
         }
 
+        // At this point there are 3 bytes left to read.
+
+        // Dev Note:
+        // The sequence is detailed in RM0008 (Rev16)- Fig 274 and in
+        // AN2824 (Rev4) - Fig 1. There is an error in the flowchart in Fig 1;
+        // it doesnt read N-2 as the sequence EV7_2 in Fig 274 outlines.
+        // The correct sequence is below.
+
         // Wait until BTF = 1
         while(!(I2C1->SR1 & 0x0004));   // Wait BTF Flag
         I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
         __disable_irq();                // Disable Interrupts
 
+        // TODO: Replace & use circular buffer code
+        // Missing read from AN2824 (Rev4) Fig 1
+        *pBuffer = I2C1->DR;            // Read Byte N-2 into Buffer
+        pBuffer++;                      // Increment Buffer Pointer
 
         I2C1->CR1 |= 0x0200;            // Set Stop Flag
 
         // TODO: Replace & use circular buffer code
-        *pBuffer = I2C1->DR;            // Read Byte into Buffer
+        *pBuffer = I2C1->DR;            // Read Byte N-1 into Buffer
         pBuffer++;                      // Increment Buffer Pointer
 
         __enable_irq();                 // Enable Interrupts
@@ -300,7 +318,7 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
         while(!(I2C1->SR1 & 0x0040));   // Wait for RxNE Set
 
         // TODO: Replace & use circular buffer code
-        *pBuffer = I2C1->DR;            // Read Byte into Buffer
+        *pBuffer = I2C1->DR;            // Read Byte N into Buffer
         pBuffer++;                      // Increment Buffer Pointer
 
         while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
