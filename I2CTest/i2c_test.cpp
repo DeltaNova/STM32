@@ -13,7 +13,8 @@ void I2CStart();
 void I2CWriteMode(uint8_t SlaveAddr);
 void I2CWriteData(uint8_t Data);
 void I2CStop();
-
+void I2CReadMode(uint8_t SlaveAddr);
+void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress);
 void I2CRead(uint8_t NumberBytesToRead, uint8_t slaveAddress);
 extern "C" void USART1_IRQHandler(void);
 ////////////////////////////////////////////////////////////////////////////////
@@ -22,6 +23,7 @@ extern "C" void USART1_IRQHandler(void);
 // Create buffers - Size defined by buffer.h or variable for compiler.
 volatile struct Buffer serial_tx_buffer {{},0,0};
 volatile struct Buffer serial_rx_buffer {{},0,0};
+volatile struct Buffer i2c_rx_buffer{{},0,0};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Main - Called by the startup code.
@@ -38,20 +40,24 @@ int main(void) {
 
     while(1){
     delay(1000);
+    // Initially need a simple device to allow development of comms functions.
+    // Using BH1750FVI Breakout board - Ambient Light Sensor
+    I2CStart();
+    I2CWriteMode(0x78); // Slave Address
+    I2CWriteData(0x01); //BH1750FVI - Power On
+    I2CStop();
 
     I2CStart();
-
-    // Initially need a simple device to allow development of comms functions.
-    I2CWriteMode(0x7A); // Slave Address
-
-    // Write Data as required
-    I2CWriteData(0x00);
-    I2CWriteData(0x01);
-    I2CWriteData(0x02);
-    I2CWriteData(0x03);
-
-    // Stop I2C Write
+    I2CWriteMode(0x78);
+    I2CWriteData(0x20); // BH1750FVI One Time H-Res Mode.
     I2CStop();
+
+    delay(1000); // Allow time for reading to be taken, auto power down.
+
+    I2CReadData(2,0x78);    // Reads 2 Byte Measurement into i2c_rx_buffer
+
+    SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.
+
 
     };
 }
@@ -64,20 +70,13 @@ void I2CSetup() {
     // I2C1 SDA - PB9
     // I2C1 SCL - PB8
 
-    // Enable I2C1 Peripheral Clock
-    RCC->APB1ENR |= 0x00200000;
+    RCC->APB1ENR |= 0x00200000;    // Enable I2C1 Peripheral Clock
 
     // Configure Ports
-    // Enable Port B Clock & Alternate Function Clock
-    RCC->APB2ENR |= 0x00000009;
+    RCC->APB2ENR |= 0x00000009; // Enable Port B Clock & Alternate Function Clk
+    AFIO->MAPR |= 0x00000002;   // Remap I2C1 to use PB8,PB9
 
-    // Remap I2C1 to use PB8,PB9
-    AFIO->MAPR |= 0x00000002;
-
-
-    // Setup Ports
-    // Max Speed set to 2MHz as I2C Fast Mode is 400kHz Max.
-
+    // Setup Ports - Max Speed set to 2MHz as I2C Fast Mode is 400kHz Max.
     // PORT B9 - SDA
     GPIOB->CRH &= ~0x000000F0; // Reset PB 9 bits before setting on next line
     GPIOB->CRH |= 0x000000E0;  // AF Open Drain, Max 2MHz
@@ -85,13 +84,11 @@ void I2CSetup() {
     GPIOB->CRH &= ~0x0000000F; // Reset PB 8 bits before setting on next line
     GPIOB->CRH |= 0x0000000E;  // AF Open Drain, Max 2MHz
 
-
-    // I2C Master Mode
-    // Setup Timings I2C_CR2 based on 36MHz Peripheral Clock
-    I2C1->CR2 = 0x0024;
+    // I2C Master Mode -
+    I2C1->CR2 = 0x0024;        // Set Timings I2C_CR2 for 36MHz Peripheral Clk
 
     // Config Clock Control Reg
-    // Ref: Datasheet Table 41 SCL Frequency
+    //  Ref: Datasheet Table 41 SCL Frequency
     //  400kHz = 0x801E - Fast Mode
     //  100kHz = 0x00B4 - Standard Mode
     I2C1->CCR = 0x00B4;
@@ -104,7 +101,6 @@ void I2CSetup() {
     // Program I2C_CR1 to enable peripheral
     // Only enable after all setup operations complete.
     I2C1->CR1 |= 0x0001;
-
 }
 
 void I2CStart()
@@ -119,30 +115,22 @@ void I2CStart()
 }
 
 void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost identicle functions
-{
-    // 7bit Addressing Mode
+{   // 7bit Addressing Mode
 
-    // Wait for start bit to be set
-    while(!(I2C1->SR1 & 0x0001));
-
-    // Clear Slave Addr LSB to indicate write mode
-    SlaveAddr &= 0xFE;
-
-    // Write SlaveAddr to Data Register
-    I2C1->DR = SlaveAddr;
+    while(!(I2C1->SR1 & 0x0001));   // Wait for start bit to be set
+    SlaveAddr &= 0xFE;              // Clear Slave Addr LSB for write mode
+    I2C1->DR = SlaveAddr;           // Write SlaveAddr to Data Register
 
     // Read of SR1 and write to DR should have reset the
     // start bit in SR1
 
     // Wait for confirmation that addr has been sent.
     // Check ADDR bit in I2C1->SR
-    while(!(I2C1->SR1 & 0x0002)); // Read SR1
+    while(!(I2C1->SR1 & 0x0002));   // Read SR1
 
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     uint16_t flagreset = I2C1->SR2; // Read SR2
-
-    // Write Mode Enabled
-    // Send Data using I2CWriteData()
+    // Write Mode Enabled. Send Data using I2CWriteData()
 }
 
 void I2CWriteData(uint8_t Data)
@@ -168,17 +156,11 @@ void I2CStop()
 }
 
 void I2CReadMode(uint8_t SlaveAddr)  // TODO: Combine with I2CWriteMode as almost identicle functions
-{
-    // 7bit Addressing Mode
+{   // 7bit Addressing Mode
 
-    // Wait for start bit to be set
-    while(!(I2C1->SR1 & 0x0001));
-
-    // Set Slave Addr LSB to indicate read mode
-    SlaveAddr |= 0x0001;
-
-    // Write SlaveAddr to Data Register
-    I2C1->DR = SlaveAddr;
+    while(!(I2C1->SR1 & 0x0001));   // Wait for start bit to be set
+    SlaveAddr |= 0x0001;            // Set Slave Addr LSB to indicate read mode
+    I2C1->DR = SlaveAddr;           // Write SlaveAddr to Data Register
 
     // Read of SR1 and write to DR should have reset the
     // start bit in SR1
@@ -189,9 +171,7 @@ void I2CReadMode(uint8_t SlaveAddr)  // TODO: Combine with I2CWriteMode as almos
 
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     uint16_t flagreset = I2C1->SR2; // Read SR2
-
-    // Read Mode Enabled
-    // Receive Data using I2CReadData()
+    // Read Mode Enabled, Receive Data using I2CReadData()
 }
 
 void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
@@ -203,16 +183,16 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
     // Details: Section 2.13.2, Workaround 2.
 
     uint16_t flag_reset = 0;
-    uint8_t Buffer[255]; // Define Buffer
-    uint8_t *pBuffer = Buffer; // Pointer to Buffer start location
 
     // TODO: Add a check to see if NumberBytesToRead > Buffer to prevent overflow.
+    // NOTE: The buffer size is set globally for all buffers.
 
     // Implementation Based on Application Note AN2824
-    if (NumberBytesToRead == 1){
 
-        // Start
-        // Send Slave Addr
+    I2CStart();                         // Start
+    I2CReadMode(slaveAddress);          // Send Slave Addr
+
+    if (NumberBytesToRead == 1){
 
         I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
         __disable_irq();                // Disable Interrupts
@@ -226,18 +206,12 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
 
         while(!(I2C1->SR1 & 0x0040));   // Wait for RxNE Set
 
-        // TODO: Replace & use circular buffer code
-        *pBuffer = I2C1->DR;            // Read Byte into Buffer
-        pBuffer++;                      // Increment Buffer Pointer
+        bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
 
         while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
         I2C1->CR1 |= (0x0400);          // Set ACK
 
-
-
     } else if (NumberBytesToRead == 2) {
-        // Start
-        // Send Slave Addr
 
         I2C1->CR1 |= 0x0800;            // Set POS Flag
         __disable_irq();                // Disable Interrupts
@@ -246,25 +220,15 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
         while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
         flag_reset = I2C1->SR2;         // Read SR2 to complete Addr Flag reset.
 
-
         I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
         __enable_irq();                 // Enable Interrupts
 
         while(!(I2C1->SR1 & 0x0004));   // Wait BTF Flag (Byte Transfer Finish)
         __disable_irq();                // Disable Interrupts
-
         I2C1->CR1 |= 0x0200;            // Set Stop Flag
-
-                                        // Read 1st Byte
-        // TODO: Replace & use circular buffer code
-        *pBuffer = I2C1->DR;            // Read 1st Byte into Buffer
-        pBuffer++;                      // Increment Buffer Pointer
-
+        bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read 1st Byte into Buffer
         __enable_irq();                 // Enable Interrupts
-
-        // TODO: Replace & use circular buffer code
-        *pBuffer = I2C1->DR;            // Read 2nd Byte into Buffer
-        pBuffer++;                      // Increment Buffer Pointer
+        bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read 2nd Byte into Buffer
 
         while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
 
@@ -273,18 +237,13 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
         I2C1->CR1 |= (0x0400);          // Set ACK
 
 
-    } else {
-        // Read 3+ Bytes
-        // Start
-        // Send Slave Addr
+    } else {    // Read 3+ Bytes
+
         while (NumberBytesToRead > 3){
             // Wait until BTF = 1
             while(!(I2C1->SR1 & 0x0004));   // Wait BTF Flag
             // Read Data in Data Register
-            // TODO: Replace & use circular buffer code
-            *pBuffer = I2C1->DR;            // Read Byte into Buffer
-            pBuffer++;                      // Increment Buffer Pointer
-
+                bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
             // Decrement NumberBytesToRead
             NumberBytesToRead = NumberBytesToRead - 1;
         }
@@ -292,38 +251,29 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
         // At this point there are 3 bytes left to read.
 
         // Dev Note:
+        // ---------
         // The sequence is detailed in RM0008 (Rev16)- Fig 274 and in
         // AN2824 (Rev4) - Fig 1. There is an error in the flowchart in Fig 1;
         // it doesnt read N-2 as the sequence EV7_2 in Fig 274 outlines.
         // The correct sequence is below.
 
-        // Wait until BTF = 1
-        while(!(I2C1->SR1 & 0x0004));   // Wait BTF Flag
-        I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
-        __disable_irq();                // Disable Interrupts
+        while(!(I2C1->SR1 & 0x0004));           // Wait until BTF Flag = 1
+        I2C1->CR1 &= ~(0x0400);                 // Clear ACK Flag
+        __disable_irq();                        // Disable Interrupts
 
-        // TODO: Replace & use circular buffer code
         // Missing read from AN2824 (Rev4) Fig 1
-        *pBuffer = I2C1->DR;            // Read Byte N-2 into Buffer
-        pBuffer++;                      // Increment Buffer Pointer
+        bufferWrite(&i2c_rx_buffer, I2C1->DR);  // Read Byte N-2 into Buffer
 
-        I2C1->CR1 |= 0x0200;            // Set Stop Flag
-
-        // TODO: Replace & use circular buffer code
-        *pBuffer = I2C1->DR;            // Read Byte N-1 into Buffer
-        pBuffer++;                      // Increment Buffer Pointer
-
-        __enable_irq();                 // Enable Interrupts
-
-        while(!(I2C1->SR1 & 0x0040));   // Wait for RxNE Set
-
-        // TODO: Replace & use circular buffer code
-        *pBuffer = I2C1->DR;            // Read Byte N into Buffer
-        pBuffer++;                      // Increment Buffer Pointer
-
-        while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
-        I2C1->CR1 |= (0x0400);          // Set ACK
+        I2C1->CR1 |= 0x0200;                    // Set Stop Flag
+        bufferWrite(&i2c_rx_buffer, I2C1->DR);  // Read Byte N-1 into Buffer
+        __enable_irq();                         // Enable Interrupts
+        while(!(I2C1->SR1 & 0x0040));           // Wait for RxNE Set
+        bufferWrite(&i2c_rx_buffer, I2C1->DR);  // Read Byte N into Buffer
+        while (I2C1->CR1 & 0x0200);             // Wait for STOP Flag HW clear
+        I2C1->CR1 |= (0x0400);                  // Set ACK
     }
+
+    I2CStop();
 }
 
 
