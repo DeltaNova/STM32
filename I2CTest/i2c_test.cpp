@@ -42,11 +42,17 @@ int main(void) {
     delay(1000);
     // Initially need a simple device to allow development of comms functions.
     // Using BH1750FVI Breakout board - Ambient Light Sensor
+    SerialSendByte('0');
     I2CStart();
+    SerialSendByte('1');
     I2CWriteMode(0x78); // Slave Address
+    SerialSendByte('2');
     I2CWriteData(0x01); //BH1750FVI - Power On
+    SerialSendByte('3');
     I2CStop();
+    SerialSendByte('4');
 
+    delay(1000);
     I2CStart();
     I2CWriteMode(0x78);
     I2CWriteData(0x20); // BH1750FVI One Time H-Res Mode.
@@ -111,15 +117,17 @@ void I2CStart()
     I2C1->CR1 |= 0x0100;
 
     // Wait for MSL = 1 (& Busy = 0)
-    while(!(I2C1->SR2 & 0x0001));
+    //while(!(I2C1->SR2 & 0x0001)); // Disabled as cleared by HW
 }
 
 void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost identicle functions
 {   // 7bit Addressing Mode
 
-    while(!(I2C1->SR1 & 0x0001));   // Wait for start bit to be set
-    SlaveAddr &= 0xFE;              // Clear Slave Addr LSB for write mode
-    I2C1->DR = SlaveAddr;           // Write SlaveAddr to Data Register
+    //while(!(I2C1->SR1 & 0x0001));   // Wait for start bit to be set
+    I2C1->SR1; //Read SR1
+
+    // Clear Slave Addr LSB for write mode
+    I2C1->DR = SlaveAddr & 0xFE;           // Write SlaveAddr to Data Register
 
     // Read of SR1 and write to DR should have reset the
     // start bit in SR1
@@ -129,7 +137,8 @@ void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost
     while(!(I2C1->SR1 & 0x0002));   // Read SR1
 
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
-    uint16_t flagreset = I2C1->SR2; // Read SR2
+    //uint16_t flagreset = I2C1->SR2; // Read SR2
+    I2C1->SR2;
     // Write Mode Enabled. Send Data using I2CWriteData()
 }
 
@@ -150,7 +159,7 @@ void I2CStop()
     I2C1->CR1 |= 0x0200; // Set STOP bit
 
     // Check STOP bit has been cleared indicating STOP condition detected.
-    while(!(I2C-> & 0x0200));
+    while(!(I2C1->CR1 & 0x0200));
 
     // Communication Ended, I2C interface in slave mode.
 }
