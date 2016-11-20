@@ -141,7 +141,7 @@ void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost
     // start bit in SR1
 
     // Wait for confirmation that addr has been sent.
-    // Check ADDR bit in I2C1->SR
+    // Check ADDR bit in I2C1->SR1
     while(!(I2C1->SR1 & 0x0002));   // Read SR1
 
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
