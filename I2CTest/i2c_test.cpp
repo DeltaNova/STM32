@@ -76,8 +76,6 @@ void I2CSetup() {
     // I2C1 SDA - PB9
     // I2C1 SCL - PB8
 
-    RCC->APB1ENR |= 0x00200000;    // Enable I2C1 Peripheral Clock
-
     // Configure Ports
     RCC->APB2ENR |= 0x00000009; // Enable Port B Clock & Alternate Function Clk
     AFIO->MAPR |= 0x00000002;   // Remap I2C1 to use PB8,PB9
@@ -90,6 +88,8 @@ void I2CSetup() {
     GPIOB->CRH &= ~0x0000000F; // Reset PB 8 bits before setting on next line
     GPIOB->CRH |= 0x0000000E;  // AF Open Drain, Max 2MHz
 
+    RCC->APB1ENR |= 0x00200000;    // Enable I2C1 Peripheral Clock
+
     // I2C Master Mode -
     I2C1->CR2 = 0x0024;        // Set Timings I2C_CR2 for 36MHz Peripheral Clk
 
@@ -97,27 +97,35 @@ void I2CSetup() {
     //  Ref: Datasheet Table 41 SCL Frequency
     //  400kHz = 0x801E - Fast Mode
     //  100kHz = 0x00B4 - Standard Mode
-    I2C1->CCR = 0x00B4;
+    I2C1->CCR = 0x801E;
 
     // Setup Rise Time
     // Fast Mode     - TRISE = 11 = 0x000B
     // Standard Mode - TRISE = 37 = 0x0025
-    I2C1->TRISE = 0x0025;
+    I2C1->TRISE = 0x000B;
 
+    // Bug Fix - BUSY flag in a locked state at startup.
+    // RM0008 Rev16 26.6.1 I2C Control Register (I2C_CR1)
+    // SWRST is used to reset the bus after a glitch has caused the busy bit to
+    // become locked in an on state.
+
+    I2C1->CR1 |= 0x8000; // Reset I2C1 with SWRST
+    I2C1->CR1 = 0x0000;  // Load Default Reset Values
     // Program I2C_CR1 to enable peripheral
     // Only enable after all setup operations complete.
-    I2C1->CR1 |= 0x0001;
+    I2C1->CR1 |= 0x0001; // Enable I2C1
 }
 
 void I2CStart()
 {
     // Set Start Condition by setting START bit
     // Master/Slave bit set once Busy bit clear.
-
     I2C1->CR1 |= 0x0100;
+    // SB = 1, PE = 1
 
     // Wait for MSL = 1 (& Busy = 0)
-    //while(!(I2C1->SR2 & 0x0001)); // Disabled as cleared by HW
+
+    while(!(I2C1->SR2 & 0x0001));
 }
 
 void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost identicle functions
