@@ -131,22 +131,36 @@ void I2CStart()
 void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost identicle functions
 {   // 7bit Addressing Mode
 
-    //while(!(I2C1->SR1 & 0x0001));   // Wait for start bit to be set
+    // EV5 Start
+    SerialSendByte('A');
+    while(!(I2C1->SR1 & 0x0001));   // Wait for start bit to be set
+    SerialSendByte('B');
     I2C1->SR1; //Read SR1
 
     // Clear Slave Addr LSB for write mode
-    I2C1->DR = SlaveAddr & 0xFE;           // Write SlaveAddr to Data Register
+    I2C1->DR = (SlaveAddr & 0xFE);           // Write SlaveAddr to Data Register
 
-    // Read of SR1 and write to DR should have reset the
-    // start bit in SR1
+
+    // Read of SR1 and write to DR should have reset the start bit in SR1
+
+    // EV5 End
 
     // Wait for confirmation that addr has been sent.
     // Check ADDR bit in I2C1->SR1
+
+    // DEBUG: Reaching this point but failing to continue.
+
+
+
+    // EV6 Start
     while(!(I2C1->SR1 & 0x0002));   // Read SR1
 
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     //uint16_t flagreset = I2C1->SR2; // Read SR2
     I2C1->SR2;
+
+    // EV6 End
+
     // Write Mode Enabled. Send Data using I2CWriteData()
 }
 
