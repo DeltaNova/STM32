@@ -79,14 +79,17 @@ void I2CSetup() {
     // Configure Ports
     RCC->APB2ENR |= 0x00000009; // Enable Port B Clock & Alternate Function Clk
     AFIO->MAPR |= 0x00000002;   // Remap I2C1 to use PB8,PB9
+    //AFIO->MAPR |= 0x00001000;   // Remap TIM4 // DEBUG - Makes no difference
 
     // Setup Ports - Max Speed set to 2MHz as I2C Fast Mode is 400kHz Max.
     // PORT B9 - SDA
     GPIOB->CRH &= ~0x000000F0; // Reset PB 9 bits before setting on next line
-    GPIOB->CRH |= 0x000000E0;  // AF Open Drain, Max 2MHz
+    //GPIOB->CRH |= 0x000000E0;  // AF Open Drain, Max 2MHz
+    GPIOB->CRH |= 0x000000F0;  // AF Open Drain, Max 50MHz
     // PORT B8 - SCL
     GPIOB->CRH &= ~0x0000000F; // Reset PB 8 bits before setting on next line
-    GPIOB->CRH |= 0x0000000E;  // AF Open Drain, Max 2MHz
+    //GPIOB->CRH |= 0x0000000E;  // AF Open Drain, Max 2MHz
+    GPIOB->CRH |= 0x0000000F;  // AF Open Drain, Max 50MHz
 
     RCC->APB1ENR |= 0x00200000;    // Enable I2C1 Peripheral Clock
 
@@ -113,7 +116,10 @@ void I2CSetup() {
     I2C1->CR1 = 0x0000;  // Load Default Reset Values
     // Program I2C_CR1 to enable peripheral
     // Only enable after all setup operations complete.
+
     I2C1->CR1 |= 0x0001; // Enable I2C1
+
+    I2C1->CR1 |= 0x0400; // Acknowledge Enable - once PE = 1
 }
 
 void I2CStart()
@@ -130,13 +136,17 @@ void I2CStart()
 
 void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost identicle functions
 {   // 7bit Addressing Mode
+    volatile uint16_t temp = 0;     // Temp
+
     // EV5 Start
 
     while(!(I2C1->SR1 & 0x0001));   // Wait for start bit to be set
-    I2C1->SR1;                      // Read SR1
-                                    // Clear Slave Addr LSB for write mode
-    I2C1->DR = (SlaveAddr & 0xFE);  // Write SlaveAddr to Data Register
+    //while(I2C1->SR1 & 0x0001){      // Clear SB by reading SR1 & writing DR - Not required I2C1->SR1 read in while loop above.
+    //temp = I2C1->SR1;             // Read SR1 - Not required as we have already been reading I2C1->SR1 in the while loop.
 
+                                    // Clear Slave Addr LSB for write mode
+    I2C1->DR = (SlaveAddr & 0xFE);  // Write SlaveAddr to Data Register ------------------ TODO: DR Not Sending, hence EV6 hangs at start as no ADDR bit set.
+    //};
 
     // Read of SR1 and write to DR should have reset the start bit in SR1
     // EV5 End
@@ -144,15 +154,26 @@ void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost
     // Wait for confirmation that addr has been sent.
     // Check ADDR bit in I2C1->SR1
 
-    // DEBUG: Reaching this point but failing to continue.
+    // DEBUG
     SerialSendByte('A');
-    // EV6 Start
-    while(!(I2C1->SR1 & 0x0002));   // Read SR1
+    //SerialSendByte(I2C1->SR1 + 0x30);
+    //SerialSendByte((I2C1->SR1>>8) + 0x30);
+    //SerialSendByte(I2C1->SR2 + 0x30);
+    //SerialSendByte((I2C1->SR2>>8) + 0x30);
+    //SerialSendByte(I2C1->DR);
+    // EV6 Start                                                                // DEBUG: Reaching this point but failing to continue.
+    while(!(I2C1->SR1 & 0x0002)){ // Wait for ADDR Flag Set
+        //SerialSendByte(0x0D);
+        //SerialSendByte(0x0A);
+        //SerialSendByte(I2C1->SR1 + 0x30);
+        //SerialSendByte((I2C1->SR1>>8) + 0x30);
+    };   // Read SR1
     SerialSendByte('B');
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     //uint16_t flagreset = I2C1->SR2; // Read SR2
     I2C1->SR2;
 
+    SerialSendByte(temp); //DEBUG
     // EV6 End
     // Write Mode Enabled. Send Data using I2CWriteData()
 }
@@ -194,7 +215,7 @@ void I2CReadMode(uint8_t SlaveAddr)  // TODO: Combine with I2CWriteMode as almos
     while(!(I2C1->SR1 & 0x0002)); // Read SR1
 
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
-    uint16_t flagreset = I2C1->SR2; // Read SR2
+    (void)I2C1->SR2; // Read SR2
     // Read Mode Enabled, Receive Data using I2CReadData()
 }
 
@@ -206,7 +227,6 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
     // ES096 - STM32F10xx8 (Rev12)  Which covers F10xx8/B devices.
     // Details: Section 2.13.2, Workaround 2.
 
-    uint16_t flag_reset = 0;
 
     // TODO: Add a check to see if NumberBytesToRead > Buffer to prevent overflow.
     // NOTE: The buffer size is set globally for all buffers.
@@ -223,7 +243,7 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
 
         // Clear Addr Flag
         while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
-        flag_reset = I2C1->SR2;         // Read SR2 to complete Addr Flag reset.
+        (void)I2C1->SR2;         // Read SR2 to complete Addr Flag reset.
 
         I2C1->CR1 |= 0x0200;            // Set Stop Flag
         __enable_irq();                 // Enable Interrupts
@@ -242,7 +262,7 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
 
                                         // Clear Addr Flag
         while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
-        flag_reset = I2C1->SR2;         // Read SR2 to complete Addr Flag reset.
+        (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
 
         I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
         __enable_irq();                 // Enable Interrupts
@@ -267,7 +287,7 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
             // Wait until BTF = 1
             while(!(I2C1->SR1 & 0x0004));   // Wait BTF Flag
             // Read Data in Data Register
-                bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
+            bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
             // Decrement NumberBytesToRead
             NumberBytesToRead = NumberBytesToRead - 1;
         }
