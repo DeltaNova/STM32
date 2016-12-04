@@ -43,6 +43,6 @@ void ClockSetup() {
     //GPIOA->CRH |= 0x0000000B; // PA8 alt config as MCO, 50MHz Max, Push-Pull O/P
 
     // MCO should be 36MHz - (MCO Pin Max 50MHz)
-    RCC->CFGR |= 0x07000000; // Set Main Clk Output to PLL/2
+    //RCC->CFGR |= 0x07000000; // Set Main Clk Output to PLL/2
     return;
 }
