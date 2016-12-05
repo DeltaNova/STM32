@@ -118,12 +118,12 @@ void I2CSetup() {
     // Only enable after all setup operations complete.
 
     I2C1->CR1 |= 0x0001; // Enable I2C1
-
     I2C1->CR1 |= 0x0400; // Acknowledge Enable - once PE = 1
 }
 
 void I2CStart()
 {
+    while(I2C1->SR2 & 0x0002); // Wait whilst busy
     // Set Start Condition by setting START bit
     // Master/Slave bit set once Busy bit clear.
     I2C1->CR1 |= 0x0100;
@@ -134,7 +134,7 @@ void I2CStart()
     while(!(I2C1->SR2 & 0x0001));
 }
 
-void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost identicle functions
+void I2CWriteMode(uint8_t SlaveAddr)                                            // TODO: Combine with I2CReadMode as almost identicle functions
 {   // 7bit Addressing Mode
     volatile uint16_t temp = 0;     // Temp
 
@@ -145,7 +145,7 @@ void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost
     //temp = I2C1->SR1;             // Read SR1 - Not required as we have already been reading I2C1->SR1 in the while loop.
 
                                     // Clear Slave Addr LSB for write mode
-    I2C1->DR = (SlaveAddr & 0xFE);  // Write SlaveAddr to Data Register ------------------ TODO: DR Not Sending, hence EV6 hangs at start as no ADDR bit set.
+    I2C1->DR = (SlaveAddr & 0xFE);  // Write SlaveAddr to Data Register         // TODO: DR Not Sending, hence EV6 hangs at start as no ADDR bit set.
     //};
 
     // Read of SR1 and write to DR should have reset the start bit in SR1
@@ -153,14 +153,13 @@ void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost
 
     // Wait for confirmation that addr has been sent.
     // Check ADDR bit in I2C1->SR1
-
-    // DEBUG
-    SerialSendByte('A');
-    //SerialSendByte(I2C1->SR1 + 0x30);
-    //SerialSendByte((I2C1->SR1>>8) + 0x30);
-    //SerialSendByte(I2C1->SR2 + 0x30);
-    //SerialSendByte((I2C1->SR2>>8) + 0x30);
-    //SerialSendByte(I2C1->DR);
+                                                                                // DEBUG
+    //SerialSendByte('A');                                                      // DEBUG
+    //SerialSendByte(I2C1->SR1 + 0x30);                                         // DEBUG
+    //SerialSendByte((I2C1->SR1>>8) + 0x30);                                    // DEBUG
+    //SerialSendByte(I2C1->SR2 + 0x30);                                         // DEBUG
+    //SerialSendByte((I2C1->SR2>>8) + 0x30);                                    // DEBUG
+    //SerialSendByte(I2C1->DR);                                                 // DEBUG
     // EV6 Start                                                                // DEBUG: Reaching this point but failing to continue.
     while(!(I2C1->SR1 & 0x0002)){ // Wait for ADDR Flag Set
         //SerialSendByte(0x0D);
@@ -170,10 +169,9 @@ void I2CWriteMode(uint8_t SlaveAddr) // TODO: Combine with I2CReadMode as almost
     };   // Read SR1
     SerialSendByte('B');
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
-    //uint16_t flagreset = I2C1->SR2; // Read SR2
-    I2C1->SR2;
+    (void)I2C1->SR2;
 
-    SerialSendByte(temp); //DEBUG
+    SerialSendByte(temp);                                                       //DEBUG
     // EV6 End
     // Write Mode Enabled. Send Data using I2CWriteData()
 }
@@ -200,7 +198,7 @@ void I2CStop()
     // Communication Ended, I2C interface in slave mode.
 }
 
-void I2CReadMode(uint8_t SlaveAddr)  // TODO: Combine with I2CWriteMode as almost identicle functions
+void I2CReadMode(uint8_t SlaveAddr)                                             // TODO: Combine with I2CWriteMode as almost identicle functions
 {   // 7bit Addressing Mode
 
     while(!(I2C1->SR1 & 0x0001));   // Wait for start bit to be set
@@ -227,10 +225,8 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
     // ES096 - STM32F10xx8 (Rev12)  Which covers F10xx8/B devices.
     // Details: Section 2.13.2, Workaround 2.
 
-
-    // TODO: Add a check to see if NumberBytesToRead > Buffer to prevent overflow.
+                                                                                // TODO: Add a check to see if NumberBytesToRead > Buffer to prevent overflow.
     // NOTE: The buffer size is set globally for all buffers.
-
     // Implementation Based on Application Note AN2824
 
     I2CStart();                         // Start
