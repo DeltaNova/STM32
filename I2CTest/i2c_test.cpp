@@ -43,8 +43,8 @@ int main(void) {
     // Initially need a simple device to allow development of comms functions.
     // Using BH1750FVI Breakout board - Ambient Light Sensor
     SerialSendByte('0');
-    I2CStart();
-    SerialSendByte('1');
+    //I2CStart();
+    //SerialSendByte('1');
     I2CWriteMode(0x78); // Slave Address
     SerialSendByte('2');
     I2CWriteData(0x01); //BH1750FVI - Power On
@@ -134,44 +134,25 @@ void I2CStart()
     while(!(I2C1->SR2 & 0x0001));
 }
 
-void I2CWriteMode(uint8_t SlaveAddr)                                            // TODO: Combine with I2CReadMode as almost identicle functions
-{   // 7bit Addressing Mode
-    volatile uint16_t temp = 0;     // Temp
+void I2CWriteMode(uint8_t SlaveAddr) // 7bit Addressing Mode                    // TODO: Combine with I2CReadMode as almost identicle functions
+{
+    while(I2C1->SR2 & 0x0002);            // Wait whilst BUSY
+    I2C1->CR1 |= 0x0100;                  // Set START bit
+    while(!(I2C1->SR2 & 0x0001));         // Wait for MSL = 1 (& Busy = 0)
 
     // EV5 Start
-
-    while(!(I2C1->SR1 & 0x0001));   // Wait for start bit to be set
-    //while(I2C1->SR1 & 0x0001){      // Clear SB by reading SR1 & writing DR - Not required I2C1->SR1 read in while loop above.
-    //temp = I2C1->SR1;             // Read SR1 - Not required as we have already been reading I2C1->SR1 in the while loop.
-
-                                    // Clear Slave Addr LSB for write mode
-    I2C1->DR = (SlaveAddr & 0xFE);  // Write SlaveAddr to Data Register         // TODO: DR Not Sending, hence EV6 hangs at start as no ADDR bit set.
-    //};
+    while(!(I2C1->SR1 & 0x0001));         // Wait for START bit to be set
+    uint8_t Address = (SlaveAddr & 0xFE); // Clear SlaveAddr LSB for write mode
+    I2C1->DR = Address;                   // Write Address to Data Register     // TODO: DR Not Sending, hence EV6 hangs at start as no ADDR bit set.
 
     // Read of SR1 and write to DR should have reset the start bit in SR1
     // EV5 End
 
-    // Wait for confirmation that addr has been sent.
-    // Check ADDR bit in I2C1->SR1
-                                                                                // DEBUG
-    //SerialSendByte('A');                                                      // DEBUG
-    //SerialSendByte(I2C1->SR1 + 0x30);                                         // DEBUG
-    //SerialSendByte((I2C1->SR1>>8) + 0x30);                                    // DEBUG
-    //SerialSendByte(I2C1->SR2 + 0x30);                                         // DEBUG
-    //SerialSendByte((I2C1->SR2>>8) + 0x30);                                    // DEBUG
-    //SerialSendByte(I2C1->DR);                                                 // DEBUG
     // EV6 Start                                                                // DEBUG: Reaching this point but failing to continue.
-    while(!(I2C1->SR1 & 0x0002)){ // Wait for ADDR Flag Set
-        //SerialSendByte(0x0D);
-        //SerialSendByte(0x0A);
-        //SerialSendByte(I2C1->SR1 + 0x30);
-        //SerialSendByte((I2C1->SR1>>8) + 0x30);
-    };   // Read SR1
-    SerialSendByte('B');
+    while(!(I2C1->SR1 & 0x0002));   // Read SR1, Wait for ADDR Flag Set
+    SerialSendByte('B');                                                        // DEBUG: Progress Checkpoint
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     (void)I2C1->SR2;
-
-    SerialSendByte(temp);                                                       //DEBUG
     // EV6 End
     // Write Mode Enabled. Send Data using I2CWriteData()
 }
