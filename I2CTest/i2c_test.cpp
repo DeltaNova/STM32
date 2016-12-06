@@ -77,21 +77,16 @@ void I2CSetup() {
     // I2C1 SCL - PB8
 
     // Configure Ports
-    RCC->APB2ENR |= 0x00000009; // Enable Port B Clock & Alternate Function Clk
-    AFIO->MAPR |= 0x00000002;   // Remap I2C1 to use PB8,PB9
-    //AFIO->MAPR |= 0x00001000;   // Remap TIM4 // DEBUG - Makes no difference
-
-    // Setup Ports - Max Speed set to 2MHz as I2C Fast Mode is 400kHz Max.
+    RCC->APB2ENR |= 0x00000009;     // Enable PortB Clock & Alt. Function Clk
     // PORT B9 - SDA
-    GPIOB->CRH &= ~0x000000F0; // Reset PB 9 bits before setting on next line
-    //GPIOB->CRH |= 0x000000E0;  // AF Open Drain, Max 2MHz
-    GPIOB->CRH |= 0x000000F0;  // AF Open Drain, Max 50MHz
+    GPIOB->CRH &= ~0x000000F0;      // Reset PB9 bits
+    GPIOB->CRH |= 0x000000F0;       // AF Open Drain, Max 50MHz
     // PORT B8 - SCL
-    GPIOB->CRH &= ~0x0000000F; // Reset PB 8 bits before setting on next line
-    //GPIOB->CRH |= 0x0000000E;  // AF Open Drain, Max 2MHz
-    GPIOB->CRH |= 0x0000000F;  // AF Open Drain, Max 50MHz
+    GPIOB->CRH &= ~0x0000000F;      // Reset PB8 bits
+    GPIOB->CRH |= 0x0000000F;       // AF Open Drain, Max 50MHz
 
-    RCC->APB1ENR |= 0x00200000;    // Enable I2C1 Peripheral Clock
+    AFIO->MAPR |= 0x00000002;       // Remap I2C1 to use PB8,PB9
+    RCC->APB1ENR |= 0x00200000;     // Enable I2C1 Peripheral Clock
 
     // I2C Master Mode -
     I2C1->CR2 = 0x0024;        // Set Timings I2C_CR2 for 36MHz Peripheral Clk
@@ -116,9 +111,13 @@ void I2CSetup() {
     I2C1->CR1 = 0x0000;  // Load Default Reset Values
     // Program I2C_CR1 to enable peripheral
     // Only enable after all setup operations complete.
-
-    I2C1->CR1 |= 0x0001; // Enable I2C1
     I2C1->CR1 |= 0x0400; // Acknowledge Enable - once PE = 1
+    I2C1->CR1 |= 0x0001; // Enable I2C1
+
+
+    // Following Made no difference
+    RCC->APB1RSTR |= 0x00200000;    // Enable Reset I2C1
+    RCC->APB1RSTR &= ~0x00200000;   // Disable Reset I2C1
 }
 
 void I2CStart()
