@@ -45,22 +45,22 @@ int main(void) {
     SerialSendByte('0');
     //I2CStart();
     //SerialSendByte('1');
-    I2CWriteMode(0x78); // Slave Address
+    I2CWriteMode(0xB8); // Slave Address
     SerialSendByte('2');
     I2CWriteData(0x01); //BH1750FVI - Power On
     SerialSendByte('3');
     I2CStop();
     SerialSendByte('4');
 
-    delay(1000);
-    I2CStart();
-    I2CWriteMode(0x78);
+    //delay(1000);
+    //I2CStart();
+    I2CWriteMode(0xB8);
     I2CWriteData(0x20); // BH1750FVI One Time H-Res Mode.
     I2CStop();
-
+    SerialSendByte('5');
     delay(1000); // Allow time for reading to be taken, auto power down.
 
-    I2CReadData(2,0x78);    // Reads 2 Byte Measurement into i2c_rx_buffer
+    I2CReadData(2,0xB9);    // Reads 2 Byte Measurement into i2c_rx_buffer
 
     SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.
 
@@ -89,35 +89,49 @@ void I2CSetup() {
     RCC->APB1ENR |= 0x00200000;     // Enable I2C1 Peripheral Clock
 
     // I2C Master Mode -
-    I2C1->CR2 = 0x0024;        // Set Timings I2C_CR2 for 36MHz Peripheral Clk
+    I2C1->CR2 = 0x0024;        // FREQ of Peripheral Clk = 36MHz
+
+    I2C1->CR2 |= 0x0100;            // Enable Error Interrupt
+
 
     // Config Clock Control Reg
-    //  Ref: Datasheet Table 41 SCL Frequency
-    //  400kHz = 0x801E - Fast Mode
-    //  100kHz = 0x00B4 - Standard Mode
-    I2C1->CCR = 0x801E;
+    // First ensure peripheral is disabled
+    I2C1->CR1 &= 0xFFFE; // PE = 0
 
     // Setup Rise Time
     // Fast Mode     - TRISE = 11 = 0x000B
     // Standard Mode - TRISE = 37 = 0x0025
     I2C1->TRISE = 0x000B;
 
+    //  Ref: Datasheet Table 41 SCL Frequency
+    //  400kHz = 0x801E - Fast Mode, Duty = 2, CCR = 30
+    //  100kHz = 0x00B4 - Standard Mode
+    //  400kHz = 0xC004 - Fast Mode, Duty = 16/9, CCR = 4
+    I2C1->CCR = 0xC004;
+
+    // Enable peripheral
+    I2C1->CR1 |= 0x0001; // PE = 1
+
+    I2C1->CR1 &= 0xFBF5; // Clear ACK, SMBTYPE and SMBUS bits
+
     // Bug Fix - BUSY flag in a locked state at startup.
     // RM0008 Rev16 26.6.1 I2C Control Register (I2C_CR1)
     // SWRST is used to reset the bus after a glitch has caused the busy bit to
     // become locked in an on state.
 
-    I2C1->CR1 |= 0x8000; // Reset I2C1 with SWRST
-    I2C1->CR1 = 0x0000;  // Load Default Reset Values
+    //I2C1->CR1 |= 0x8000; // Reset I2C1 with SWRST
+    //I2C1->CR1 = 0x0000;  // Load Default Reset Values
     // Program I2C_CR1 to enable peripheral
     // Only enable after all setup operations complete.
     I2C1->CR1 |= 0x0400; // Acknowledge Enable - once PE = 1
-    I2C1->CR1 |= 0x0001; // Enable I2C1
+    //I2C1->CR1 |= 0x0001; // Enable I2C1
+
+    I2C1->OAR1 |= 0x0400; // Bit 14 needs to kept at 1 by software.
 
 
     // Following Made no difference
-    RCC->APB1RSTR |= 0x00200000;    // Enable Reset I2C1
-    RCC->APB1RSTR &= ~0x00200000;   // Disable Reset I2C1
+    //RCC->APB1RSTR |= 0x00200000;    // Enable Reset I2C1
+    //RCC->APB1RSTR &= ~0x00200000;   // Disable Reset I2C1
 }
 
 void I2CStart()
@@ -135,20 +149,30 @@ void I2CStart()
 
 void I2CWriteMode(uint8_t SlaveAddr) // 7bit Addressing Mode                    // TODO: Combine with I2CReadMode as almost identicle functions
 {
-    while(I2C1->SR2 & 0x0002);            // Wait whilst BUSY
-    I2C1->CR1 |= 0x0100;                  // Set START bit
-    while(!(I2C1->SR2 & 0x0001));         // Wait for MSL = 1 (& Busy = 0)
+    uint16_t Timeout = 0xFFFF;
 
+    while(I2C1->SR2 & 0x0002);          // Wait whilst BUSY
+        I2C1->CR1 |= 0x0100;            // Set START bit
     // EV5 Start
-    while(!(I2C1->SR1 & 0x0001));         // Wait for START bit to be set
+    while((I2C1->SR1 & 0x0001) != 0x0001){       // Wait until start bit set
+        if (Timeout-- == 0) {            // If timeout reached
+            SerialSendByte('Z');        // Indicate timeout on serial port
+        }
+    }
+
     uint8_t Address = (SlaveAddr & 0xFE); // Clear SlaveAddr LSB for write mode
     I2C1->DR = Address;                   // Write Address to Data Register     // TODO: DR Not Sending, hence EV6 hangs at start as no ADDR bit set.
-
-    // Read of SR1 and write to DR should have reset the start bit in SR1
     // EV5 End
 
+
+    // Read of SR1 and write to DR should have reset the start bit in SR1
+
+    Timeout = 0xFFFF;
     // EV6 Start                                                                // DEBUG: Reaching this point but failing to continue.
-    while(!(I2C1->SR1 & 0x0002));   // Read SR1, Wait for ADDR Flag Set
+    while(!(I2C1->SR1 & 0x0002)){// Read SR1, Wait for ADDR Flag Set
+        if (Timeout-- == 0)
+            SerialSendByte('Y');
+    }
     SerialSendByte('B');                                                        // DEBUG: Progress Checkpoint
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     (void)I2C1->SR2;
