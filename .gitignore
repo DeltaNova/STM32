@@ -4,6 +4,10 @@
 *.o
 *.obj
 
+# Debug Files
+*.map
+*.list
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -28,3 +32,6 @@
 *.app
 *.elf
 *.hex
+
+# Misc
+*.d
