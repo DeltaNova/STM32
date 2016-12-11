@@ -335,7 +335,7 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr)
         bufferWrite(&i2c_rx_buffer, I2C1->DR);  // Read Byte N-2 into Buffer
 
         I2C1->CR1 |= 0x0200;                    // Set Stop Flag
-        bufferWrite(&i2c_rx_buffer + 0x30, I2C1->DR);  // Read Byte N-1 into Buffer
+        bufferWrite(&i2c_rx_buffer, I2C1->DR);  // Read Byte N-1 into Buffer
         __enable_irq();                         // Enable Interrupts
         while(!(I2C1->SR1 & 0x0040));           // Wait for RxNE Set
         bufferWrite(&i2c_rx_buffer, I2C1->DR);  // Read Byte N into Buffer
