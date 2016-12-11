@@ -42,15 +42,15 @@ int main(void) {
     delay(1000);
     // Initially need a simple device to allow development of comms functions.
     // Using BH1750FVI Breakout board - Ambient Light Sensor
-    SerialSendByte('0');
+    //SerialSendByte('0');
     //I2CStart();
     //SerialSendByte('1');
     I2CWriteMode(0xB8); // Slave Address
-    SerialSendByte('2');
+    //SerialSendByte('2');
     I2CWriteData(0x01); //BH1750FVI - Power On
-    SerialSendByte('3');
+    //SerialSendByte('3');
     I2CStop();
-    SerialSendByte('4');
+    //SerialSendByte('4');
 
     //delay(1000);
     //I2CStart();
@@ -58,11 +58,11 @@ int main(void) {
     I2CWriteData(0x20); // BH1750FVI One Time H-Res Mode.
     I2CStop();
     SerialSendByte('5');
-    delay(1000); // Allow time for reading to be taken, auto power down.
+    delay(10000); // Allow time for reading to be taken, auto power down.
 
-    I2CReadData(2,0xB9);    // Reads 2 Byte Measurement into i2c_rx_buffer
+    //I2CReadData(2,0xB9);    // Reads 2 Byte Measurement into i2c_rx_buffer    // Program Stalls here
 
-    SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.
+    //SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.
 
 
     };
@@ -176,6 +176,9 @@ void I2CWriteMode(uint8_t SlaveAddr) // 7bit Addressing Mode                    
     SerialSendByte('B');                                                        // DEBUG: Progress Checkpoint
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     (void)I2C1->SR2;
+    if ((I2C1->SR1 & 0x0002) == 0x0000){
+        SerialSendByte('C');
+    }
     // EV6 End
     // Write Mode Enabled. Send Data using I2CWriteData()
 }
