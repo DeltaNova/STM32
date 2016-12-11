@@ -1,5 +1,8 @@
+// i2ctest2.cpp
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/usart.h>
+#include <libopencm3/stm32/i2c.h>
 
 int main (void) {
     rcc_periph_clock_enable(RCC_GPIOC);
