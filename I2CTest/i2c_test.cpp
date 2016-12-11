@@ -60,10 +60,11 @@ int main(void) {
     SerialSendByte('5');
     delay(10000); // Allow time for reading to be taken, auto power down.
 
-    //I2CReadData(2,0xB9);    // Reads 2 Byte Measurement into i2c_rx_buffer    // Program Stalls here
+    I2CReadData(2,0xB9);    // Reads 2 Byte Measurement into i2c_rx_buffer    // Program Stalls here
 
-    //SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.
-
+    SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.
+    SerialSendByte('\r');
+    SerialSendByte('\n');
 
     };
 }
@@ -134,7 +135,7 @@ void I2CSetup() {
     //RCC->APB1RSTR &= ~0x00200000;   // Disable Reset I2C1
 }
 
-void I2CStart()
+/*void I2CStart()
 {
     while(I2C1->SR2 & 0x0002); // Wait whilst busy
     // Set Start Condition by setting START bit
@@ -146,7 +147,7 @@ void I2CStart()
 
     while(!(I2C1->SR2 & 0x0001));
 }
-
+*/
 void I2CWriteMode(uint8_t SlaveAddr) // 7bit Addressing Mode                    // TODO: Combine with I2CReadMode as almost identicle functions
 {
     uint16_t Timeout = 0xFFFF;
@@ -204,7 +205,7 @@ void I2CStop()
 
     // Communication Ended, I2C interface in slave mode.
 }
-
+/*
 void I2CReadMode(uint8_t SlaveAddr)                                             // TODO: Combine with I2CWriteMode as almost identicle functions
 {   // 7bit Addressing Mode
 
@@ -223,8 +224,8 @@ void I2CReadMode(uint8_t SlaveAddr)                                             
     (void)I2C1->SR2; // Read SR2
     // Read Mode Enabled, Receive Data using I2CReadData()
 }
-
-void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
+*/
+void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr)
 {
     // Dev Note:
     // There are a number of calls to enable/disable interrupts in this section.
@@ -236,8 +237,29 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
     // NOTE: The buffer size is set globally for all buffers.
     // Implementation Based on Application Note AN2824
 
-    I2CStart();                         // Start
-    I2CReadMode(slaveAddress);          // Send Slave Addr
+    uint16_t Timeout = 0xFFFF;
+
+    while(I2C1->SR2 & 0x0002);          // Wait whilst BUSY
+        I2C1->CR1 |= 0x0100;            // Set START bit
+    // EV5 Start
+    while((I2C1->SR1 & 0x0001) != 0x0001){      // Wait until start bit set
+        if (Timeout-- == 0) {                   // If timeout reached
+            SerialSendByte('M');                // Indicate timeout on serial port
+        }
+    }
+
+    SlaveAddr |= 0x0001;            // Set Slave Addr LSB to indicate read mode
+    I2C1->DR = SlaveAddr;           // Write SlaveAddr to Data Register
+
+    Timeout = 0xFFFF;
+    // EV6 Start
+    while(!(I2C1->SR1 & 0x0002)){// Read SR1, Wait for ADDR Flag Set
+        if (Timeout-- == 0)
+            SerialSendByte('N');
+    }
+
+
+
 
     if (NumberBytesToRead == 1){
 
@@ -266,6 +288,7 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
                                         // Clear Addr Flag
         while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
         (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
+
 
         I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
         __enable_irq();                 // Enable Interrupts
@@ -312,15 +335,13 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress)
         bufferWrite(&i2c_rx_buffer, I2C1->DR);  // Read Byte N-2 into Buffer
 
         I2C1->CR1 |= 0x0200;                    // Set Stop Flag
-        bufferWrite(&i2c_rx_buffer, I2C1->DR);  // Read Byte N-1 into Buffer
+        bufferWrite(&i2c_rx_buffer + 0x30, I2C1->DR);  // Read Byte N-1 into Buffer
         __enable_irq();                         // Enable Interrupts
         while(!(I2C1->SR1 & 0x0040));           // Wait for RxNE Set
         bufferWrite(&i2c_rx_buffer, I2C1->DR);  // Read Byte N into Buffer
         while (I2C1->CR1 & 0x0200);             // Wait for STOP Flag HW clear
         I2C1->CR1 |= (0x0400);                  // Set ACK
     }
-
-    I2CStop();
 }
 
 
