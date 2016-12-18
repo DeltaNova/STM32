@@ -13,6 +13,7 @@ void I2CStart();
 void I2CWriteMode(uint8_t SlaveAddr);
 void I2CWriteData(uint8_t Data);
 void I2CStop();
+void I2CRead2Bytes();
 void I2CReadMode(uint8_t SlaveAddr);
 void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress);
 void I2CRead(uint8_t NumberBytesToRead, uint8_t slaveAddress);
@@ -258,9 +259,6 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr)
             SerialSendByte('N');
     }
 
-
-
-
     if (NumberBytesToRead == 1){
 
         I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
@@ -281,32 +279,7 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr)
         I2C1->CR1 |= (0x0400);          // Set ACK
 
     } else if (NumberBytesToRead == 2) {
-
-        I2C1->CR1 |= 0x0800;            // Set POS Flag
-        __disable_irq();                // Disable Interrupts
-
-                                        // Clear Addr Flag
-        while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
-        (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
-
-
-        I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
-        __enable_irq();                 // Enable Interrupts
-
-        while(!(I2C1->SR1 & 0x0004));   // Wait BTF Flag (Byte Transfer Finish)
-        __disable_irq();                // Disable Interrupts
-        I2C1->CR1 |= 0x0200;            // Set Stop Flag
-        bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read 1st Byte into Buffer
-        __enable_irq();                 // Enable Interrupts
-        bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read 2nd Byte into Buffer
-
-        while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
-
-        // Clear POS Flag, Set ACK Flag (to be ready to receive)
-        I2C1->CR1 &= ~(0x0800);         // Clear POS
-        I2C1->CR1 |= (0x0400);          // Set ACK
-
-
+        I2CRead2Bytes();
     } else {    // Read 3+ Bytes
 
         while (NumberBytesToRead > 3){
@@ -344,4 +317,28 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr)
     }
 }
 
+void I2CRead2Bytes(){
+        I2C1->CR1 |= 0x0800;            // Set POS Flag
+        __disable_irq();                // Disable Interrupts
 
+                                        // Clear Addr Flag
+        while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
+        (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
+
+
+        I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
+        __enable_irq();                 // Enable Interrupts
+
+        while(!(I2C1->SR1 & 0x0004));   // Wait BTF Flag (Byte Transfer Finish)
+        __disable_irq();                // Disable Interrupts
+        I2C1->CR1 |= 0x0200;            // Set Stop Flag
+        bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read 1st Byte into Buffer
+        __enable_irq();                 // Enable Interrupts
+        bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read 2nd Byte into Buffer
+
+        while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
+
+        // Clear POS Flag, Set ACK Flag (to be ready to receive)
+        I2C1->CR1 &= ~(0x0800);         // Clear POS
+        I2C1->CR1 |= (0x0400);          // Set ACK
+    }
