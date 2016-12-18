@@ -13,7 +13,7 @@ void I2CStart();
 void I2CWriteMode(uint8_t SlaveAddr);
 void I2CWriteData(uint8_t Data);
 void I2CStop();
-void I2CRead2Bytes();
+void I2CRead2Bytes(uint8_t SlaveAddr);
 void I2CReadMode(uint8_t SlaveAddr);
 void I2CReadData(uint8_t NumberBytesToRead, uint8_t slaveAddress);
 void I2CRead(uint8_t NumberBytesToRead, uint8_t slaveAddress);
@@ -56,12 +56,14 @@ int main(void) {
     //delay(1000);
     //I2CStart();
     I2CWriteMode(0xB8);
-    I2CWriteData(0x20); // BH1750FVI One Time H-Res Mode.
+    //I2CWriteData(0x20); // BH1750FVI One Time H-Res Mode.
+    I2CWriteData(0x13);
     I2CStop();
     SerialSendByte('5');
-    delay(10000); // Allow time for reading to be taken, auto power down.
-
-    I2CReadData(2,0xB9);    // Reads 2 Byte Measurement into i2c_rx_buffer    // Program Stalls here
+    //delay(10000); // Allow time for reading to be taken, auto power down.
+    longdelay(0xFFFF);
+    //I2CReadData(2,0xB9);    // Reads 2 Byte Measurement into i2c_rx_buffer    // Program Stalls here
+    I2CRead2Bytes(0xB9);
 
     SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.
     SerialSendByte('\r');
@@ -249,8 +251,7 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr)
         }
     }
 
-    SlaveAddr |= 0x0001;            // Set Slave Addr LSB to indicate read mode
-    I2C1->DR = SlaveAddr;           // Write SlaveAddr to Data Register
+
 
     Timeout = 0xFFFF;
     // EV6 Start
@@ -279,7 +280,7 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr)
         I2C1->CR1 |= (0x0400);          // Set ACK
 
     } else if (NumberBytesToRead == 2) {
-        I2CRead2Bytes();
+        I2CRead2Bytes(SlaveAddr);
     } else {    // Read 3+ Bytes
 
         while (NumberBytesToRead > 3){
@@ -317,14 +318,33 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr)
     }
 }
 
-void I2CRead2Bytes(){
-        I2C1->CR1 |= 0x0800;            // Set POS Flag
+void I2CRead2Bytes(uint8_t SlaveAddr){
+        I2C1->CR1 |= 0x0800;                    // Set POS Flag
+        uint16_t Timeout = 0xFFFF;
+        while(I2C1->SR2 & 0x0002);              // Wait whilst BUSY
+        I2C1->CR1 |= 0x0100;                    // Set START bit
+        // EV5 Start
+        while((I2C1->SR1 & 0x0001) != 0x0001){  // Wait until start bit set
+            if (Timeout-- == 0) {               // If timeout reached
+                SerialSendByte('R');            // Indicate timeout on USART
+            }
+        }
+
+        Timeout = 0xFFFF;
+        SlaveAddr |= 0x0001;            // Set Slave Addr LSB to indicate read mode
+        I2C1->DR = SlaveAddr;           // Write SlaveAddr to Data Register
+
+        while(!(I2C1->SR1 & 0x0002)){   // Read SR1, Wait for ADDR Flag Set
+            if (Timeout-- == 0)
+                SerialSendByte('N');
+            }
+
+        // EV6_1 - TODO: ADD NOTES HERE
         __disable_irq();                // Disable Interrupts
 
                                         // Clear Addr Flag
-        while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
+        //while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
         (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
-
 
         I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
         __enable_irq();                 // Enable Interrupts
@@ -339,6 +359,7 @@ void I2CRead2Bytes(){
         while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
 
         // Clear POS Flag, Set ACK Flag (to be ready to receive)
-        I2C1->CR1 &= ~(0x0800);         // Clear POS
         I2C1->CR1 |= (0x0400);          // Set ACK
+        I2C1->CR1 &= ~(0x0800);         // Clear POS
+
     }
