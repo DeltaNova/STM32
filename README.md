@@ -1,6 +1,16 @@
 # STM32
 STM32 Development
 
+## Development Project Files
+* ClockConfig - Setup of Various System Clocks
+* I2CTest - Work in progress to interface with I2C
+* SerialBufferTest - Read/Write to USART with a circular buffer
+* SerialTest - Setup Basic USART to send data
+* Test - Basic Example to test development setup.
+
+## Development Project Files (using libopencm3)
+* blink - Basic flashing of onboard LED
+
 
 ## References
 * http://www.stm32duino.com/viewtopic.php?f=28&t=117
