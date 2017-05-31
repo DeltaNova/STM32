@@ -2,8 +2,8 @@
 ################################################################################
 $(info Set Project Definitions)
 # Define the Project Path
-PATH_PROJECT_DIR = $(wildcard ~)/Git/STM32/I2CTest/
-PATH_PROJECT_LIB = $(wildcard ~)/Git/STM32/libraries/
+PATH_PROJECT_DIR = $(wildcard ~)/Git/Public/STM32/I2CTest/
+PATH_PROJECT_LIB = $(wildcard ~)/Git/Public/STM32/libraries/
 LIBS += $(PATH_PROJECT_LIB)
 $(info [Library Path] $(LIBS))
 # Compile Project Library Files
