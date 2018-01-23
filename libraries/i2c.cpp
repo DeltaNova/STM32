@@ -2,7 +2,7 @@
 
 #include "stm32f103xb.h" // Need as direct reference to HW
 #include "serial.h"      // Serial Output used for development
-
+#include "i2c.h"         // Library Header
 // TODO: Remove reliance on ther serial library.
 
 void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
@@ -81,7 +81,7 @@ void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
     while(!(I2C1->SR2 & 0x0001));
 }
 */
-void I2CWriteMode(uint8_t SlaveAddr) // 7bit Addressing Mode                    // TODO: Combine with I2CReadMode as almost identicle functions
+Status I2CWriteMode(uint8_t SlaveAddr)        // 7bit Addressing Mode             // TODO: Combine with I2CReadMode as almost identicle functions
 {
     uint16_t Timeout = 0xFFFF;
 
@@ -104,7 +104,7 @@ void I2CWriteMode(uint8_t SlaveAddr) // 7bit Addressing Mode                    
     // EV6 Start                                                                // DEBUG: Reaching this point but failing to continue.
     while(!(I2C1->SR1 & 0x0002)){// Read SR1, Wait for ADDR Flag Set
         if (Timeout-- == 0)
-            SerialSendByte('Y');
+            return Error;                   // Timeout Occured Return Error
     }
     SerialSendByte('B');                                                        // DEBUG: Progress Checkpoint
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
@@ -114,6 +114,7 @@ void I2CWriteMode(uint8_t SlaveAddr) // 7bit Addressing Mode                    
     }
     // EV6 End
     // Write Mode Enabled. Send Data using I2CWriteData()
+    return Success;
 }
 
 void I2CWriteData(uint8_t Data)
@@ -159,34 +160,37 @@ void I2CReadMode(uint8_t SlaveAddr)                                             
 }
 */
 
-void I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
-        I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
-        __disable_irq();                // Disable Interrupts
+Status I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
+    
+    I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
+    __disable_irq();                // Disable Interrupts
 
-        // Clear Addr Flag
-        while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
-        (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
+    // Clear Addr Flag
+    while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
+    (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
 
-        I2C1->CR1 |= 0x0200;            // Set Stop Flag
-        __enable_irq();                 // Enable Interrupts
+    I2C1->CR1 |= 0x0200;            // Set Stop Flag
+    __enable_irq();                 // Enable Interrupts
 
-        while(!(I2C1->SR1 & 0x0040));   // Wait for RxNE Set
+    while(!(I2C1->SR1 & 0x0040));   // Wait for RxNE Set
 
-        bufferWrite(i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
+    bufferWrite(i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
 
-        while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
-        I2C1->CR1 |= (0x0400);          // Set ACK
+    while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
+    I2C1->CR1 |= (0x0400);          // Set ACK
+    return Success;
 }
 
-void I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
+Status I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
         I2C1->CR1 |= 0x0800;                    // Set POS Flag
+        /* This bit belongs in I2CReadData as it is common for 1 & 2 byte reads
         uint16_t Timeout = 0xFFFF;
         while(I2C1->SR2 & 0x0002);              // Wait whilst BUSY
         I2C1->CR1 |= 0x0100;                    // Set START bit
         // EV5 Start
         while((I2C1->SR1 & 0x0001) != 0x0001){  // Wait until start bit set
             if (Timeout-- == 0) {               // If timeout reached
-                SerialSendByte('R');            // Indicate timeout on USART
+                return Error;                   // Timeout occured return Error
             }
         }
 
@@ -194,12 +198,13 @@ void I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
         SlaveAddr |= 0x0001;         // Set Slave Addr LSB to indicate read mode
         I2C1->DR = SlaveAddr;        // Write SlaveAddr to Data Register
 
-        while(!(I2C1->SR1 & 0x0002)){   // Read SR1, Wait for ADDR Flag Set
+        while(!(I2C1->SR1 & 0x0002)){   // Read SR1, Wait for ADDR Flag Set EV6
             if (Timeout-- == 0)
-                SerialSendByte('N');
+                return Error;                   // Timeout occured return Error
             }
-
-        // EV6_1 - TODO: ADD NOTES HERE
+        */
+        // EV6_1 - Disable Acknowledge just after EV6 after ADDR is cleared.
+        //         Note: Disable IRQ around ADDR Clearing
         __disable_irq();                // Disable Interrupts
         // Complete Clear Addr Flag Sequence by reading SR2
         (void)I2C1->SR2;                // Read SR2, to reset ADDR Flag.
@@ -208,6 +213,8 @@ void I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
         __enable_irq();                 // Enable Interrupts
 
         while(!(I2C1->SR1 & 0x0004));   // Wait BTF Flag (Byte Transfer Finish)
+        
+        // Disable interrupts around STOP due to HW limitation
         __disable_irq();                // Disable Interrupts
         I2C1->CR1 |= 0x0200;            // Set Stop Flag
         bufferWrite(i2c_rx_buffer, I2C1->DR); // Read 1st Byte into Buffer
@@ -219,10 +226,16 @@ void I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
         // Clear POS Flag, Set ACK Flag (to be ready to receive)
         I2C1->CR1 |= (0x0400);          // Set ACK
         I2C1->CR1 &= ~(0x0800);         // Clear POS
+        return Success;
     }
 
-void I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer){
+Status I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer){
+    // Clear Addr Flag
+    while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
+    (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
+    
     while (NumberBytesToRead > 3){
+        
         while(!(I2C1->SR1 & 0x0004));           // Wait until BTF = 1
         // Read Data in Data Register
         bufferWrite(i2c_rx_buffer, I2C1->DR);  // Read Byte into Buffer
@@ -239,23 +252,24 @@ void I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct
         // it doesnt read N-2 as the sequence EV7_2 in Fig 274 outlines.
         // The correct sequence is below.
 
-        while(!(I2C1->SR1 & 0x0004));           // Wait until BTF Flag = 1
-        I2C1->CR1 &= ~(0x0400);                 // Clear ACK Flag
-        __disable_irq();                        // Disable Interrupts
+    while(!(I2C1->SR1 & 0x0004));           // Wait until BTF Flag = 1
+    I2C1->CR1 &= ~(0x0400);                 // Clear ACK Flag
+    __disable_irq();                        // Disable Interrupts
 
-        // Missing read from AN2824 (Rev4) Fig 1
-        bufferWrite(i2c_rx_buffer, I2C1->DR);  // Read Byte N-2 into Buffer
-
-        I2C1->CR1 |= 0x0200;                    // Set Stop Flag
-        bufferWrite(i2c_rx_buffer, I2C1->DR);  // Read Byte N-1 into Buffer
-        __enable_irq();                         // Enable Interrupts
-        while(!(I2C1->SR1 & 0x0040));           // Wait for RxNE Set
-        bufferWrite(i2c_rx_buffer, I2C1->DR);  // Read Byte N into Buffer
-        while (I2C1->CR1 & 0x0200);             // Wait for STOP Flag HW clear
-        I2C1->CR1 |= (0x0400);                  // Set ACK
+    // Missing read from AN2824 (Rev4) Fig 1
+    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read Byte N-2 into Buffer
+    I2C1->CR1 |= 0x0200;                    // Set Stop Flag
+    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read Byte N-1 into Buffer
+    __enable_irq();                         // Enable Interrupts
+    while(!(I2C1->SR1 & 0x0040));           // Wait for RxNE Set
+    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read Byte N into Buffer
+    NumberBytesToRead = 0;                  // All Bytes Read
+    while (I2C1->CR1 & 0x0200);             // Wait for STOP Flag HW clear
+    I2C1->CR1 |= (0x0400);                  // Set ACK
+    return Success;
 }
 
-void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer )
+Status I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer )
 {
     // Dev Note:
     // There are a number of calls to enable/disable interrupts in this section.
@@ -267,22 +281,31 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct B
     // NOTE: The buffer size is set globally for all buffers.
     // Implementation Based on Application Note AN2824
 
+    // If nothing to read return straight away.
+    if (NumberBytesToRead == 0){
+        return Success;
+    }
+
     uint16_t Timeout = 0xFFFF;
 
     while(I2C1->SR2 & 0x0002);          // Wait whilst BUSY
-        I2C1->CR1 |= 0x0100;            // Set START bit
+    I2C1->CR1 |= 0x0100;                // Set START bit
     // EV5 Start
-    while((I2C1->SR1 & 0x0001) != 0x0001){      // Wait until start bit set
-        if (Timeout-- == 0) {                   // If timeout reached
-            SerialSendByte('M');                // Indicate timeout on serial port
+    while((I2C1->SR1 & 0x0001) != 0x0001){  // Wait until start bit set
+        if (Timeout-- == 0) {               // If timeout reached
+            return Error;                   // Timeout cccured return Error
         }
     }
+
+    SlaveAddr |= 0x0001;         // Set Slave Addr LSB to indicate read mode
+    I2C1->DR = SlaveAddr;        // Write SlaveAddr to Data Register
+
 
     Timeout = 0xFFFF;
     // EV6 Start
     while(!(I2C1->SR1 & 0x0002)){// Read SR1, Wait for ADDR Flag Set
         if (Timeout-- == 0)
-            SerialSendByte('N');
+            return Error;                   // Timeout occured return Error
     }
 
     if (NumberBytesToRead == 1){
@@ -292,4 +315,5 @@ void I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct B
     } else {    // Read 3+ Bytes
         I2CRead3Bytes(SlaveAddr, NumberBytesToRead, i2c_rx_buffer);
     }
+    return Success;
 }

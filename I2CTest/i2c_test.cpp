@@ -45,7 +45,8 @@ int main(void) {
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
 
     // Reads 2 Byte Measurement into i2c_rx_buffer
-    I2CRead2Bytes(0xB9, &i2c_rx_buffer);
+    //I2CRead2Bytes(0xB9, &i2c_rx_buffer);
+    I2CReadData(2, 0xB9, &i2c_rx_buffer);
 
     SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.           // TODO: Convert to Lux value before send
     SerialSendByte('\r');
