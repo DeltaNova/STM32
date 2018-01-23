@@ -24,7 +24,7 @@ DEVICE_FAMILY_LOWER = stm32f1xx
 
 # Location of the STM32CUBE Files
 STMCUBEMX = $(wildcard ~)/Software/STM32CubeMX
-STMCUBE_REPO = $(STMCUBEMX)/Repository/STM32Cube_FW_F1_V1.4.0/
+STMCUBE_REPO = $(STMCUBEMX)/Repository/STM32Cube_FW_F1_V1.6.0/
 
 STMCUBE_PATH = Drivers/CMSIS/Device/ST/STM32F1xx/
 STMCUBE_PATH2 = Drivers/CMSIS/Include/
