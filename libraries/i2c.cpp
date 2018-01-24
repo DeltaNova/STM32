@@ -7,23 +7,67 @@
 
 void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
     // Ref: Datasheet DS5319 Section 5.3.16 I2C Interface Characteristics
-
+    // Ref: STM32F10xx8 STM32F10xxB Errata sheet Rev 13 Section 2.13.7
+    // Note: Incorporates workaround for locking BUSY flag detailed in errata.
+    
+    // Setup Required Clocks
+    RCC->APB2ENR |= 0x00000009;     // Enable PortB Clock & Alt. Function Clk
+    RCC->APB1ENR |= 0x00200000;     // Enable I2C1 Peripheral Clock
     // ABP1 Bus Speed should be 36MHz
     // I2C1 SDA - PB9
     // I2C1 SCL - PB8
-
-    // Configure Ports
-    RCC->APB2ENR |= 0x00000009;     // Enable PortB Clock & Alt. Function Clk
+    
+    // Workaround Step 1
+    I2C1->CR1 &= ~0x0001;            // Disable I2C Peripheral 
+    
+    // Workaround Step 2
     // PORT B9 - SDA
-    GPIOB->CRH &= ~0x000000F0;      // Reset PB9 bits
-    GPIOB->CRH |= 0x000000F0;       // AF Open Drain, Max 50MHz
+    GPIOB->CRH &= ~0x000000F0;      // Reset PB9 bits (SDA)
+    GPIOB->CRH |= 0x00000070;       // General Ouput, Open Drain
     // PORT B8 - SCL
     GPIOB->CRH &= ~0x0000000F;      // Reset PB8 bits
+    GPIOB->CRH |= 0x00000007;       // General Output, Open Drain
+    GPIOB->ODR |= 0x00000300;       // Set PB8,PB9 High Level Output
+    
+    // Workaround Step 3
+    while(!(GPIOB->IDR & 0x00000300)); // Check that PB8, PB9 are high level.
+    
+    // Workaround Step 4
+    GPIOB->ODR &= ~0x00000200;          // Set PB9 Low Level
+    
+    // Workaround Step 5
+    while(GPIOB->IDR & 0x00000200);    // Check that PB9 is low level.
+    
+    // Workaround Step 6
+    GPIOB->ODR &= ~0x00000100;      // Set PB8 Low
+  
+    // Workaround Step 7
+    while(GPIOB->IDR & 0x00000100); // Check that PB8 is Low.
+
+    // Workaround Step 8
+    GPIOB->ODR |= 0x00000100;       // Set PB8 High
+
+    // Workaround Step 9
+    while(!(GPIOB->IDR & 0x00000100)); //Check that PB8 is High
+
+    // Workaround Step 10
+    GPIOB->ODR |= 0x00000200;       // Set PB9 High
+
+    // Workaround Step 11
+    while(!(GPIOB->IDR & 0x00000200)); // Check that PB9 is High
+    
+    // Workaround Step 12 
+    GPIOB->CRH |= 0x000000F0;       // AF Open Drain, Max 50MHz
     GPIOB->CRH |= 0x0000000F;       // AF Open Drain, Max 50MHz
-
     AFIO->MAPR |= 0x00000002;       // Remap I2C1 to use PB8,PB9
-    RCC->APB1ENR |= 0x00200000;     // Enable I2C1 Peripheral Clock
+        
+    // Workaround Step 13
+    I2C1->CR1 |= 0x8000;    // Set SWRST
 
+    // Workaround Step 14
+    I2C1->CR1 &= ~ 0x8000;  // Clear SWRST
+    
+    // Start Additional Setup - After SWRST
     // I2C Master Mode -
     I2C1->CR2 = 0x0024;             // FREQ of Peripheral Clk = 36MHz
 
@@ -33,6 +77,7 @@ void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
     // First ensure peripheral is disabled
     I2C1->CR1 &= 0xFFFE; // PE = 0
 
+    I2C1->OAR1 |= 0x0400; // Bit 14 needs to kept at 1 by software.
     // Setup Rise Time
     // Fast Mode     - TRISE = 11 = 0x000B
     // Standard Mode - TRISE = 37 = 0x0025
@@ -43,29 +88,14 @@ void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
     //  100kHz = 0x00B4 - Standard Mode
     //  400kHz = 0xC004 - Fast Mode, Duty = 16/9, CCR = 4
     I2C1->CCR = 0xC004;
-
-    // Enable peripheral
-    I2C1->CR1 |= 0x0001; // PE = 1
+    // End Additional Setup
+    
+    // Workaround Step 15
+    I2C1->CR1 |= 0x0001; // Enable I2C, PE = 1
 
     I2C1->CR1 &= 0xFBF5; // Clear ACK, SMBTYPE and SMBUS bits
-
-    // Bug Fix - BUSY flag in a locked state at startup.
-    // RM0008 Rev16 26.6.1 I2C Control Register (I2C_CR1)
-    // SWRST is used to reset the bus after a glitch has caused the busy bit to
-    // become locked in an on state.
-
-    //I2C1->CR1 |= 0x8000; // Reset I2C1 with SWRST
-    //I2C1->CR1 = 0x0000;  // Load Default Reset Values
-    // Program I2C_CR1 to enable peripheral
     // Only enable after all setup operations complete.
     I2C1->CR1 |= 0x0400; // Acknowledge Enable - once PE = 1
-    //I2C1->CR1 |= 0x0001; // Enable I2C1
-
-    I2C1->OAR1 |= 0x0400; // Bit 14 needs to kept at 1 by software.
-
-    // Following Made no difference
-    //RCC->APB1RSTR |= 0x00200000;    // Enable Reset I2C1
-    //RCC->APB1RSTR &= ~0x00200000;   // Disable Reset I2C1
 }
 
 /*void I2CStart()
@@ -86,7 +116,7 @@ Status I2CWriteMode(uint8_t SlaveAddr)        // 7bit Addressing Mode           
     uint16_t Timeout = 0xFFFF;
 
     while(I2C1->SR2 & 0x0002);              // Wait whilst BUSY
-        I2C1->CR1 |= 0x0100;                // Set START bit
+    I2C1->CR1 |= 0x0100;                    // Set START bit
     // EV5 Start
     while((I2C1->SR1 & 0x0001) != 0x0001){  // Wait until start bit set
         if (Timeout-- == 0) {               // If timeout reached
@@ -95,18 +125,18 @@ Status I2CWriteMode(uint8_t SlaveAddr)        // 7bit Addressing Mode           
     }
 
     uint8_t Address = (SlaveAddr & 0xFE); // Clear SlaveAddr LSB for write mode
-    I2C1->DR = Address;                   // Write Address to Data Register     // TODO: DR Not Sending, hence EV6 hangs at start as no ADDR bit set.
+    I2C1->DR = Address;                   // Write Address to Data Register     
     // EV5 End
 
     // Read of SR1 and write to DR should have reset the start bit in SR1
 
     Timeout = 0xFFFF;
-    // EV6 Start                                                                // DEBUG: Reaching this point but failing to continue.
+    // EV6 Start                                                                
     while(!(I2C1->SR1 & 0x0002)){// Read SR1, Wait for ADDR Flag Set
         if (Timeout-- == 0)
             return Error;                   // Timeout Occured Return Error
     }
-    SerialSendByte('B');                                                        // DEBUG: Progress Checkpoint
+
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     (void)I2C1->SR2;
     if ((I2C1->SR1 & 0x0002) == 0x0000){
@@ -183,26 +213,7 @@ Status I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
 
 Status I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
         I2C1->CR1 |= 0x0800;                    // Set POS Flag
-        /* This bit belongs in I2CReadData as it is common for 1 & 2 byte reads
-        uint16_t Timeout = 0xFFFF;
-        while(I2C1->SR2 & 0x0002);              // Wait whilst BUSY
-        I2C1->CR1 |= 0x0100;                    // Set START bit
-        // EV5 Start
-        while((I2C1->SR1 & 0x0001) != 0x0001){  // Wait until start bit set
-            if (Timeout-- == 0) {               // If timeout reached
-                return Error;                   // Timeout occured return Error
-            }
-        }
 
-        Timeout = 0xFFFF;
-        SlaveAddr |= 0x0001;         // Set Slave Addr LSB to indicate read mode
-        I2C1->DR = SlaveAddr;        // Write SlaveAddr to Data Register
-
-        while(!(I2C1->SR1 & 0x0002)){   // Read SR1, Wait for ADDR Flag Set EV6
-            if (Timeout-- == 0)
-                return Error;                   // Timeout occured return Error
-            }
-        */
         // EV6_1 - Disable Acknowledge just after EV6 after ADDR is cleared.
         //         Note: Disable IRQ around ADDR Clearing
         __disable_irq();                // Disable Interrupts

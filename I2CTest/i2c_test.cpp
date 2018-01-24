@@ -43,7 +43,7 @@ int main(void) {
     I2CWriteData(0x13);   // BH1750FVI Continuous Mode
     I2CStop();            // Required as part of BH1750FVI I2C Comms
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
-
+    
     // Reads 2 Byte Measurement into i2c_rx_buffer
     //I2CRead2Bytes(0xB9, &i2c_rx_buffer);
     I2CReadData(2, 0xB9, &i2c_rx_buffer);
