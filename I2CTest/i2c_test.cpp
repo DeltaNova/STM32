@@ -51,8 +51,46 @@ int main(void) {
     //I2CRead2Bytes(0xB9, &i2c_rx_buffer);
     I2CReadData(2, 0xB9, &i2c_rx_buffer);
 
-    SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.           // TODO: Convert to Lux value before send
+    uint8_t Byte1; // High Byte
+    uint8_t Byte2; // Low Byte
+    bufferRead(&i2c_rx_buffer, &Byte1);
+    bufferRead(&i2c_rx_buffer, &Byte2);
+
+    uint16_t LuxBytes = (Byte1 <<8) + Byte2;
+    // Convert LuxBytes into LuxValue - H-Resolution Mode
+    // Default Settings in H-Resolution mode = Resolution of 0.83lx/count.
+    // Therefore count/1.2 gives lux value
+    uint16_t LuxValue = LuxBytes / 1.2;
     
+    // Send Lux Value to Serial Output
+    // The maximum count is 65535 (0XFFFF)
+    // Converting to Lux (count/1.2) results in a maximum lux value of 54612.
+    
+    // Convert LuxValue into a string that can be sent over the serial output.
+    // Use snprintf to convert LuxValue into a string representation of an 
+    // unsigned decimal integer. Add leading zeros. 
+    // snprintf adds a trailing null character.
+    
+    // Buffer to hold 6 bytes, one for each digit, plus terminating null char. 
+    char char_buffer[6]; 
+    
+    // Convert and send LuxBytes for reference.
+    // Convert LuxBytes and store value in char_buffer with leading zeros.
+    snprintf(char_buffer, 6,"%05u", LuxBytes); 
+    
+    for(int i=0;i<5;i++){
+        SerialSendByte(char_buffer[i]);
+    }
+    
+    SerialSendByte(' '); // Separate Output on serial terminal.
+    
+    // Convert LuxValue and store value in char_buffer with leading zeros.
+    snprintf(char_buffer,6, "%05u", LuxValue);
+    // Step through the buffer and send each byte via the serial output.
+    for(int i=0;i<5;i++){
+        SerialSendByte(char_buffer[i]);
+    }
+
     SerialSendByte('\r');
     SerialSendByte('\n');
     };
