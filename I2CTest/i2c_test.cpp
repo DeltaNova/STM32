@@ -1,12 +1,13 @@
 // STM32F103 I2C Setup & Test
 ////////////////////////////////////////////////////////////////////////////////
-#include "clock.h"       // Setup system and peripheral clocks
-#include "buffer.h"      // Circular Buffers
-#include "serial.h"      // USART1 Setup & Functions
-#include "delay.h"       // Simple Delay Function
-#include "i2c.h"         // I2C Setup and control functions
-#include <stdint.h>      // uint8_t
-#include "stm32f103xb.h" // HW Specific Header
+#include "clock.h"          // Setup system and peripheral clocks
+#include "buffer.h"         // Circular Buffers
+#include "serial.h"         // USART1 Setup & Functions
+#include "delay.h"          // Simple Delay Function
+#include "i2c.h"            // I2C Setup and control functions
+#include <stdint.h>         // uint8_t
+#include <stdio.h>          // Newlib-nano 
+#include "stm32f103xb.h"    // HW Specific Header
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
@@ -49,6 +50,7 @@ int main(void) {
     I2CReadData(2, 0xB9, &i2c_rx_buffer);
 
     SerialBufferSend(&i2c_rx_buffer); // Send measurement via serial.           // TODO: Convert to Lux value before send
+    
     SerialSendByte('\r');
     SerialSendByte('\n');
     };
