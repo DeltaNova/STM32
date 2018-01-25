@@ -32,7 +32,6 @@ int main(void) {
     SerialBufferSend(&serial_tx_buffer);
 
     while(1){
-    delay(1000);
     // Initially need a simple device to allow development of comms functions.
     // Using BH1750FVI Breakout board - Ambient Light Sensor
     I2CWriteMode(0xB8); // Slave Address
@@ -43,6 +42,9 @@ int main(void) {
     //I2CWriteData(0x20); // BH1750FVI One Time H-Res Mode.
     I2CWriteData(0x13);   // BH1750FVI Continuous Mode
     I2CStop();            // Required as part of BH1750FVI I2C Comms
+    // The total delay in the loop needs to be adjusted so that we dont end up
+    // reading the sensor too often.
+    longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     
     // Reads 2 Byte Measurement into i2c_rx_buffer
