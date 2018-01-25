@@ -1,9 +1,8 @@
 // i2c.cpp -- I2C Setup STM32F103
 
 #include "stm32f103xb.h" // Need as direct reference to HW
-#include "serial.h"      // Serial Output used for development
 #include "i2c.h"         // Library Header
-// TODO: Remove reliance on ther serial library.
+#include "buffer.h"     // Buffer Library
 
 void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
     // Ref: Datasheet DS5319 Section 5.3.16 I2C Interface Characteristics
@@ -161,9 +160,6 @@ Status I2CWriteMode(uint8_t SlaveAddr)        // 7bit Addressing Mode           
 
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     (void)I2C1->SR2;
-    if ((I2C1->SR1 & 0x0002) == 0x0000){
-        SerialSendByte('C');
-    }
     // EV6 End
     // Write Mode Enabled. Send Data using I2CWriteData()
     return Success;
