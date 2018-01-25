@@ -11,73 +11,93 @@ void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
     // Note: Incorporates workaround for locking BUSY flag detailed in errata.
     
     // Setup Required Clocks
-    RCC->APB2ENR |= 0x00000009;     // Enable PortB Clock & Alt. Function Clk
-    RCC->APB1ENR |= 0x00200000;     // Enable I2C1 Peripheral Clock
     // ABP1 Bus Speed should be 36MHz
     // I2C1 SDA - PB9
     // I2C1 SCL - PB8
+
+    RCC->APB2ENR |= 0x00000009;     // Enable PortB Clock & Alt. Function Clk
+    RCC->APB1ENR |= 0x00200000;     // Enable I2C1 Peripheral Clock
     
     // Workaround Step 1
-    I2C1->CR1 &= ~0x0001;            // Disable I2C Peripheral 
+    // Disable the I2C Peripheral by clearing the PE bit in I2Cx_CR1 register
+    I2C1->CR1 &= ~0x0001;           // Disable I2C Peripheral 
     
     // Workaround Step 2
-    // PORT B9 - SDA
+    // Configure the SCL and SDA I/Os as General Purpose Output Open-Drain, 
+    // High level (Write 1 to GPIOx_ODR)
+    
     GPIOB->CRH &= ~0x000000F0;      // Reset PB9 bits (SDA)
     GPIOB->CRH |= 0x00000070;       // General Ouput, Open Drain
-    // PORT B8 - SCL
     GPIOB->CRH &= ~0x0000000F;      // Reset PB8 bits
     GPIOB->CRH |= 0x00000007;       // General Output, Open Drain
     GPIOB->ODR |= 0x00000300;       // Set PB8,PB9 High Level Output
     
     // Workaround Step 3
-    while(!(GPIOB->IDR & 0x00000300)); // Check that PB8, PB9 are high level.
+    // Check SCL and SDA High level in GPIOx_IDR.
+    while(!(GPIOB->IDR & 0x00000300)); // Check that PB8, PB9 are High level.
     
     // Workaround Step 4
-    GPIOB->ODR &= ~0x00000200;          // Set PB9 Low Level
+    // Configure the SDA I/O as General Purpose Output Open-Drain,
+    // Low level (Write 0 to GPIOx_ODR).
+    GPIOB->ODR &= ~0x00000200;      // Set PB9 (SDA) Low Level.
     
     // Workaround Step 5
-    while(GPIOB->IDR & 0x00000200);    // Check that PB9 is low level.
+    // Check SDA Low level in GPIOx_IDR.
+    while(GPIOB->IDR & 0x00000200); // Check that PB9 is low level.
     
     // Workaround Step 6
+    // Configure the SCL I/O as General Purpose Output Open-Drain,
+    // Low level (Write 0 to GPIOx_ODR).
     GPIOB->ODR &= ~0x00000100;      // Set PB8 Low
   
     // Workaround Step 7
+    // Check SCL Low level in GPIOx_IDR.
     while(GPIOB->IDR & 0x00000100); // Check that PB8 is Low.
 
     // Workaround Step 8
+    // Configure the SCL I/O as General Purpose Output Open-Drain,
+    // High level (Write 1 to GPIOx_ODR).
     GPIOB->ODR |= 0x00000100;       // Set PB8 High
 
     // Workaround Step 9
-    while(!(GPIOB->IDR & 0x00000100)); //Check that PB8 is High
+    // Check SCL High level in GPIOx_IDR.
+    while(!(GPIOB->IDR & 0x00000100));  //Check that PB8 (SCL) is High
 
     // Workaround Step 10
+    // Configure the SDA I/O as General Purpose Output Open-Drain,
+    // High level (Write 1 to GPIOx_ODR).
     GPIOB->ODR |= 0x00000200;       // Set PB9 High
 
     // Workaround Step 11
-    while(!(GPIOB->IDR & 0x00000200)); // Check that PB9 is High
+    // Check SDA High level in GPIOx_IDR.
+    while(!(GPIOB->IDR & 0x00000200));  // Check that PB9 (SDA) is High
     
-    // Workaround Step 12 
+    // Workaround Step 12
+    // Configure the SCL and SDA I/Os as Alternate function Open-Drain.
     GPIOB->CRH |= 0x000000F0;       // AF Open Drain, Max 50MHz
     GPIOB->CRH |= 0x0000000F;       // AF Open Drain, Max 50MHz
     AFIO->MAPR |= 0x00000002;       // Remap I2C1 to use PB8,PB9
         
     // Workaround Step 13
-    I2C1->CR1 |= 0x8000;    // Set SWRST
+    // Set SWRST bit in I2Cx_CR1 register.
+    I2C1->CR1 |= 0x8000;            // Set SWRST
 
     // Workaround Step 14
-    I2C1->CR1 &= ~ 0x8000;  // Clear SWRST
+    // Clear SWRST bit in I2Cx_CR1 register.
+    I2C1->CR1 &= ~ 0x8000;          // Clear SWRST
     
-    // Start Additional Setup - After SWRST
-    // I2C Master Mode -
+    // Start I2C Configuration - After SWRST before PE = 1
+    // I2C Master Mode
     I2C1->CR2 = 0x0024;             // FREQ of Peripheral Clk = 36MHz
-
     I2C1->CR2 |= 0x0100;            // Enable Error Interrupt
 
-    // Config Clock Control Reg
+    // Setup Own Address Register
+    I2C1->OAR1 |= 0x0400;           // Bit 14 needs to kept at 1 by software.
+    
+    // Configure Clock Control Reg
     // First ensure peripheral is disabled
-    I2C1->CR1 &= 0xFFFE; // PE = 0
+    I2C1->CR1 &= 0xFFFE;            // PE = 0
 
-    I2C1->OAR1 |= 0x0400; // Bit 14 needs to kept at 1 by software.
     // Setup Rise Time
     // Fast Mode     - TRISE = 11 = 0x000B
     // Standard Mode - TRISE = 37 = 0x0025
@@ -91,11 +111,13 @@ void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
     // End Additional Setup
     
     // Workaround Step 15
-    I2C1->CR1 |= 0x0001; // Enable I2C, PE = 1
+    // Enable the I2C peripheral by setting the PE bit in the I2Cx_CR1 register.
+    I2C1->CR1 |= 0x0001;            // Enable I2C, PE = 1
 
-    I2C1->CR1 &= 0xFBF5; // Clear ACK, SMBTYPE and SMBUS bits
+    // Finalise Setup
+    I2C1->CR1 &= 0xFBF5;            // Clear ACK, SMBTYPE and SMBUS bits
     // Only enable after all setup operations complete.
-    I2C1->CR1 |= 0x0400; // Acknowledge Enable - once PE = 1
+    I2C1->CR1 |= 0x0400;            // Acknowledge Enable - once PE = 1
 }
 
 /*void I2CStart()
