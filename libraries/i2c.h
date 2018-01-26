@@ -9,8 +9,8 @@ typedef enum {Success = 0, Error = !Success} Status;
 Status I2C1Setup();
 //void I2CStart();
 Status I2CWriteMode(uint8_t SlaveAddr);
-void I2CWriteData(uint8_t Data);
-void I2CStop();
+Status I2CWriteData(uint8_t Data);
+Status I2CStop();
 Status I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer);    // Read 1 Byte
 Status I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer);  // Read 2 Bytes
 Status I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer);  // Read 3+ Bytes

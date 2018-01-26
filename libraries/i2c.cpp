@@ -172,16 +172,21 @@ Status I2CWriteMode(uint8_t SlaveAddr)        // 7bit Addressing Mode           
     return Success;
 }
 
-void I2CWriteData(uint8_t Data)
+Status I2CWriteData(uint8_t Data)
 {
     // Write Data Byte to established I2C Connection
     // Load Data Register with byte to send.
     I2C1->DR = Data;
     // Wait for Byte Transfer Finished (BTF) flag in I2C1->SR1
-    while(!(I2C1->SR1 & 0x0004));
+    uint16_t Timeout = 0xFFFF;
+    while(!(I2C1->SR1 & 0x0004)){
+        if (Timeout-- == 0)
+            return Error;
+    }
+    return Success;
 }
 
-void I2CStop()
+Status I2CStop()
 {
     // End the I2C Communication Session
 
@@ -190,9 +195,13 @@ void I2CStop()
     I2C1->CR1 |= 0x0200; // Set STOP bit
 
     // Check STOP bit has been cleared indicating STOP condition detected.
-    while(!(I2C1->CR1 & 0x0200));
-
+    uint16_t Timeout = 0xFFFF;
+    while(!(I2C1->CR1 & 0x0200)){
+        if (Timeout-- == 0)
+            return Error;
+    }
     // Communication Ended, I2C interface in slave mode.
+    return Success;
 }
 /*
 void I2CReadMode(uint8_t SlaveAddr)                                             // TODO: Combine with I2CWriteMode as almost identicle functions
