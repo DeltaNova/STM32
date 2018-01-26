@@ -4,7 +4,7 @@
 #include "i2c.h"         // Library Header
 #include "buffer.h"     // Buffer Library
 
-void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
+void I2C1Setup() {
     // Ref: Datasheet DS5319 Section 5.3.16 I2C Interface Characteristics
     // Ref: STM32F10xx8 STM32F10xxB Errata sheet Rev 13 Section 2.13.7
     // Note: Incorporates workaround for locking BUSY flag detailed in errata.

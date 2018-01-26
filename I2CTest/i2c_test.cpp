@@ -23,7 +23,7 @@ volatile struct Buffer i2c_rx_buffer{{},0,0};
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
     SerialSetup();      // Enable Serial Support - Currently USART1 Specific
-    I2CSetup(&i2c_rx_buffer);
+    I2C1Setup();
 
     // USART1 Message to confirm program running - Using for Debugging
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
@@ -53,7 +53,7 @@ int main(void) {
 
     uint8_t Byte1; // High Byte
     uint8_t Byte2; // Low Byte
-    bufferRead(&i2c_rx_buffer, &Byte1);
+    bufferRead(&i2c_rx_buffer, &Byte1); 
     bufferRead(&i2c_rx_buffer, &Byte2);
 
     uint16_t LuxBytes = (Byte1 <<8) + Byte2;
