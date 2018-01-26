@@ -332,13 +332,18 @@ Status I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct
     }
 
     uint16_t Timeout = 0xFFFF;
-
-    while(I2C1->SR2 & 0x0002);          // Wait whilst BUSY
-    I2C1->CR1 |= 0x0100;                // Set START bit
+    while(I2C1->SR2 & 0x0002){              // Wait whilst BUSY
+        if (Timeout-- == 0){
+            return Error;                   // Timeout occured return Error
+        }
+    }
+    
+    Timeout = 0xFFFF;
+    I2C1->CR1 |= 0x0100;                    // Set START bit
     // EV5 Start
     while((I2C1->SR1 & 0x0001) != 0x0001){  // Wait until start bit set
-        if (Timeout-- == 0) {               // If timeout reached
-            return Error;                   // Timeout cccured return Error
+        if (Timeout-- == 0){
+            return Error;                   // Timeout occured return Error
         }
     }
 
@@ -348,9 +353,10 @@ Status I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct
 
     Timeout = 0xFFFF;
     // EV6 Start
-    while(!(I2C1->SR1 & 0x0002)){// Read SR1, Wait for ADDR Flag Set
-        if (Timeout-- == 0)
+    while(!(I2C1->SR1 & 0x0002)){           // Read SR1, Wait for ADDR Flag Set
+        if (Timeout-- == 0){                 
             return Error;                   // Timeout occured return Error
+        }
     }
 
     if (NumberBytesToRead == 1){
