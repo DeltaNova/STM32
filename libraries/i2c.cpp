@@ -14,8 +14,8 @@ void I2C1Setup() {
     
     // Use Alternate Function Remapped ports rather than the defaults to avoid
     // the port conflict with USART1.
-    // I2C1 SDA - PB7 (Alternate Function Default) [Conflict with USART1_RX]
-    // I2C1 SCL - PB6 (Alternate Function Default) [Conflict with USART1_TX]
+    // I2C1 SDA - PB7 (Alternate Function Default) [Conflict with USART1_RX]    // TODO: Make I2C1Setup accept a variable to switch pin mapping.
+    // I2C1 SCL - PB6 (Alternate Function Default) [Conflict with USART1_TX]    //       This will require changes to the pin specific workarounds.
     
     // I2C1 SDA - PB9 (Alternate Function Remap)
     // I2C1 SCL - PB8 (Alternate Function Remap)
