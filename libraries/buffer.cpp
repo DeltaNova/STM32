@@ -165,8 +165,8 @@ uint8_t LoadBuffer(volatile struct Buffer *loadbuffer, uint8_t *data_array, uint
 
     // DEV NOTE:
     // C++ does not copy an array when an array is passed into a function. When
-    // passing an array as an argument to a function, a fixed array decays into a
-    // pointer, and the pointer is passed to the function.
+    // passing an array as an argument to a function, a fixed array decays into
+    // a pointer, and the pointer is passed to the function.
     // Array size needs to be passed as an additional variable.
 
     // Zero Counter

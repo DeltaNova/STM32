@@ -11,8 +11,14 @@ void I2CSetup(volatile struct Buffer *i2c_rx_buffer) {
     
     // Setup Required Clocks
     // ABP1 Bus Speed should be 36MHz
-    // I2C1 SDA - PB9
-    // I2C1 SCL - PB8
+    
+    // Use Alternate Function Remapped ports rather than the defaults to avoid
+    // the port conflict with USART1.
+    // I2C1 SDA - PB7 (Alternate Function Default) [Conflict with USART1_RX]
+    // I2C1 SCL - PB6 (Alternate Function Default) [Conflict with USART1_TX]
+    
+    // I2C1 SDA - PB9 (Alternate Function Remap)
+    // I2C1 SCL - PB8 (Alternate Function Remap)
 
     RCC->APB2ENR |= 0x00000009;     // Enable PortB Clock & Alt. Function Clk
     RCC->APB1ENR |= 0x00200000;     // Enable I2C1 Peripheral Clock

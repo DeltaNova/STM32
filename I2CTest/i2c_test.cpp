@@ -34,14 +34,14 @@ int main(void) {
     while(1){
     // Initially need a simple device to allow development of comms functions.
     // Using BH1750FVI Breakout board - Ambient Light Sensor
-    I2CWriteMode(0xB8); // Slave Address
-    I2CWriteData(0x01); // BH1750FVI - Power On
-    I2CStop();          // Required as part of BH1750FVI I2C Comms
+    I2CWriteMode(0xB8);     // Slave Address
+    I2CWriteData(0x01);     // BH1750FVI - Power On
+    I2CStop();              // Required as part of BH1750FVI I2C Comms
 
-    I2CWriteMode(0xB8);
-    //I2CWriteData(0x20); // BH1750FVI One Time H-Res Mode.
-    I2CWriteData(0x13);   // BH1750FVI Continuous Mode
-    I2CStop();            // Required as part of BH1750FVI I2C Comms
+    I2CWriteMode(0xB8);     // Slave Address
+    //I2CWriteData(0x20);   // BH1750FVI One Time H-Res Mode.
+    I2CWriteData(0x13);     // BH1750FVI Continuous Mode
+    I2CStop();              // Required as part of BH1750FVI I2C Comms
     // The total delay in the loop needs to be adjusted so that we dont end up
     // reading the sensor too often.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
