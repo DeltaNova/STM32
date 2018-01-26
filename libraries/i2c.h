@@ -6,7 +6,7 @@
 // Define function return status
 typedef enum {Success = 0, Error = !Success} Status;
 
-void I2C1Setup();
+Status I2C1Setup();
 //void I2CStart();
 Status I2CWriteMode(uint8_t SlaveAddr);
 void I2CWriteData(uint8_t Data);

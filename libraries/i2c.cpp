@@ -4,7 +4,7 @@
 #include "i2c.h"         // Library Header
 #include "buffer.h"     // Buffer Library
 
-void I2C1Setup() {
+Status I2C1Setup() {
     // Ref: Datasheet DS5319 Section 5.3.16 I2C Interface Characteristics
     // Ref: STM32F10xx8 STM32F10xxB Errata sheet Rev 13 Section 2.13.7
     // Note: Incorporates workaround for locking BUSY flag detailed in errata.
@@ -123,6 +123,7 @@ void I2C1Setup() {
     I2C1->CR1 &= 0xFBF5;            // Clear ACK, SMBTYPE and SMBUS bits
     // Only enable after all setup operations complete.
     I2C1->CR1 |= 0x0400;            // Acknowledge Enable - once PE = 1
+    return Success;
 }
 
 /*void I2CStart()
