@@ -275,29 +275,49 @@ Status I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     }
 
 Status I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer){
+
+    uint16_t Timeout = 0xFFFF;
     // Clear Addr Flag
-    while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
-    (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
+    while(!(I2C1->SR1 & 0X0002)){           // Read SR1 & Check for Addr Flag
+        if (Timeout-- == 0){
+            return Error;                   // Timeout occured return Error
+        }
+    }
+    
+    // Read SR2 to complete Addr Flag reset.
+    (void)I2C1->SR2;                        // Read SR2
     
     while (NumberBytesToRead > 3){
+        Timeout = 0xFFFF;
+        while(!(I2C1->SR1 & 0x0004)){       // Wait until BTF = 1
+            if (Timeout-- == 0){
+                return Error;               // Timeout occured return Error
+            }
+        }
         
-        while(!(I2C1->SR1 & 0x0004));           // Wait until BTF = 1
-        // Read Data in Data Register
-        bufferWrite(i2c_rx_buffer, I2C1->DR);  // Read Byte into Buffer
+        // Read Byte in Data Register and store in Buffer
+        bufferWrite(i2c_rx_buffer, I2C1->DR);  
+        
         // Decrement NumberBytesToRead
         NumberBytesToRead = NumberBytesToRead - 1;
     }
 
-        // At this point there are 3 bytes left to read.
+    // At this point there are 3 bytes left to read.
 
-        // Dev Note:
-        // ---------
-        // The sequence is detailed in RM0008 (Rev16)- Fig 274 and in
-        // AN2824 (Rev4) - Fig 1. There is an error in the flowchart in Fig 1;
-        // it doesnt read N-2 as the sequence EV7_2 in Fig 274 outlines.
-        // The correct sequence is below.
-
-    while(!(I2C1->SR1 & 0x0004));           // Wait until BTF Flag = 1
+    // Dev Note:
+    // ---------
+    // The sequence is detailed in RM0008 (Rev16)- Fig 274 and in
+    // AN2824 (Rev4) - Fig 1. There is an error in the flowchart in Fig 1;
+    // it doesnt read N-2 as the sequence EV7_2 in Fig 274 outlines.
+    // The correct sequence is below.
+    
+    Timeout = 0xFFFF;
+    while(!(I2C1->SR1 & 0x0004)){           // Wait until BTF Flag = 1
+        if (Timeout-- == 0){
+            return Error;                   // Timeout occured return Error
+        }
+    }
+    
     I2C1->CR1 &= ~(0x0400);                 // Clear ACK Flag
     __disable_irq();                        // Disable Interrupts
 
@@ -306,10 +326,23 @@ Status I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile stru
     I2C1->CR1 |= 0x0200;                    // Set Stop Flag
     bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read Byte N-1 into Buffer
     __enable_irq();                         // Enable Interrupts
-    while(!(I2C1->SR1 & 0x0040));           // Wait for RxNE Set
+    
+    Timeout = 0xFFFF;
+    while(!(I2C1->SR1 & 0x0040)){           // Wait for RxNE Set
+        if (Timeout-- == 0){
+            return Error;                   // Timeout occured return Error
+        }
+    }
+    
     bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read Byte N into Buffer
     NumberBytesToRead = 0;                  // All Bytes Read
-    while (I2C1->CR1 & 0x0200);             // Wait for STOP Flag HW clear
+    
+    Timeout = 0xFFFF;
+    while (I2C1->CR1 & 0x0200){             // Wait for STOP Flag HW clear
+        if (Timeout-- == 0){
+            return Error;                   // Timeout occured return Error
+        }
+    }
     I2C1->CR1 |= (0x0400);                  // Set ACK
     return Success;
 }
