@@ -230,17 +230,33 @@ Status I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     __disable_irq();                // Disable Interrupts
 
     // Clear Addr Flag
-    while(!(I2C1->SR1 & 0X0002));   // Read SR1 & Check for Addr Flag
+    uint16_t Timeout = 0xFFFF;
+    while(!(I2C1->SR1 & 0X0002)){   // Read SR1 & Check for Addr Flag
+        if (Timeout-- == 0){
+            return Error;           // Timeout occured return Error
+        }
+    }
     (void)I2C1->SR2;                // Read SR2 to complete Addr Flag reset.
 
     I2C1->CR1 |= 0x0200;            // Set Stop Flag
     __enable_irq();                 // Enable Interrupts
 
-    while(!(I2C1->SR1 & 0x0040));   // Wait for RxNE Set
+    Timeout = 0xFFFF;
+    while(!(I2C1->SR1 & 0x0040)){   // Wait for RxNE Set
+        if (Timeout-- == 0){
+            return Error;           // Timeout occured return Error
+        }
+    }
 
     bufferWrite(i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
 
-    while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
+    Timeout = 0xFFFF;
+    while (I2C1->CR1 & 0x0200){     // Wait until STOP Flag cleared by HW
+        if (Timeout-- == 0){
+            return Error;           // Timeout occured return Error
+        }
+    }
+    
     I2C1->CR1 |= (0x0400);          // Set ACK
     return Success;
 }
