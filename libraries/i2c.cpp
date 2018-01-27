@@ -246,33 +246,41 @@ Status I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
 }
 
 Status I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
-        I2C1->CR1 |= 0x0800;                    // Set POS Flag
-
-        // EV6_1 - Disable Acknowledge just after EV6 after ADDR is cleared.
-        //         Note: Disable IRQ around ADDR Clearing
-        __disable_irq();                // Disable Interrupts
-        // Complete Clear Addr Flag Sequence by reading SR2
-        (void)I2C1->SR2;                // Read SR2, to reset ADDR Flag.
-
-        I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
-        __enable_irq();                 // Enable Interrupts
-
-        while(!(I2C1->SR1 & 0x0004));   // Wait BTF Flag (Byte Transfer Finish)
+    I2C1->CR1 |= 0x0800;                    // Set POS Flag
         
-        // Disable interrupts around STOP due to HW limitation
-        __disable_irq();                // Disable Interrupts
-        I2C1->CR1 |= 0x0200;            // Set Stop Flag
-        bufferWrite(i2c_rx_buffer, I2C1->DR); // Read 1st Byte into Buffer
-        __enable_irq();                 // Enable Interrupts
-        bufferWrite(i2c_rx_buffer, I2C1->DR); // Read 2nd Byte into Buffer
+    // EV6_1 - Disable Acknowledge just after EV6 after ADDR is cleared.
+    //         Note: Disable IRQ around ADDR Clearing
+    __disable_irq();                // Disable Interrupts
+    // Complete Clear Addr Flag Sequence by reading SR2
+    (void)I2C1->SR2;                // Read SR2, to reset ADDR Flag.
 
-        while (I2C1->CR1 & 0x0200);     // Wait until STOP Flag cleared by HW
+    I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
+    __enable_irq();                 // Enable Interrupts
 
-        // Clear POS Flag, Set ACK Flag (to be ready to receive)
-        I2C1->CR1 |= (0x0400);          // Set ACK
-        I2C1->CR1 &= ~(0x0800);         // Clear POS
-        return Success;
+    uint16_t Timeout = 0xFFFF;
+    while(!(I2C1->SR1 & 0x0004)){   // Wait BTF Flag (Byte Transfer Finish)
+        if (Timeout-- == 0){
+            return Error;           // Timeout occured return Error
+        }
     }
+    // Disable interrupts around STOP due to HW limitation
+    __disable_irq();                        // Disable Interrupts
+    I2C1->CR1 |= 0x0200;                    // Set Stop Flag
+    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read 1st Byte into Buffer
+    __enable_irq();                         // Enable Interrupts
+    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read 2nd Byte into Buffer
+
+    Timeout = 0xFFFF;
+    while (I2C1->CR1 & 0x0200){     // Wait until STOP Flag cleared by HW
+        if (Timeout-- == 0){
+            return Error;           // Timeout occured return Error
+        }
+    }
+    // Clear POS Flag, Set ACK Flag (to be ready to receive)
+    I2C1->CR1 |= (0x0400);          // Set ACK
+    I2C1->CR1 &= ~(0x0800);         // Clear POS
+    return Success;
+}
 
 Status I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer){
 
