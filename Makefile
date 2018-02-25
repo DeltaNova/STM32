@@ -41,7 +41,8 @@ CMSIS_SYSTEM = $(CMSIS_SYSTEM_PATH)system_$(DEVICE_FAMILY_LOWER).c
 # Custom File Paths
 CUSTOM_LINKER = Custom_$(DEVICE)_FLASH.ld
 CUSTOM_STARTUP = startup_$(DEVICE_LOWER).s
-CUSTOM_SYSTEM = system_stm32f1xx.c
+# TODO: Add reference to custom system header file?
+CUSTOM_SYSTEM = system_stm32f1xx.cpp
 ################################################################################
 ######################## END CONFIG SECTION ####################################
 ################################################################################
@@ -84,7 +85,7 @@ endif
 ################################################################################
 # Check for project specific system file to use instead of CMSIS version.
 # TODO: Improve how Makefile handles custom system files with different names.
-ifeq ("","$(wildcard $(PATH_PROJECT_DIR)system*.c)")
+ifeq ("","$(wildcard $(PATH_PROJECT_DIR)system*.cpp)")
 # Using CMSIS System File
 	SYSTEM = $(CMSIS_SYSTEM)
 $(info [CMSIS]  [SYSTEM] $(SYSTEM))
