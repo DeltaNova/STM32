@@ -1,5 +1,5 @@
 /*******************************************************************************
-  * system_stm32f1xx.c
+  * system_stm32f1xx.cpp
   *  - SystemInit(): Setups the system clock (System clock source,
   *                  PLL Multiplier factors, AHB/APBx prescalers and Flash
   *                  settings).
@@ -70,5 +70,8 @@ void SystemInit (void)                   /* Initialise System Following Reset */
      bootloader. Until there is a reason to move it leave it where it is      */
   /* Ref: PM0056 - STM32F10xxx CM3 Prog.Man. SCB_VTOR Register                */
   SCB->VTOR = FLASH_BASE | VECTOR_TABLE_OFFSET;
+}
+void SystemCoreClockUpdate(void){
+    /* Not yet implemented */
 }
 /******************************************************************************/
