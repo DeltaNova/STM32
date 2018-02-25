@@ -14,6 +14,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
+extern "C" void SysTick_Handler(void);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -22,7 +23,7 @@ volatile struct Buffer serial_tx_buffer {{},0,0};
 volatile struct Buffer serial_rx_buffer {{},0,0};
 volatile struct Buffer i2c_rx_buffer{{},0,0};
 ////////////////////////////////////////////////////////////////////////////////
-static uint8_t buffer2[1024] = { // 128 x 64 Rodent Pattern
+static uint8_t buffer2[1024] = {    // 128 x 64 Rodent Pattern
 
     0x00, 0x00, 0x20, 0x30, 0x28, 0x3C, 0x30, 0x30, 0x30, 0x30, 0x20, 0x20, 0x10, 0x08, 0x00, 0x00,
     0x00, 0x00, 0x08, 0x10, 0x20, 0x20, 0x30, 0x30, 0x30, 0x30, 0x3C, 0x28, 0x30, 0x20, 0x00, 0x00, // Reversed
@@ -96,7 +97,7 @@ static uint8_t buffer2[1024] = { // 128 x 64 Rodent Pattern
     0x00, 0x00, 0x20, 0x30, 0x28, 0x3C, 0x30, 0x30, 0x30, 0x30, 0x20, 0x20, 0x10, 0x08, 0x00, 0x00,
     0x00, 0x00, 0x20, 0x30, 0x28, 0x3C, 0x30, 0x30, 0x30, 0x30, 0x20, 0x20, 0x10, 0x08, 0x00, 0x00
     };
-static uint8_t buffer3[1024] = { // 128 x 64 Test Pattern
+static uint8_t buffer3[1024] = {    // 128 x 64 Test Pattern
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x40, 0x20, 0x20, 0x20, 0x10, 0x10, 0x10,
     0x10, 0x10, 0x20, 0x20, 0x20, 0x40, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x80, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
@@ -169,6 +170,52 @@ static uint8_t buffer3[1024] = { // 128 x 64 Test Pattern
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
+volatile uint32_t ticks = 0;        // Used for SysTick count down.
+
+void SysTick_Init(void){
+    // SystemCoreClock/1000     =  1ms
+    // SystemCoreClock/100000   = 10us
+    // SystemCoreClock/1000000  =  1us
+    
+    // Triggering the interupt every 1us is probably excessive unless there is a
+    // specific reason. An interrupt every 1ms should be sufficient.
+    
+    // SysTick_Config() is defined in core_cm3.h
+    // Value of SystemCoreClock is defined in startup file.
+    
+    // Setup and start SysTick
+    while(SysTick_Config(SystemCoreClock/1000) != 0){
+        // One SysTick Should now equal 1ms
+        // This means the interrupt SysTick_Handler() will run every 1ms. 
+    }
+}
+
+void SysTick_Handler(void){
+    if (ticks != 0){
+        // Pre-decrement ticks. This avoids making a copy of the variable to 
+        // decrement. This should be faster which is ideal for an interrupt
+        // service routine.
+        // Note: Since the value will pre-decrement the value of ticks will need
+        // to be incremented by 1 to be correct.
+        --ticks;
+    }
+}
+
+void delay_ms(uint32_t ms){
+    
+    if (ms != 0xFFFFFFFF){
+        // Increment the delay count by one to compensate for the pre-decrement
+        // in the SysTick handler.
+        // The only instance where this will not happen is when the delay has
+        // been set to its maximum value. A 1ms difference over the maximum 
+        // delay is insignificant and is ignored. A 1ms difference will be more 
+        // apparent over shorter delays hence the need for compensation.
+        ++ms;
+    }
+    ticks = ms;
+    while(ticks);
+    
+}
 
 void OLEDSetup(){
     // Setup the I2C OLED Display    
@@ -297,6 +344,7 @@ void clear_buffer(){
 // Main - Called by the startup code.
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
+    SysTick_Init();     // Enable SysTick
     SerialSetup();      // Enable Serial Support - Currently USART1 Specific
     I2C1Setup();
     OLEDSetup();
@@ -372,76 +420,16 @@ int main(void) {
     SerialSendByte('\n');
     
     draw_buffer2();
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
+    delay_ms(2000);
     
     clear_buffer();
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
+    delay_ms(2000);
     
     draw_buffer3();
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
+    delay_ms(2000);
     
     clear_buffer();
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
-    longdelay(0xffff);
+    delay_ms(2000);
     };
 }
 
