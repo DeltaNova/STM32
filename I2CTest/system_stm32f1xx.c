@@ -20,6 +20,15 @@
 /*******************************************************************************
 *  Clock Definitions
 *******************************************************************************/
+/* SystemCoreClock is used by SysTick for timing, value will need updating if 
+ * the clock values change. Currently the clocks are setup by ClockSetup() 
+ * function for a 72MHZ Clock.
+ * 
+ * An option exists to furthur divide the SystemCoreClock by 8 before it is used
+ * by SysTick. This would need to be factored in to the value passed to 
+ * SysTick_Config().                                                          */
+uint32_t SystemCoreClock = 72000000U;
+
 void SystemInit (void)                   /* Initialise System Following Reset */
 {
   /* Ref: RM0008 - STM32F1xxxx Ref. Manual. RCC_CR, RCC_CFGR, RCC_CIR         */

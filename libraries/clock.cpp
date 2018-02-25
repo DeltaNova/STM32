@@ -14,6 +14,8 @@ void ClockSetup() {
     while(!(RCC->CR & 0x00020000)); // Wait for HSE Oscillator to stablalise.
 
     // Setup System for 72MHz Clock
+    // NOTE: SystemCoreClock = 72000000U variable stored in system_stm32f1xx.c
+    // TODO: Add function to update SystemCoreClock variable.
     // PLL Clock = 8MHz * 9 = 72MHz
     // USB Clock = PLL Clock / 1.5 = 48MHz.
     // ABP1 Clock = 72 / 2 = 36MHz
