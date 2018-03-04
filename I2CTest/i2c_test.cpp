@@ -187,7 +187,7 @@ int main(void) {
     SysTick_Init();     // Enable SysTick
     
     Serial serial;      // Create instance of Serial class (USART1)
-    serial.SerialSetup();   // Enable Serial Support - Currently USART1 Specific
+    serial.setup();     // Enable Serial Support - Currently USART1 Specific
     
     I2C i2c;            // Create instance of I2C class (I2C1)
     i2c.I2C1Setup();
@@ -199,7 +199,7 @@ int main(void) {
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
     // Send a message to the terminal to indicate program is running.
     LoadBuffer(&serial_tx_buffer, test_message, 10);
-    serial.SerialBufferSend(&serial_tx_buffer);
+    serial.write_buffer(&serial_tx_buffer);
 
 
     while(1){
@@ -239,20 +239,20 @@ int main(void) {
     snprintf(char_buffer, 6,"%05u", LuxBytes); 
     
     for(int i=0;i<5;i++){
-        serial.SerialSendByte(char_buffer[i]);
+        serial.write(char_buffer[i]);
     }
     
-    serial.SerialSendByte(' '); // Separate Output on serial terminal.
+    serial.write(' '); // Separate Output on serial terminal.
     
     // Convert LuxValue and store value in char_buffer with leading zeros.
     snprintf(char_buffer,6, "%05u", LuxValue);
     // Step through the buffer and send each byte via the serial output.
     for(int i=0;i<5;i++){
-        serial.SerialSendByte(char_buffer[i]);
+        serial.write(char_buffer[i]);
     }
 
-    serial.SerialSendByte('\r');
-    serial.SerialSendByte('\n');
+    serial.write('\r');
+    serial.write('\n');
     
     draw_buffer2(i2c);
     delay_ms(2000);
