@@ -199,21 +199,20 @@ int main(void) {
     while(1){
     // Initially need a simple device to allow development of comms functions.
     // Using BH1750FVI Breakout board - Ambient Light Sensor
-    i2c.I2CWriteMode(0xB8);     // Slave Address
+    i2c.start(0xB8);            // Slave Address
     i2c.I2CWriteData(0x01);     // BH1750FVI - Power On
-    i2c.I2CStop();              // Required as part of BH1750FVI I2C Comms
+    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
 
-    i2c.I2CWriteMode(0xB8);     // Slave Address
-    //I2CWriteData(0x20);   // BH1750FVI One Time H-Res Mode.
+    i2c.start(0xB8);            // Slave Address
+    //i2c.I2CWriteData(0x20);       // BH1750FVI One Time H-Res Mode.
     i2c.I2CWriteData(0x13);     // BH1750FVI Continuous Mode
-    i2c.I2CStop();              // Required as part of BH1750FVI I2C Comms
+    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
     // The total delay in the loop needs to be adjusted so that we dont end up
     // reading the sensor too often.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     
     // Reads 2 Byte Measurement into i2c_rx_buffer
-    //I2CRead2Bytes(0xB9, &i2c_rx_buffer);
     i2c.I2CReadData(2, 0xB9, &i2c_rx_buffer);
 
     uint8_t Byte1; // High Byte
@@ -320,7 +319,7 @@ void delay_ms(uint32_t ms){
 
 void OLEDSetup(I2C& i2c){
     // Setup the I2C OLED Display    
-    i2c.I2CWriteMode(OLED_ADDR);
+    i2c.start(OLED_ADDR);
     // Initialisation Based upon Application Note Example
     i2c.I2CWriteData(0x00);       // Send Command Byte Stream
     // --
@@ -357,7 +356,7 @@ void OLEDSetup(I2C& i2c){
     i2c.I2CWriteData(0xD9);       // Setup Precharge
     i2c.I2CWriteData(0x22);
     // ---
-    i2c.I2CWriteData(0xDB);       //VCOMH DESELECT
+    i2c.I2CWriteData(0xDB);       // VCOMH DESELECT
     i2c.I2CWriteData(0x30);
     // ---
     i2c.I2CWriteData(0x20);       // Set Mem Addr Mode
@@ -366,12 +365,12 @@ void OLEDSetup(I2C& i2c){
 
     i2c.I2CWriteData(0xAF);       // Display On
     // ---
-    i2c.I2CStop(); // Stop Transmitting
+    i2c.stop();                   // Stop Transmitting
 }
 
 void draw_buffer2(I2C& i2c){
     // Draw buffer on display
-    i2c.I2CWriteMode(OLED_ADDR);
+    i2c.start(OLED_ADDR);
     i2c.I2CWriteData(0x00);    // Control Byte Command Stream
     i2c.I2CWriteData(0x21);    // Setup Column Addresses
     i2c.I2CWriteData(0x00);    // Col Start Addr
@@ -379,23 +378,23 @@ void draw_buffer2(I2C& i2c){
     i2c.I2CWriteData(0x22);    // Set Page Addr
     i2c.I2CWriteData(0x00);    // Start Page 0
     i2c.I2CWriteData(0x07);    // End Page 7
-    i2c.I2CStop();
+    i2c.stop();
 
     for (uint16_t i=0; i<1024; i++){
-        i2c.I2CWriteMode(OLED_ADDR);
+        i2c.start(OLED_ADDR);
         i2c.I2CWriteData(0x40);      // Control Byte Data Stream
         for (uint8_t x=0; x<16; x++) {
             i2c.I2CWriteData(buffer2[i]);
             i++;
         }
         i--;
-        i2c.I2CStop();
+        i2c.stop();
     }
 }
 
 void draw_buffer3(I2C& i2c){
     // Draw buffer on display
-    i2c.I2CWriteMode(OLED_ADDR);
+    i2c.start(OLED_ADDR);
     i2c.I2CWriteData(0x00);    // Control Byte Command Stream
     i2c.I2CWriteData(0x21);    // Setup Column Addresses
     i2c.I2CWriteData(0x00);    // Col Start Addr
@@ -403,23 +402,23 @@ void draw_buffer3(I2C& i2c){
     i2c.I2CWriteData(0x22);    // Set Page Addr
     i2c.I2CWriteData(0x00);    // Start Page 0
     i2c.I2CWriteData(0x07);    // End Page 7
-    i2c.I2CStop();
+    i2c.stop();
 
     for (uint16_t i=0; i<1024; i++){
-        i2c.I2CWriteMode(OLED_ADDR);
+        i2c.start(OLED_ADDR);
         i2c.I2CWriteData(0x40);      // Control Byte Data Stream
         for (uint8_t x=0; x<16; x++) {
             i2c.I2CWriteData(buffer3[i]);
             i++;
         }
         i--;
-        i2c.I2CStop();
+        i2c.stop();
     }
 }
 
 void clear_buffer(I2C& i2c){
     // Draw buffer on display
-    i2c.I2CWriteMode(OLED_ADDR);
+    i2c.start(OLED_ADDR);
     i2c.I2CWriteData(0x00);    // Control Byte Command Stream
     i2c.I2CWriteData(0x21);    // Setup Column Addresses
     i2c.I2CWriteData(0x00);    // Col Start Addr
@@ -427,17 +426,17 @@ void clear_buffer(I2C& i2c){
     i2c.I2CWriteData(0x22);    // Set Page Addr
     i2c.I2CWriteData(0x00);    // Start Page 0
     i2c.I2CWriteData(0x07);    // End Page 7
-    i2c.I2CStop();
+    i2c.stop();
 
     for (uint16_t i=0; i<1024; i++){
-        i2c.I2CWriteMode(OLED_ADDR);
+        i2c.start(OLED_ADDR);
         i2c.I2CWriteData(0x40);      // Control Byte Data Stream
         for (uint8_t x=0; x<16; x++) {
             i2c.I2CWriteData(0x00);
             i++;
         }
         i--;
-        i2c.I2CStop();
+        i2c.stop();
     }
 }
 

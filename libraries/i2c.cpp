@@ -126,21 +126,7 @@ Status I2C::I2C1Setup(){
     return Success;
 }
 
-/*void I2CStart()
-{
-    while(I2C1->SR2 & 0x0002); // Wait whilst busy
-    // Set Start Condition by setting START bit
-    // Master/Slave bit set once Busy bit clear.
-    I2C1->CR1 |= 0x0100;
-    // SB = 1, PE = 1
-
-    // Wait for MSL = 1 (& Busy = 0)
-
-    while(!(I2C1->SR2 & 0x0001));
-}
-*/
-
-Status I2C::I2CWriteMode(uint8_t SlaveAddr){     // 7bit Addressing Mode             
+Status I2C::start(uint8_t SlaveAddr){       // 7bit Addressing Mode             
 
     uint16_t Timeout = 0xFFFF;
     while(I2C1->SR2 & 0x0002){              // Wait whilst BUSY
@@ -175,7 +161,6 @@ Status I2C::I2CWriteMode(uint8_t SlaveAddr){     // 7bit Addressing Mode
     // Addr bit now needs to be reset. Read SR1 (above) then SR2
     (void)I2C1->SR2;
     // EV6 End
-    // Write Mode Enabled. Send Data using I2CWriteData()
     return Success;
 }
 
@@ -191,7 +176,7 @@ Status I2C::I2CWriteData(uint8_t Data){
     return Success;
 }
 
-Status I2C::I2CStop(){
+Status I2C::stop(){
     // End the I2C Communication Session
 
     // To close the connection a STOP condition is generated 
