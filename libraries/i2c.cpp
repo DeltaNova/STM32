@@ -164,7 +164,7 @@ Status I2C::start(uint8_t SlaveAddr){       // 7bit Addressing Mode
     return Success;
 }
 
-Status I2C::I2CWriteData(uint8_t Data){
+Status I2C::write(uint8_t Data){
     // Write Data Byte to established I2C Connection
     I2C1->DR = Data;                        // Load byte in Data Register.
     // Wait for Byte Transfer Finished (BTF) flag in I2C1->SR1

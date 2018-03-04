@@ -18,7 +18,7 @@ class I2C {
         Status I2C1Setup();
 
         Status start(uint8_t SlaveAddr);
-        Status I2CWriteData(uint8_t Data);
+        Status write(uint8_t Data);
         Status stop();
         Status I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer);    // Read 1 Byte
         Status I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer);  // Read 2 Bytes
