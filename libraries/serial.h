@@ -13,13 +13,13 @@ class Serial {
     public:
         Serial(){}
         
-        void SerialSendByte(uint8_t);
+        void write(uint8_t);
 
-        uint8_t SerialReadByte();
+        uint8_t read();
 
-        void SerialBufferSend(volatile struct Buffer *serial_tx_buffer);
+        void write_buffer(volatile struct Buffer *serial_tx_buffer);
 
-        void SerialSendString(uint8_t *array, uint8_t array_length);
+        void write_array(uint8_t *array, uint8_t array_length);
 
 
         /*
@@ -29,10 +29,10 @@ class Serial {
         // --------------------
         // Checks if RXNE flag in USART1->SR, read data if set.
         // Echoes data back to sending terminal.
-        void SerialReceiveEcho();
+        void echo();
         */
 
-        void SerialSetup(); // Setup USART1 & IRQ Priority
+        void setup(); // Setup USART1 & IRQ Priority
 
 };
 #endif // SERIAL_H

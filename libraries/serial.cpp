@@ -2,7 +2,7 @@
 
 #include "serial.h"
 
-void Serial::SerialSendByte(uint8_t data2send){
+void Serial::write(uint8_t data2send){
     // Working
     // Wait until TXE = 1 (indicates DR empty)
     while(!(USART1->SR & 0x00000080));
@@ -11,7 +11,7 @@ void Serial::SerialSendByte(uint8_t data2send){
     return;
 }
 
-uint8_t Serial::SerialReadByte(){
+uint8_t Serial::read(){
     // Not Tested
     // Wait until RXNE = 1 (indicates DR ready to be read)
     while(!(USART1->SR & 0x00000020));
@@ -19,35 +19,35 @@ uint8_t Serial::SerialReadByte(){
     return(readData);
 }
 
-void Serial::SerialBufferSend(volatile struct Buffer *serial_tx_buffer){
+void Serial::write_buffer(volatile struct Buffer *serial_tx_buffer){
     // Send the contents of the serial_tx_buffer
     uint8_t tempCharStorage; // Location in memory to store the byte to send
     // While there is data in the buffer, read a byte from the buffer
     // and store it in tempCharStorage. Send this byte via the serial port.
 
     while(bufferRead(serial_tx_buffer, &tempCharStorage) == 0){
-        SerialSendByte(tempCharStorage);
+        write(tempCharStorage);
     }
 }
 
-void Serial::SerialSendString(uint8_t *array, uint8_t array_length){
+void Serial::write_array(uint8_t *array, uint8_t array_length){
     for(uint8_t i = 0; i<array_length; ++i){
-        SerialSendByte(array[i]);
+        write(array[i]);
     }
 }
 /*
     // Needs rewrite to declare buffers
 
-void Serial::SerialReceiveEcho(){
+void Serial::echo(){
     // Checks if RXNE flag in USART1->SR, read data if set.
     // Echoes data back to sending terminal.
 
     while (USART1->SR & 0x00000020){ // Read SR, check if RXNE Set
         uint8_t data = USART1->DR;
         // Echo Data to Terminal
-        SerialSendByte(data);       // Return Rx Byte
-        SerialSendByte(0x0A);       // Send Line Feed
-        SerialSendByte(0x0D);       // Send CR
+        write(data);       // Return Rx Byte
+        write(0x0A);       // Send Line Feed
+        write(0x0D);       // Send CR
         // Store Data In Buffer
         bufferWrite(&serial_rx_buffer,data);
         bufferWrite(&serial_rx_buffer,0x0A);
@@ -57,7 +57,7 @@ void Serial::SerialReceiveEcho(){
     }
 }
 */
-void Serial::SerialSetup(){
+void Serial::setup(){
     // USART1 using PA9 - Tx, PA10 - Rx
     // Baud 9600,N,8,1 without HW flow control
     // Assume 72MHz Sysclk
