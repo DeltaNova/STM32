@@ -21,6 +21,7 @@ void OLEDSetup(I2C& i2c);
 void draw_buffer2(I2C& i2c);
 void draw_buffer3(I2C& i2c);
 void clear_buffer(I2C& i2c);
+void LuxSensorSetup(I2C& i2c);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -188,6 +189,7 @@ int main(void) {
     I2C i2c;            // Create instance of I2C class
     i2c.I2C1Setup();
     OLEDSetup(i2c);
+    LuxSensorSetup(i2c); // Setup BH1750FVI
 
     // USART1 Message to confirm program running - Using for Debugging
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
@@ -197,18 +199,8 @@ int main(void) {
 
 
     while(1){
-    // Initially need a simple device to allow development of comms functions.
-    // Using BH1750FVI Breakout board - Ambient Light Sensor
-    i2c.start(0xB8);            // Slave Address
-    i2c.write(0x01);     // BH1750FVI - Power On
-    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
-
-    i2c.start(0xB8);            // Slave Address
-    //i2c.write(0x20);       // BH1750FVI One Time H-Res Mode.
-    i2c.write(0x13);     // BH1750FVI Continuous Mode
-    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
     // The total delay in the loop needs to be adjusted so that we dont end up
-    // reading the sensor too often.
+    // reading the lux sensor too often.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     
@@ -440,3 +432,14 @@ void clear_buffer(I2C& i2c){
     }
 }
 
+void LuxSensorSetup(I2C& i2c){
+    // Setup BH1750FVI Breakout board - Ambient Light Sensor
+    i2c.start(0xB8);            // Slave Address
+    i2c.write(0x01);     // BH1750FVI - Power On
+    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
+
+    i2c.start(0xB8);            // Slave Address
+    //i2c.write(0x20);       // BH1750FVI One Time H-Res Mode.
+    i2c.write(0x13);     // BH1750FVI Continuous Mode
+    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
+}
