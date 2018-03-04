@@ -230,7 +230,7 @@ Status I2C::readbyte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     return Success;
 }
 
-Status I2C::I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
+Status I2C::read2bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     I2C1->CR1 |= 0x0800;                    // Set POS Flag
         
     // EV6_1 - Disable Acknowledge just after EV6 after ADDR is cleared.
@@ -267,7 +267,7 @@ Status I2C::I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buff
     return Success;
 }
 
-Status I2C::I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer){
+Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer){
 
     uint16_t Timeout = 0xFFFF;
     // Clear Addr Flag
@@ -387,9 +387,9 @@ Status I2C::read(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct B
     if (NumberBytesToRead == 1){
         readbyte(SlaveAddr, i2c_rx_buffer);
     } else if (NumberBytesToRead == 2) {
-        I2CRead2Bytes(SlaveAddr, i2c_rx_buffer);
+        read2bytes(SlaveAddr, i2c_rx_buffer);
     } else {    // Read 3+ Bytes
-        I2CRead3Bytes(SlaveAddr, NumberBytesToRead, i2c_rx_buffer);
+        read3bytes(SlaveAddr, NumberBytesToRead, i2c_rx_buffer);
     }
     return Success;
 }
