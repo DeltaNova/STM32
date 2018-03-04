@@ -3,6 +3,7 @@
 #ifndef I2C_H
 #define I2C_H
 
+// Define function return status
 typedef enum {Success = 0, Error = !Success} Status;
 
 class I2C {
@@ -12,9 +13,6 @@ class I2C {
             // Anything which needs to be executed when class instansiated.
         }
         
-        // Define function return status
-        
-
         Status I2C1Setup();
 
         Status start(uint8_t SlaveAddr);
@@ -24,7 +22,6 @@ class I2C {
         Status read2bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer);  // Read 2 Bytes
         Status read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer);  // Read 3+ Bytes
         Status read(uint8_t NumberBytesToRead, uint8_t slaveAddress, volatile struct Buffer *i2c_rx_buffer);
-        void I2CRead(uint8_t NumberBytesToRead, uint8_t slaveAddress);
 
 };
 #endif // I2C_H
