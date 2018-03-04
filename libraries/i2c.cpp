@@ -340,7 +340,7 @@ Status I2C::I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile
     return Success;
 }
 
-Status I2C::I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer ){
+Status I2C::read(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer ){
     // Dev Note:
     // There are a number of calls to enable/disable interrupts in this section.
     // This is related to limitations in the silicon errata sheet.

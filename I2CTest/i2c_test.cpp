@@ -213,7 +213,7 @@ int main(void) {
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     
     // Reads 2 Byte Measurement into i2c_rx_buffer
-    i2c.I2CReadData(2, 0xB9, &i2c_rx_buffer);
+    i2c.read(2, 0xB9, &i2c_rx_buffer);
 
     uint8_t Byte1; // High Byte
     uint8_t Byte2; // Low Byte
