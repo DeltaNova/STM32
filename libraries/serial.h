@@ -8,26 +8,31 @@
 #include <stdint.h> // uint8_t
 
 // Currently this is written for USART1 only
+class Serial {
+    private:
+    public:
+        Serial(){}
+        
+        void SerialSendByte(uint8_t);
+
+        uint8_t SerialReadByte();
+
+        void SerialBufferSend(volatile struct Buffer *serial_tx_buffer);
+
+        void SerialSendString(uint8_t *array, uint8_t array_length);
 
 
-void SerialSendByte(uint8_t);
+        /*
+        // Currently needs rewrite to declare buffers, causing library to fail compile.
 
-uint8_t SerialReadByte();
+        // SerialReceiveEcho();
+        // --------------------
+        // Checks if RXNE flag in USART1->SR, read data if set.
+        // Echoes data back to sending terminal.
+        void SerialReceiveEcho();
+        */
 
-void SerialBufferSend(volatile struct Buffer *serial_tx_buffer);
+        void SerialSetup(); // Setup USART1 & IRQ Priority
 
-void SerialSendString(uint8_t *array, uint8_t array_length);
-
-
-/*
-// Currently needs rewrite to declare buffers, causing library to fail compile.
-
-// SerialReceiveEcho();
-// --------------------
-// Checks if RXNE flag in USART1->SR, read data if set.
-// Echoes data back to sending terminal.
-void SerialReceiveEcho();
-*/
-
-void SerialSetup(); // Setup USART1 & IRQ Priority
+};
 #endif // SERIAL_H

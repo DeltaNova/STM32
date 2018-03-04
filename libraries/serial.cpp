@@ -2,7 +2,7 @@
 
 #include "serial.h"
 
-void SerialSendByte(uint8_t data2send){
+void Serial::SerialSendByte(uint8_t data2send){
     // Working
     // Wait until TXE = 1 (indicates DR empty)
     while(!(USART1->SR & 0x00000080));
@@ -11,7 +11,7 @@ void SerialSendByte(uint8_t data2send){
     return;
 }
 
-uint8_t SerialReadByte(){
+uint8_t Serial::SerialReadByte(){
     // Not Tested
     // Wait until RXNE = 1 (indicates DR ready to be read)
     while(!(USART1->SR & 0x00000020));
@@ -19,7 +19,7 @@ uint8_t SerialReadByte(){
     return(readData);
 }
 
-void SerialBufferSend(volatile struct Buffer *serial_tx_buffer){
+void Serial::SerialBufferSend(volatile struct Buffer *serial_tx_buffer){
     // Send the contents of the serial_tx_buffer
     uint8_t tempCharStorage; // Location in memory to store the byte to send
     // While there is data in the buffer, read a byte from the buffer
@@ -30,7 +30,7 @@ void SerialBufferSend(volatile struct Buffer *serial_tx_buffer){
     }
 }
 
-void SerialSendString(uint8_t *array, uint8_t array_length){
+void Serial::SerialSendString(uint8_t *array, uint8_t array_length){
     for(uint8_t i = 0; i<array_length; ++i){
         SerialSendByte(array[i]);
     }
@@ -38,7 +38,7 @@ void SerialSendString(uint8_t *array, uint8_t array_length){
 /*
     // Needs rewrite to declare buffers
 
-void SerialReceiveEcho(){
+void Serial::SerialReceiveEcho(){
     // Checks if RXNE flag in USART1->SR, read data if set.
     // Echoes data back to sending terminal.
 
@@ -57,7 +57,7 @@ void SerialReceiveEcho(){
     }
 }
 */
-void SerialSetup(){
+void Serial::SerialSetup(){
     // USART1 using PA9 - Tx, PA10 - Rx
     // Baud 9600,N,8,1 without HW flow control
     // Assume 72MHz Sysclk
