@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Definitions
 #define OLED_ADDR   0x7a      // Address of I2C OLED Display
+#define LUX_ADDR    0xB9      // Address of I2C Lux Sensor
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
@@ -22,6 +23,18 @@ void draw_buffer2(I2C& i2c);
 void draw_buffer3(I2C& i2c);
 void clear_buffer(I2C& i2c);
 void LuxSensorSetup(I2C& i2c);
+
+class BH1750FVI{
+    private:
+        I2C& i2c; // Holds i2c instance for use by class functions
+    public:
+        // Require an reference to the I2C interface when creating instance.
+        BH1750FVI(I2C& i2c)
+        // Store the I2C reference in private.
+        :i2c(i2c){} 
+        // Setup function will use the i2c reference in private.
+        void setup();        
+};
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -193,7 +206,8 @@ int main(void) {
     i2c.I2C1Setup();
     
     OLEDSetup(i2c);
-    LuxSensorSetup(i2c); // Setup BH1750FVI
+    BH1750FVI lux(i2c);      // Create an instance of BH1750FVI Lux Sensor
+    //LuxSensorSetup(i2c); // Setup BH1750FVI
 
     // USART1 Message to confirm program running - Using for Debugging
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
@@ -209,7 +223,7 @@ int main(void) {
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     
     // Reads 2 Byte Measurement into i2c_rx_buffer
-    i2c.read(2, 0xB9, &i2c_rx_buffer);
+    i2c.read(2, LUX_ADDR, &i2c_rx_buffer);
 
     uint8_t Byte1; // High Byte
     uint8_t Byte2; // Low Byte
@@ -438,12 +452,26 @@ void clear_buffer(I2C& i2c){
 
 void LuxSensorSetup(I2C& i2c){
     // Setup BH1750FVI Breakout board - Ambient Light Sensor
-    i2c.start(0xB8);            // Slave Address
-    i2c.write(0x01);     // BH1750FVI - Power On
+    i2c.start(LUX_ADDR);        // Slave Address
+    i2c.write(0x01);            // BH1750FVI - Power On
     i2c.stop();                 // Required as part of BH1750FVI I2C Comms
 
-    i2c.start(0xB8);            // Slave Address
-    //i2c.write(0x20);       // BH1750FVI One Time H-Res Mode.
-    i2c.write(0x13);     // BH1750FVI Continuous Mode
+    i2c.start(LUX_ADDR);        // Slave Address
+    //i2c.write(0x20);          // BH1750FVI One Time H-Res Mode.
+    i2c.write(0x13);            // BH1750FVI Continuous Mode
     i2c.stop();                 // Required as part of BH1750FVI I2C Comms
 }
+
+
+void BH1750FVI::setup(){
+    // Setup Function for the BH1750FVI Lux Sensor
+    i2c.start(LUX_ADDR);        // Slave Address
+    i2c.write(0x01);            // BH1750FVI - Power On
+    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
+
+    i2c.start(LUX_ADDR);        // Slave Address
+    //i2c.write(0x20);          // BH1750FVI One Time H-Res Mode.
+    i2c.write(0x13);            // BH1750FVI Continuous Mode
+    i2c.stop();                 // Required as part of BH1750FVI I2C Comms 
+}
+
