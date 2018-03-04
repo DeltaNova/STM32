@@ -4,7 +4,7 @@
 #include "i2c.h"            // Library Header
 #include "buffer.h"         // Buffer Library
 
-Status I2C1Setup(){
+Status I2C::I2C1Setup(){
     // Ref: Datasheet DS5319 Section 5.3.16 I2C Interface Characteristics
     // Ref: STM32F10xx8 STM32F10xxB Errata sheet Rev 13 Section 2.13.7
     // Note: Incorporates workaround for locking BUSY flag detailed in errata.
@@ -140,7 +140,7 @@ Status I2C1Setup(){
 }
 */
 
-Status I2CWriteMode(uint8_t SlaveAddr){     // 7bit Addressing Mode             
+Status I2C::I2CWriteMode(uint8_t SlaveAddr){     // 7bit Addressing Mode             
 
     uint16_t Timeout = 0xFFFF;
     while(I2C1->SR2 & 0x0002){              // Wait whilst BUSY
@@ -179,7 +179,7 @@ Status I2CWriteMode(uint8_t SlaveAddr){     // 7bit Addressing Mode
     return Success;
 }
 
-Status I2CWriteData(uint8_t Data){
+Status I2C::I2CWriteData(uint8_t Data){
     // Write Data Byte to established I2C Connection
     I2C1->DR = Data;                        // Load byte in Data Register.
     // Wait for Byte Transfer Finished (BTF) flag in I2C1->SR1
@@ -191,7 +191,7 @@ Status I2CWriteData(uint8_t Data){
     return Success;
 }
 
-Status I2CStop(){
+Status I2C::I2CStop(){
     // End the I2C Communication Session
 
     // To close the connection a STOP condition is generated 
@@ -208,7 +208,7 @@ Status I2CStop(){
     return Success;
 }
 
-Status I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
+Status I2C::I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     
     I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
     __disable_irq();                // Disable Interrupts
@@ -245,7 +245,7 @@ Status I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     return Success;
 }
 
-Status I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
+Status I2C::I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     I2C1->CR1 |= 0x0800;                    // Set POS Flag
         
     // EV6_1 - Disable Acknowledge just after EV6 after ADDR is cleared.
@@ -282,7 +282,7 @@ Status I2CRead2Bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     return Success;
 }
 
-Status I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer){
+Status I2C::I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer){
 
     uint16_t Timeout = 0xFFFF;
     // Clear Addr Flag
@@ -355,7 +355,7 @@ Status I2CRead3Bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile stru
     return Success;
 }
 
-Status I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer ){
+Status I2C::I2CReadData(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer ){
     // Dev Note:
     // There are a number of calls to enable/disable interrupts in this section.
     // This is related to limitations in the silicon errata sheet.

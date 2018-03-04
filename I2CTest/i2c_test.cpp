@@ -15,6 +15,12 @@
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
 extern "C" void SysTick_Handler(void);
+void SysTick_Init(void);
+void delay_ms(uint32_t ms);
+void OLEDSetup(I2C& i2c);
+void draw_buffer2(I2C& i2c);
+void draw_buffer3(I2C& i2c);
+void clear_buffer(I2C& i2c);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -172,6 +178,101 @@ static uint8_t buffer3[1024] = {    // 128 x 64 Test Pattern
 };
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
 
+
+
+// Main - Called by the startup code.
+int main(void) {
+    ClockSetup();       // Setup System & Peripheral Clocks
+    SysTick_Init();     // Enable SysTick
+    SerialSetup();      // Enable Serial Support - Currently USART1 Specific
+    I2C i2c;            // Create instance of I2C class
+    i2c.I2C1Setup();
+    OLEDSetup(i2c);
+
+    // USART1 Message to confirm program running - Using for Debugging
+    uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
+    // Send a message to the terminal to indicate program is running.
+    LoadBuffer(&serial_tx_buffer, test_message, 10);
+    SerialBufferSend(&serial_tx_buffer);
+
+
+    while(1){
+    // Initially need a simple device to allow development of comms functions.
+    // Using BH1750FVI Breakout board - Ambient Light Sensor
+    i2c.I2CWriteMode(0xB8);     // Slave Address
+    i2c.I2CWriteData(0x01);     // BH1750FVI - Power On
+    i2c.I2CStop();              // Required as part of BH1750FVI I2C Comms
+
+    i2c.I2CWriteMode(0xB8);     // Slave Address
+    //I2CWriteData(0x20);   // BH1750FVI One Time H-Res Mode.
+    i2c.I2CWriteData(0x13);     // BH1750FVI Continuous Mode
+    i2c.I2CStop();              // Required as part of BH1750FVI I2C Comms
+    // The total delay in the loop needs to be adjusted so that we dont end up
+    // reading the sensor too often.
+    longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
+    longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
+    
+    // Reads 2 Byte Measurement into i2c_rx_buffer
+    //I2CRead2Bytes(0xB9, &i2c_rx_buffer);
+    i2c.I2CReadData(2, 0xB9, &i2c_rx_buffer);
+
+    uint8_t Byte1; // High Byte
+    uint8_t Byte2; // Low Byte
+    bufferRead(&i2c_rx_buffer, &Byte1); 
+    bufferRead(&i2c_rx_buffer, &Byte2);
+
+    uint16_t LuxBytes = (Byte1 <<8) + Byte2;
+    // Convert LuxBytes into LuxValue - H-Resolution Mode
+    // Default Settings in H-Resolution mode = Resolution of 0.83lx/count.
+    // Therefore count/1.2 gives lux value
+    uint16_t LuxValue = LuxBytes / 1.2;
+    
+    // Send Lux Value to Serial Output
+    // The maximum count is 65535 (0XFFFF)
+    // Converting to Lux (count/1.2) results in a maximum lux value of 54612.
+    
+    // Convert LuxValue into a string that can be sent over the serial output.
+    // Use snprintf to convert LuxValue into a string representation of an 
+    // unsigned decimal integer. Add leading zeros. 
+    // snprintf adds a trailing null character.
+    
+    // Buffer to hold 6 bytes, one for each digit, plus terminating null char. 
+    char char_buffer[6]; 
+    
+    // Convert and send LuxBytes for reference.
+    // Convert LuxBytes and store value in char_buffer with leading zeros.
+    snprintf(char_buffer, 6,"%05u", LuxBytes); 
+    
+    for(int i=0;i<5;i++){
+        SerialSendByte(char_buffer[i]);
+    }
+    
+    SerialSendByte(' '); // Separate Output on serial terminal.
+    
+    // Convert LuxValue and store value in char_buffer with leading zeros.
+    snprintf(char_buffer,6, "%05u", LuxValue);
+    // Step through the buffer and send each byte via the serial output.
+    for(int i=0;i<5;i++){
+        SerialSendByte(char_buffer[i]);
+    }
+
+    SerialSendByte('\r');
+    SerialSendByte('\n');
+    
+    draw_buffer2(i2c);
+    delay_ms(2000);
+    
+    clear_buffer(i2c);
+    delay_ms(2000);
+    
+    draw_buffer3(i2c);
+    delay_ms(2000);
+    
+    clear_buffer(i2c);
+    delay_ms(2000);
+    };
+}
+
 void SysTick_Init(void){
     // SystemCoreClock/1000     =  1ms
     // SystemCoreClock/100000   = 10us
@@ -217,220 +318,126 @@ void delay_ms(uint32_t ms){
     
 }
 
-void OLEDSetup(){
+void OLEDSetup(I2C& i2c){
     // Setup the I2C OLED Display    
-    I2CWriteMode(OLED_ADDR);
+    i2c.I2CWriteMode(OLED_ADDR);
     // Initialisation Based upon Application Note Example
-    I2CWriteData(0x00);       // Send Command Byte Stream
+    i2c.I2CWriteData(0x00);       // Send Command Byte Stream
     // --
-    I2CWriteData(0xAE);       // Turn Display Off
+    i2c.I2CWriteData(0xAE);       // Turn Display Off
     // ---
-    I2CWriteData(0xA8);       // Set Multiplex Ratio
-    I2CWriteData(0x3f);       // 1/64 duty cycle
+    i2c.I2CWriteData(0xA8);       // Set Multiplex Ratio
+    i2c.I2CWriteData(0x3f);       // 1/64 duty cycle
     // ---
-    I2CWriteData(0xD3);       // Set Display Offset
-    I2CWriteData(0x00);       // No offset applied
+    i2c.I2CWriteData(0xD3);       // Set Display Offset
+    i2c.I2CWriteData(0x00);       // No offset applied
     // ---
-    I2CWriteData(0x40);       // Set Display Start Line #0
+    i2c.I2CWriteData(0x40);       // Set Display Start Line #0
     // ---
-    I2CWriteData(0xA1);       // Set Segment Remap (Flips Display) A0/A1
+    i2c.I2CWriteData(0xA1);       // Set Segment Remap (Flips Display) A0/A1
     // ---
-    I2CWriteData(0xC8);       // COM Scan Direction c0/c8
+    i2c.I2CWriteData(0xC8);       // COM Scan Direction c0/c8
     // ---
-    I2CWriteData(0xDA);       // Set COM pins
-    I2CWriteData(0x12);       // 0x12 - See Application Note SW INIT
+    i2c.I2CWriteData(0xDA);       // Set COM pins
+    i2c.I2CWriteData(0x12);       // 0x12 - See Application Note SW INIT
     // ---
-    I2CWriteData(0x81);       // Set Contrast
-    I2CWriteData(0x7F);       // Default Contrast Level 127/255
+    i2c.I2CWriteData(0x81);       // Set Contrast
+    i2c.I2CWriteData(0x7F);       // Default Contrast Level 127/255
     // ---
-    I2CWriteData(0xA4);       // Entire Display On - Output follows RAM Contents
+    i2c.I2CWriteData(0xA4);       // Entire Display On - Output follows RAM Contents
     // ---
-    I2CWriteData(0xA6);       // Set Normal Display 0xA7 inverts
+    i2c.I2CWriteData(0xA6);       // Set Normal Display 0xA7 inverts
     // ---
-    I2CWriteData(0xD5);       // Display Clk Div
-    I2CWriteData(0x80);       // Default Value 0x80
+    i2c.I2CWriteData(0xD5);       // Display Clk Div
+    i2c.I2CWriteData(0x80);       // Default Value 0x80
     // ---
-    I2CWriteData(0x8D);       // Setup Charge Pump - See SSD1306 Application Note
-    I2CWriteData(0x14);       // Enable Charge Pump during display on.
+    i2c.I2CWriteData(0x8D);       // Setup Charge Pump - See SSD1306 Application Note
+    i2c.I2CWriteData(0x14);       // Enable Charge Pump during display on.
     // ---
-    I2CWriteData(0xD9);       // Setup Precharge
-    I2CWriteData(0x22);
+    i2c.I2CWriteData(0xD9);       // Setup Precharge
+    i2c.I2CWriteData(0x22);
     // ---
-    I2CWriteData(0xDB);       //VCOMH DESELECT
-    I2CWriteData(0x30);
+    i2c.I2CWriteData(0xDB);       //VCOMH DESELECT
+    i2c.I2CWriteData(0x30);
     // ---
-    I2CWriteData(0x20);       // Set Mem Addr Mode
-    I2CWriteData(0x00);       // Horzontal
+    i2c.I2CWriteData(0x20);       // Set Mem Addr Mode
+    i2c.I2CWriteData(0x00);       // Horzontal
 
 
-    I2CWriteData(0xAF);       // Display On
+    i2c.I2CWriteData(0xAF);       // Display On
     // ---
-    I2CStop(); // Stop Transmitting
+    i2c.I2CStop(); // Stop Transmitting
 }
 
-void draw_buffer2(){
+void draw_buffer2(I2C& i2c){
     // Draw buffer on display
-    I2CWriteMode(OLED_ADDR);
-    I2CWriteData(0x00);    // Control Byte Command Stream
-    I2CWriteData(0x21);    // Setup Column Addresses
-    I2CWriteData(0x00);    // Col Start Addr
-    I2CWriteData(0x7F);    // Col End Addr
-    I2CWriteData(0x22);    // Set Page Addr
-    I2CWriteData(0x00);    // Start Page 0
-    I2CWriteData(0x07);    // End Page 7
-    I2CStop();
+    i2c.I2CWriteMode(OLED_ADDR);
+    i2c.I2CWriteData(0x00);    // Control Byte Command Stream
+    i2c.I2CWriteData(0x21);    // Setup Column Addresses
+    i2c.I2CWriteData(0x00);    // Col Start Addr
+    i2c.I2CWriteData(0x7F);    // Col End Addr
+    i2c.I2CWriteData(0x22);    // Set Page Addr
+    i2c.I2CWriteData(0x00);    // Start Page 0
+    i2c.I2CWriteData(0x07);    // End Page 7
+    i2c.I2CStop();
 
     for (uint16_t i=0; i<1024; i++){
-        I2CWriteMode(OLED_ADDR);
-        I2CWriteData(0x40);      // Control Byte Data Stream
+        i2c.I2CWriteMode(OLED_ADDR);
+        i2c.I2CWriteData(0x40);      // Control Byte Data Stream
         for (uint8_t x=0; x<16; x++) {
-            I2CWriteData(buffer2[i]);
+            i2c.I2CWriteData(buffer2[i]);
             i++;
         }
         i--;
-        I2CStop();
+        i2c.I2CStop();
     }
 }
 
-void draw_buffer3(){
+void draw_buffer3(I2C& i2c){
     // Draw buffer on display
-    I2CWriteMode(OLED_ADDR);
-    I2CWriteData(0x00);    // Control Byte Command Stream
-    I2CWriteData(0x21);    // Setup Column Addresses
-    I2CWriteData(0x00);    // Col Start Addr
-    I2CWriteData(0x7F);    // Col End Addr
-    I2CWriteData(0x22);    // Set Page Addr
-    I2CWriteData(0x00);    // Start Page 0
-    I2CWriteData(0x07);    // End Page 7
-    I2CStop();
+    i2c.I2CWriteMode(OLED_ADDR);
+    i2c.I2CWriteData(0x00);    // Control Byte Command Stream
+    i2c.I2CWriteData(0x21);    // Setup Column Addresses
+    i2c.I2CWriteData(0x00);    // Col Start Addr
+    i2c.I2CWriteData(0x7F);    // Col End Addr
+    i2c.I2CWriteData(0x22);    // Set Page Addr
+    i2c.I2CWriteData(0x00);    // Start Page 0
+    i2c.I2CWriteData(0x07);    // End Page 7
+    i2c.I2CStop();
 
     for (uint16_t i=0; i<1024; i++){
-        I2CWriteMode(OLED_ADDR);
-        I2CWriteData(0x40);      // Control Byte Data Stream
+        i2c.I2CWriteMode(OLED_ADDR);
+        i2c.I2CWriteData(0x40);      // Control Byte Data Stream
         for (uint8_t x=0; x<16; x++) {
-            I2CWriteData(buffer3[i]);
+            i2c.I2CWriteData(buffer3[i]);
             i++;
         }
         i--;
-        I2CStop();
+        i2c.I2CStop();
     }
 }
 
-void clear_buffer(){
+void clear_buffer(I2C& i2c){
     // Draw buffer on display
-    I2CWriteMode(OLED_ADDR);
-    I2CWriteData(0x00);    // Control Byte Command Stream
-    I2CWriteData(0x21);    // Setup Column Addresses
-    I2CWriteData(0x00);    // Col Start Addr
-    I2CWriteData(0x7F);    // Col End Addr
-    I2CWriteData(0x22);    // Set Page Addr
-    I2CWriteData(0x00);    // Start Page 0
-    I2CWriteData(0x07);    // End Page 7
-    I2CStop();
+    i2c.I2CWriteMode(OLED_ADDR);
+    i2c.I2CWriteData(0x00);    // Control Byte Command Stream
+    i2c.I2CWriteData(0x21);    // Setup Column Addresses
+    i2c.I2CWriteData(0x00);    // Col Start Addr
+    i2c.I2CWriteData(0x7F);    // Col End Addr
+    i2c.I2CWriteData(0x22);    // Set Page Addr
+    i2c.I2CWriteData(0x00);    // Start Page 0
+    i2c.I2CWriteData(0x07);    // End Page 7
+    i2c.I2CStop();
 
     for (uint16_t i=0; i<1024; i++){
-        I2CWriteMode(OLED_ADDR);
-        I2CWriteData(0x40);      // Control Byte Data Stream
+        i2c.I2CWriteMode(OLED_ADDR);
+        i2c.I2CWriteData(0x40);      // Control Byte Data Stream
         for (uint8_t x=0; x<16; x++) {
-            I2CWriteData(0x00);
+            i2c.I2CWriteData(0x00);
             i++;
         }
         i--;
-        I2CStop();
+        i2c.I2CStop();
     }
 }
-
-
-// Main - Called by the startup code.
-int main(void) {
-    ClockSetup();       // Setup System & Peripheral Clocks
-    SysTick_Init();     // Enable SysTick
-    SerialSetup();      // Enable Serial Support - Currently USART1 Specific
-    I2C1Setup();
-    OLEDSetup();
-
-    // USART1 Message to confirm program running - Using for Debugging
-    uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
-    // Send a message to the terminal to indicate program is running.
-    LoadBuffer(&serial_tx_buffer, test_message, 10);
-    SerialBufferSend(&serial_tx_buffer);
-
-
-    while(1){
-    // Initially need a simple device to allow development of comms functions.
-    // Using BH1750FVI Breakout board - Ambient Light Sensor
-    I2CWriteMode(0xB8);     // Slave Address
-    I2CWriteData(0x01);     // BH1750FVI - Power On
-    I2CStop();              // Required as part of BH1750FVI I2C Comms
-
-    I2CWriteMode(0xB8);     // Slave Address
-    //I2CWriteData(0x20);   // BH1750FVI One Time H-Res Mode.
-    I2CWriteData(0x13);     // BH1750FVI Continuous Mode
-    I2CStop();              // Required as part of BH1750FVI I2C Comms
-    // The total delay in the loop needs to be adjusted so that we dont end up
-    // reading the sensor too often.
-    longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
-    longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
-    
-    // Reads 2 Byte Measurement into i2c_rx_buffer
-    //I2CRead2Bytes(0xB9, &i2c_rx_buffer);
-    I2CReadData(2, 0xB9, &i2c_rx_buffer);
-
-    uint8_t Byte1; // High Byte
-    uint8_t Byte2; // Low Byte
-    bufferRead(&i2c_rx_buffer, &Byte1); 
-    bufferRead(&i2c_rx_buffer, &Byte2);
-
-    uint16_t LuxBytes = (Byte1 <<8) + Byte2;
-    // Convert LuxBytes into LuxValue - H-Resolution Mode
-    // Default Settings in H-Resolution mode = Resolution of 0.83lx/count.
-    // Therefore count/1.2 gives lux value
-    uint16_t LuxValue = LuxBytes / 1.2;
-    
-    // Send Lux Value to Serial Output
-    // The maximum count is 65535 (0XFFFF)
-    // Converting to Lux (count/1.2) results in a maximum lux value of 54612.
-    
-    // Convert LuxValue into a string that can be sent over the serial output.
-    // Use snprintf to convert LuxValue into a string representation of an 
-    // unsigned decimal integer. Add leading zeros. 
-    // snprintf adds a trailing null character.
-    
-    // Buffer to hold 6 bytes, one for each digit, plus terminating null char. 
-    char char_buffer[6]; 
-    
-    // Convert and send LuxBytes for reference.
-    // Convert LuxBytes and store value in char_buffer with leading zeros.
-    snprintf(char_buffer, 6,"%05u", LuxBytes); 
-    
-    for(int i=0;i<5;i++){
-        SerialSendByte(char_buffer[i]);
-    }
-    
-    SerialSendByte(' '); // Separate Output on serial terminal.
-    
-    // Convert LuxValue and store value in char_buffer with leading zeros.
-    snprintf(char_buffer,6, "%05u", LuxValue);
-    // Step through the buffer and send each byte via the serial output.
-    for(int i=0;i<5;i++){
-        SerialSendByte(char_buffer[i]);
-    }
-
-    SerialSendByte('\r');
-    SerialSendByte('\n');
-    
-    draw_buffer2();
-    delay_ms(2000);
-    
-    clear_buffer();
-    delay_ms(2000);
-    
-    draw_buffer3();
-    delay_ms(2000);
-    
-    clear_buffer();
-    delay_ms(2000);
-    };
-}
-
 
