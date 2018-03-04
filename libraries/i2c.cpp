@@ -193,7 +193,7 @@ Status I2C::stop(){
     return Success;
 }
 
-Status I2C::I2CReadByte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
+Status I2C::readbyte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     
     I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
     __disable_irq();                // Disable Interrupts
@@ -385,7 +385,7 @@ Status I2C::read(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct B
     }
 
     if (NumberBytesToRead == 1){
-        I2CReadByte(SlaveAddr, i2c_rx_buffer);
+        readbyte(SlaveAddr, i2c_rx_buffer);
     } else if (NumberBytesToRead == 2) {
         I2CRead2Bytes(SlaveAddr, i2c_rx_buffer);
     } else {    // Read 3+ Bytes
