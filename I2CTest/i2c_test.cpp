@@ -27,13 +27,22 @@ void LuxSensorSetup(I2C& i2c);
 class BH1750FVI{
     private:
         I2C& i2c; // Holds i2c instance for use by class functions
+        uint8_t HighByte;   // Holds Higher Byte of Lux Value
+        uint8_t LowByte;    // Holds Lower Byte of Lux Value
+        uint16_t LuxBytes;  // Holds the complete Lux Value
     public:
         // Require an reference to the I2C interface when creating instance.
         BH1750FVI(I2C& i2c)
         // Store the I2C reference in private.
         :i2c(i2c){} 
         // Setup function will use the i2c reference in private.
-        void setup();        
+        void setup();   // Setup the Sensor
+        void read();    // Read the Sensor
+        uint8_t getLowByte();
+        uint8_t getHighByte();
+        uint16_t getLuxByte();  // Returns the value in LuxBytes
+        // Converts LuxBytes into a Lux Value. Currently H-Res mode only.
+        uint16_t getLuxValue(); 
 };
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
@@ -222,6 +231,9 @@ int main(void) {
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     
+    lux.read();
+    serial.write(lux.getLowByte());
+    /*
     // Reads 2 Byte Measurement into i2c_rx_buffer
     i2c.read(2, LUX_ADDR, &i2c_rx_buffer);
 
@@ -229,12 +241,17 @@ int main(void) {
     uint8_t Byte2; // Low Byte
     bufferRead(&i2c_rx_buffer, &Byte1); 
     bufferRead(&i2c_rx_buffer, &Byte2);
-
+    
+    
     uint16_t LuxBytes = (Byte1 <<8) + Byte2;
+    */
+    /*
     // Convert LuxBytes into LuxValue - H-Resolution Mode
     // Default Settings in H-Resolution mode = Resolution of 0.83lx/count.
     // Therefore count/1.2 gives lux value
     uint16_t LuxValue = LuxBytes / 1.2;
+    */
+    
     
     // Send Lux Value to Serial Output
     // The maximum count is 65535 (0XFFFF)
@@ -250,7 +267,7 @@ int main(void) {
     
     // Convert and send LuxBytes for reference.
     // Convert LuxBytes and store value in char_buffer with leading zeros.
-    snprintf(char_buffer, 6,"%05u", LuxBytes); 
+    snprintf(char_buffer, 6,"%05u", lux.getLuxByte()); 
     
     for(int i=0;i<5;i++){
         serial.write(char_buffer[i]);
@@ -259,7 +276,7 @@ int main(void) {
     serial.write(' '); // Separate Output on serial terminal.
     
     // Convert LuxValue and store value in char_buffer with leading zeros.
-    snprintf(char_buffer,6, "%05u", LuxValue);
+    snprintf(char_buffer,6, "%05u", lux.getLuxValue());
     // Step through the buffer and send each byte via the serial output.
     for(int i=0;i<5;i++){
         serial.write(char_buffer[i]);
@@ -450,6 +467,7 @@ void clear_buffer(I2C& i2c){
     }
 }
 
+/*
 void LuxSensorSetup(I2C& i2c){
     // Setup BH1750FVI Breakout board - Ambient Light Sensor
     i2c.start(LUX_ADDR);        // Slave Address
@@ -461,7 +479,7 @@ void LuxSensorSetup(I2C& i2c){
     i2c.write(0x13);            // BH1750FVI Continuous Mode
     i2c.stop();                 // Required as part of BH1750FVI I2C Comms
 }
-
+*/
 
 void BH1750FVI::setup(){
     // Setup Function for the BH1750FVI Lux Sensor
@@ -475,3 +493,32 @@ void BH1750FVI::setup(){
     i2c.stop();                 // Required as part of BH1750FVI I2C Comms 
 }
 
+void BH1750FVI::read(){
+    // Read the Sensor
+    
+    // Reads 2 Byte Measurement into i2c_rx_buffer
+    i2c.read(2, LUX_ADDR, &i2c_rx_buffer);
+    bufferRead(&i2c_rx_buffer, &HighByte); 
+    bufferRead(&i2c_rx_buffer, &LowByte);
+    LuxBytes = (HighByte <<8) + LowByte;
+}
+
+uint8_t BH1750FVI::getLowByte(){
+    return LowByte;
+}
+
+uint8_t BH1750FVI::getHighByte(){
+    return HighByte;
+}
+
+uint16_t BH1750FVI::getLuxByte(){
+    return LuxBytes;
+}
+
+uint16_t BH1750FVI::getLuxValue(){
+    // Convert LuxBytes into LuxValue - H-Resolution Mode
+    // Default Settings in H-Resolution mode = Resolution of 0.83lx/count.
+    // Therefore count/1.2 gives lux value
+    uint16_t LuxValue = LuxBytes / 1.2;
+    return LuxValue;
+}
