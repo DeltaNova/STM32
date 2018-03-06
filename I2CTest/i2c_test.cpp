@@ -232,11 +232,11 @@ int main(void) {
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     
     lux.read();
-    serial.write(lux.getLowByte());
     /*
     // Reads 2 Byte Measurement into i2c_rx_buffer
     i2c.read(2, LUX_ADDR, &i2c_rx_buffer);
-
+    */
+    /*
     uint8_t Byte1; // High Byte
     uint8_t Byte2; // Low Byte
     bufferRead(&i2c_rx_buffer, &Byte1); 
@@ -268,6 +268,8 @@ int main(void) {
     // Convert and send LuxBytes for reference.
     // Convert LuxBytes and store value in char_buffer with leading zeros.
     snprintf(char_buffer, 6,"%05u", lux.getLuxByte()); 
+    //snprintf(char_buffer, 6,"%05u", LuxBytes); 
+    
     
     for(int i=0;i<5;i++){
         serial.write(char_buffer[i]);
@@ -497,10 +499,22 @@ void BH1750FVI::read(){
     // Read the Sensor
     
     // Reads 2 Byte Measurement into i2c_rx_buffer
+    //i2c.read(2, LUX_ADDR, rx_buffer);
+    //uint8_t Byte1; // High Byte
+    //uint8_t Byte2; // Low Byte
+    //bufferRead(rx_buffer, &Byte1); 
+    //bufferRead(rx_buffer, &Byte2);
+    //HighByte = Byte1;
+    //LowByte = Byte2;
+    //LuxBytes = (HighByte <<8) + LowByte;
+    
     i2c.read(2, LUX_ADDR, &i2c_rx_buffer);
-    bufferRead(&i2c_rx_buffer, &HighByte); 
-    bufferRead(&i2c_rx_buffer, &LowByte);
-    LuxBytes = (HighByte <<8) + LowByte;
+    uint8_t Byte1; // High Byte
+    uint8_t Byte2; // Low Byte
+    bufferRead(&i2c_rx_buffer, &Byte1); 
+    bufferRead(&i2c_rx_buffer, &Byte2);
+    LuxBytes = (Byte1 <<8) + Byte2;
+    
 }
 
 uint8_t BH1750FVI::getLowByte(){
