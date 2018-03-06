@@ -9,11 +9,12 @@ typedef enum {Success = 0, Error = !Success} Status;
 
 class I2C {
     private:    // Can only be accessed by fuctions in this class.
-        volatile struct Buffer i2c_rx_buffer{{},0,0};
+        volatile Buffer& i2c_rx_buffer;
     public:     // Can be accessed by any function in program.
-        I2C(){  // Default Constructor
+        I2C(volatile Buffer *i2c_rx_buffer):i2c_rx_buffer(*i2c_rx_buffer){  // Default Constructor
             // Anything which needs to be executed when class instansiated.
         }
+        
         
         Status I2C1Setup();
 

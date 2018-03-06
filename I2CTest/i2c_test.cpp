@@ -27,6 +27,7 @@ void LuxSensorSetup(I2C& i2c);
 class BH1750FVI{
     private:
         I2C& i2c; // Holds i2c instance for use by class functions
+        
         uint8_t HighByte;   // Holds Higher Byte of Lux Value
         uint8_t LowByte;    // Holds Lower Byte of Lux Value
         uint16_t LuxBytes;  // Holds the complete Lux Value
@@ -37,7 +38,7 @@ class BH1750FVI{
         :i2c(i2c){} 
         // Setup function will use the i2c reference in private.
         void setup();   // Setup the Sensor
-        uint8_t read();    // Read the Sensor
+        void read();    // Read the Sensor
         uint8_t getLowByte();
         uint8_t getHighByte();
         uint16_t getLuxByte();  // Returns the value in LuxBytes
@@ -211,7 +212,7 @@ int main(void) {
     Serial serial;      // Create instance of Serial class (USART1)
     serial.setup();     // Enable Serial Support - Currently USART1 Specific
     
-    I2C i2c;            // Create instance of I2C class (I2C1)
+    I2C i2c(&i2c_rx_buffer);            // Create instance of I2C class (I2C1)
     i2c.I2C1Setup();
     
     OLEDSetup(i2c);
@@ -498,16 +499,15 @@ void BH1750FVI::setup(){
     i2c.stop();                 // Required as part of BH1750FVI I2C Comms 
 }
 
-uint8_t BH1750FVI::read(){
+void BH1750FVI::read(){
     // Read the Sensor
     
     i2c.read(2, LUX_ADDR); // Read 2 Bytes from sensor
-    uint8_t Byte1 = i2c.getbyte(); // High Byte
-    uint8_t Byte2 = i2c.getbyte(); // Low Byte
+    HighByte = i2c.getbyte(); // High Byte
+    LowByte = i2c.getbyte(); // Low Byte
     //bufferRead(&i2c_rx_buffer, &Byte1); 
     //bufferRead(&i2c_rx_buffer, &Byte2);
-    LuxBytes = (Byte1 <<8) + Byte2;
-    return Byte1;
+    LuxBytes = (HighByte <<8) + LowByte;
 }
 
 uint8_t BH1750FVI::getLowByte(){
