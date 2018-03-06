@@ -193,7 +193,7 @@ Status I2C::stop(){
     return Success;
 }
 
-Status I2C::readbyte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
+Status I2C::readbyte(uint8_t SlaveAddr){
     
     I2C1->CR1 &= ~(0x0400);         // Clear ACK Flag
     __disable_irq();                // Disable Interrupts
@@ -217,7 +217,7 @@ Status I2C::readbyte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
         }
     }
 
-    bufferWrite(i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
+    bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
 
     Timeout = 0xFFFF;
     while (I2C1->CR1 & 0x0200){     // Wait until STOP Flag cleared by HW
@@ -230,7 +230,7 @@ Status I2C::readbyte(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
     return Success;
 }
 
-Status I2C::read2bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer){
+Status I2C::read2bytes(uint8_t SlaveAddr){
     I2C1->CR1 |= 0x0800;                    // Set POS Flag
         
     // EV6_1 - Disable Acknowledge just after EV6 after ADDR is cleared.
@@ -251,9 +251,9 @@ Status I2C::read2bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer)
     // Disable interrupts around STOP due to HW limitation
     __disable_irq();                        // Disable Interrupts
     I2C1->CR1 |= 0x0200;                    // Set Stop Flag
-    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read 1st Byte into Buffer
+    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read 1st Byte into Buffer
     __enable_irq();                         // Enable Interrupts
-    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read 2nd Byte into Buffer
+    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read 2nd Byte into Buffer
 
     Timeout = 0xFFFF;
     while (I2C1->CR1 & 0x0200){     // Wait until STOP Flag cleared by HW
@@ -267,7 +267,7 @@ Status I2C::read2bytes(uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer)
     return Success;
 }
 
-Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile struct Buffer *i2c_rx_buffer){
+Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead){
 
     uint16_t Timeout = 0xFFFF;
     // Clear Addr Flag
@@ -289,7 +289,7 @@ Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile st
         }
         
         // Read Byte in Data Register and store in Buffer
-        bufferWrite(i2c_rx_buffer, I2C1->DR);  
+        bufferWrite(&i2c_rx_buffer, I2C1->DR);  
         
         // Decrement NumberBytesToRead
         NumberBytesToRead = NumberBytesToRead - 1;
@@ -315,9 +315,9 @@ Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile st
     __disable_irq();                        // Disable Interrupts
 
     // Missing read from AN2824 (Rev4) Fig 1
-    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read Byte N-2 into Buffer
+    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read Byte N-2 into Buffer
     I2C1->CR1 |= 0x0200;                    // Set Stop Flag
-    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read Byte N-1 into Buffer
+    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read Byte N-1 into Buffer
     __enable_irq();                         // Enable Interrupts
     
     Timeout = 0xFFFF;
@@ -327,7 +327,7 @@ Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile st
         }
     }
     
-    bufferWrite(i2c_rx_buffer, I2C1->DR);   // Read Byte N into Buffer
+    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read Byte N into Buffer
     NumberBytesToRead = 0;                  // All Bytes Read
     
     Timeout = 0xFFFF;
@@ -340,7 +340,7 @@ Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead, volatile st
     return Success;
 }
 
-Status I2C::read(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct Buffer *i2c_rx_buffer ){
+Status I2C::read(uint8_t NumberBytesToRead, uint8_t SlaveAddr){
     // Dev Note:
     // There are a number of calls to enable/disable interrupts in this section.
     // This is related to limitations in the silicon errata sheet.
@@ -385,11 +385,17 @@ Status I2C::read(uint8_t NumberBytesToRead, uint8_t SlaveAddr, volatile struct B
     }
 
     if (NumberBytesToRead == 1){
-        readbyte(SlaveAddr, i2c_rx_buffer);
+        readbyte(SlaveAddr);
     } else if (NumberBytesToRead == 2) {
-        read2bytes(SlaveAddr, i2c_rx_buffer);
+        read2bytes(SlaveAddr);
     } else {    // Read 3+ Bytes
-        read3bytes(SlaveAddr, NumberBytesToRead, i2c_rx_buffer);
+        read3bytes(SlaveAddr, NumberBytesToRead);
     }
     return Success;
+}
+
+uint8_t I2C::getbyte(){
+    uint8_t temp; // Temporary Byte
+    bufferRead(&i2c_rx_buffer, &temp);
+    return temp; 
 }
