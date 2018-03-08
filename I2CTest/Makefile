@@ -14,7 +14,7 @@ SOURCES += $(wildcard $(PATH_PROJECT_LIB)*.cpp)
 OBJECTS += $(wildcard $(PATH_PROJECT_LIB)*.o)
 $(info [Library Sources] $(SOURCES))
 $(info [Library Objects] $(OBJECTS))
-CPPFLAGS += -std=gnu++11
+CPPFLAGS += -std=gnu++14
 # Use Newlib-nano
 LDFLAGS += --specs=nano.specs
 # Define the Target Name
