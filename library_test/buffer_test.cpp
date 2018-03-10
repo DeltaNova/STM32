@@ -1,11 +1,11 @@
 // buffer_test.cpp - Circular Buffer Example testing buffer.h/buffer.cpp
-#include "buffer.h"
+#include "../libraries/buffer.h"
 #include <stdint.h> // uint8_t
 #include <iostream> // std::cout
 /*
     COMPILE
     -------
-    g++ -std=gnu++11 -L buffer -W -o buffer_test buffer_test.cpp buffer.cpp
+    g++ -std=gnu++11 -L buffer -W -o buffer_test buffer_test.cpp ../libraries/buffer.cpp
 */
 
 int main(void){
