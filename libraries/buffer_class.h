@@ -6,10 +6,13 @@
 class Buffer {
     public:
         Buffer(){};
-        void write(uint8_t byte);
-        uint8_t read();
-        uint8_t peek();
+        void write(uint8_t byte); // Write data element into buffer.
+        void reset();       // Reset the buffer, discarding data.
+        uint8_t read();     // Read and return the oldest buffer element value
+        uint8_t peek();     // Read and return the last written element value
+        // Load an array of a specified size into the buffer.
         uint8_t load(uint8_t *data_array, uint8_t array_size);
+        // Updates status based on buffer condition and reutrns status.
         uint8_t getstatus(); // Updates status based on buffer condition and reutrns status.
     private:
         uint8_t data[BUFFER_SIZE];

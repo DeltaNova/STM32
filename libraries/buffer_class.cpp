@@ -30,6 +30,12 @@ void Buffer::write(uint8_t byte){
     newest_index = next_index;
 }
 
+void Buffer::reset(){
+       newest_index = 0;
+       oldest_index = 0;
+       status = 0x00;
+}
+
 uint8_t Buffer::read(){
     // Zero read_data, allows us to return zero if buffer is empty.
     uint8_t read_data = 0; 
@@ -96,6 +102,7 @@ uint8_t Buffer::load(uint8_t *data_array, uint8_t array_size){
     }
     
     // Return 0 if all data loaded. None zero value is total unloaded elements.
+    
     return (array_size - i);
 }
 
