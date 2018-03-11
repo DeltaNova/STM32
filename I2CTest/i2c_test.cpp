@@ -244,29 +244,18 @@ int main(void) {
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     
-    //serial.write(lux.read());
-    
     // Reads 2 Byte Measurement into i2c_rx_buffer
-    //i2c.read(2, LUX_ADDR, &i2c_rx_buffer);
     i2c.read(2, LUX_ADDR);
-    //serial.write(i2c.getbyte());
-    
-    //uint8_t Byte1; // High Byte
-    //uint8_t Byte2; // Low Byte
-    //bufferRead(&i2c_rx_buffer, &Byte1); 
-    //bufferRead(&i2c_rx_buffer, &Byte2);
-    uint8_t Byte1 = i2c.getbyte();
-    uint8_t Byte2 = i2c.getbyte();
-    
+    // Read lux bytes    
+    uint8_t Byte1 = i2c.getbyte(); // High Byte
+    uint8_t Byte2 = i2c.getbyte(); // Low Byte
+    // Combine lux bytes
     uint16_t LuxBytes = (Byte1 <<8) + Byte2;
-    
     
     // Convert LuxBytes into LuxValue - H-Resolution Mode
     // Default Settings in H-Resolution mode = Resolution of 0.83lx/count.
     // Therefore count/1.2 gives lux value
     uint16_t LuxValue = LuxBytes / 1.2;
-    
-    
     
     // Send Lux Value to Serial Output
     // The maximum count is 65535 (0XFFFF)
@@ -284,7 +273,6 @@ int main(void) {
     // Convert LuxBytes and store value in char_buffer with leading zeros.
     //snprintf(char_buffer, 6,"%05u", lux.getLuxByte()); 
     snprintf(char_buffer, 6,"%05u", LuxBytes); 
-    
     
     for(int i=0;i<5;i++){
         serial.write(char_buffer[i]);
@@ -407,11 +395,10 @@ void OLEDSetup(I2C& i2c){
     // ---
     i2c.write(0x20);       // Set Mem Addr Mode
     i2c.write(0x00);       // Horzontal
-
-
+    // ---
     i2c.write(0xAF);       // Display On
     // ---
-    i2c.stop();                   // Stop Transmitting
+    i2c.stop();            // Stop Transmitting
 }
 
 void draw_buffer2(I2C& i2c){
@@ -486,20 +473,6 @@ void clear_buffer(I2C& i2c){
     }
 }
 
-/*
-void LuxSensorSetup(I2C& i2c){
-    // Setup BH1750FVI Breakout board - Ambient Light Sensor
-    i2c.start(LUX_ADDR);        // Slave Address
-    i2c.write(0x01);            // BH1750FVI - Power On
-    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
-
-    i2c.start(LUX_ADDR);        // Slave Address
-    //i2c.write(0x20);          // BH1750FVI One Time H-Res Mode.
-    i2c.write(0x13);            // BH1750FVI Continuous Mode
-    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
-}
-*/
-
 void BH1750FVI::setup(){
     // Setup Function for the BH1750FVI Lux Sensor
     i2c.start(LUX_ADDR);        // Slave Address
@@ -514,13 +487,11 @@ void BH1750FVI::setup(){
 
 void BH1750FVI::read(){
     // Read the Sensor
-    
-    i2c.read(2, LUX_ADDR); // Read 2 Bytes from sensor
-    HighByte = i2c.getbyte(); // High Byte
-    LowByte = i2c.getbyte(); // Low Byte
-    //bufferRead(&i2c_rx_buffer, &Byte1); 
-    //bufferRead(&i2c_rx_buffer, &Byte2);
-    LuxBytes = (HighByte <<8) + LowByte;
+    // Reads 2 Byte Measurement into i2c_rx_buffer
+    i2c.read(2, LUX_ADDR);                      // Read 2 Bytes from sensor
+    HighByte = i2c.getbyte();                   // High Byte
+    LowByte = i2c.getbyte();                    // Low Byte
+    LuxBytes = (HighByte <<8) + LowByte;        // Combine Bytes
 }
 
 uint8_t BH1750FVI::getLowByte(){
