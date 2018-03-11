@@ -226,20 +226,17 @@ int main(void) {
     Serial serial(serial_rx, serial_tx);     
     serial.setup();     // Enable Serial Support - Currently USART1 Specific
     
-    I2C i2c(rx_buffer);            // Create instance of I2C class (I2C1)
-    i2c.I2C1Setup();
+    I2C i2c(rx_buffer);     // Create instance of I2C class (I2C1)
+    i2c.I2C1Setup();        // Setup I2C1
     
-    //OLEDSetup(i2c);
-    BH1750FVI lux(i2c);      // Create an instance of BH1750FVI Lux Sensor
-    //LuxSensorSetup(i2c); // Setup BH1750FVI
+    BH1750FVI lux(i2c);     // Create an instance of BH1750FVI Lux Sensor
+    lux.setup();            // Setup BH1750FVI
 
     // USART1 Message to confirm program running - Using for Debugging
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
     // Send a message to the terminal to indicate program is running.
-    //LoadBuffer(&serial_tx_buffer, test_message, 10);
     serial.write_array(test_message, 10);
     serial.write_buffer();
-
 
     while(1){
     // The total delay in the loop needs to be adjusted so that we dont end up
@@ -252,7 +249,7 @@ int main(void) {
     // Reads 2 Byte Measurement into i2c_rx_buffer
     //i2c.read(2, LUX_ADDR, &i2c_rx_buffer);
     i2c.read(2, LUX_ADDR);
-    serial.write(i2c.getbyte());
+    //serial.write(i2c.getbyte());
     
     //uint8_t Byte1; // High Byte
     //uint8_t Byte2; // Low Byte
