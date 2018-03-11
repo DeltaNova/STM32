@@ -16,7 +16,7 @@ $(info [Library Sources] $(SOURCES))
 $(info [Library Objects] $(OBJECTS))
 CPPFLAGS += -std=gnu++14
 # Use Newlib-nano
-LDFLAGS += --specs=nano.specs
+LDFLAGS += --specs=nano.specs 
 # Define the Target Name
 TARGET = i2c_test
 # Include the Master Makefile

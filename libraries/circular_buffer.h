@@ -84,5 +84,6 @@ private:
     size_t tail_ = 0;
     size_t size_;
 };
+
 typedef circular_buffer<uint8_t> cBuffer;
 #endif // CIRCULAR_BUFFER_H

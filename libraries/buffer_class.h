@@ -1,4 +1,6 @@
 // buffer_class.h
+#ifndef BUFFER_CLASS
+#define BUFFER_CLASS
 
 #define BUFFER_SIZE 16
 #include <stdint.h> // uint8_t
@@ -22,3 +24,4 @@ class Buffer {
         volatile uint8_t status = 0x00; // 0x00 = Empty, 0x01 = OK, 0xFF = Full
 
 };
+#endif //BUFFER_CLASS
