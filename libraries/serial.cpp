@@ -19,14 +19,16 @@ uint8_t Serial::read(){
     return(readData);
 }
 
-void Serial::write_buffer(volatile struct Buffer *serial_tx_buffer){
+void Serial::write_buffer(){
     // Send the contents of the serial_tx_buffer
-    uint8_t tempCharStorage; // Location in memory to store the byte to send
+    //nt8_t tempCharStorage; // Location in memory to store the byte to send
+    
     // While there is data in the buffer, read a byte from the buffer
-    // and store it in tempCharStorage. Send this byte via the serial port.
-
-    while(bufferRead(serial_tx_buffer, &tempCharStorage) == 0){
-        write(tempCharStorage);
+    // and send this byte via the serial port.
+    while (txbuffer.getstatus() != 0x00){
+        write(txbuffer.read());
+    //ile(bufferRead(serial_tx_buffer, &tempCharStorage) == 0){
+    //  write(tempCharStorage);
     }
 }
 

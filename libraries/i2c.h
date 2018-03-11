@@ -2,19 +2,23 @@
 
 #ifndef I2C_H
 #define I2C_H
+#include "stm32f103xb.h"    // Need as direct reference to HW
 
-#include "buffer.h"         // Buffer Library
+#include "buffer_class.h"
+
 // Define function return status
 typedef enum {Success = 0, Error = !Success} Status;
 
 class I2C {
     private:    // Can only be accessed by fuctions in this class.
-        volatile Buffer& i2c_rx_buffer;
+        Buffer& buffer;
     public:     // Can be accessed by any function in program.
-        I2C(volatile Buffer *i2c_rx_buffer):i2c_rx_buffer(*i2c_rx_buffer){  // Default Constructor
+        // Default Constructor
+        I2C(Buffer& rx_buffer):buffer(rx_buffer)
+        {
             // Anything which needs to be executed when class instansiated.
         }
-        
+        //uint8_t buffer;
         
         Status I2C1Setup();
 
@@ -28,4 +32,5 @@ class I2C {
         uint8_t getbyte(); // Read a Byte from the i2c_rx_buffer
 
 };
+
 #endif // I2C_H

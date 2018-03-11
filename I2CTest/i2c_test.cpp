@@ -1,13 +1,16 @@
 // STM32F103 I2C Setup & Test
 ////////////////////////////////////////////////////////////////////////////////
+#include <stdint.h>         // uint8_t
+#include <stdio.h>          // Newlib-nano
+#include "buffer_class.h"   // Circular Buffer Class
 #include "clock.h"          // Setup system and peripheral clocks
-#include "buffer.h"         // Circular Buffers
+//#include "buffer.h"         // Circular Buffers
 #include "serial.h"         // USART1 Setup & Functions
 #include "delay.h"          // Simple Delay Function
+//#include "circular_buffer.h" // Circular Buffer Class
 #include "i2c.h"            // I2C Setup and control functions
-#include <stdint.h>         // uint8_t
-#include <stdio.h>          // Newlib-nano 
 #include "stm32f103xb.h"    // HW Specific Header
+
 ////////////////////////////////////////////////////////////////////////////////
 // Definitions
 #define OLED_ADDR   0x7a      // Address of I2C OLED Display
@@ -22,12 +25,13 @@ void OLEDSetup(I2C& i2c);
 void draw_buffer2(I2C& i2c);
 void draw_buffer3(I2C& i2c);
 void clear_buffer(I2C& i2c);
-void LuxSensorSetup(I2C& i2c);
+//void LuxSensorSetup(I2C& i2c);
+
+
 
 class BH1750FVI{
     private:
         I2C& i2c; // Holds i2c instance for use by class functions
-        
         uint8_t HighByte;   // Holds Higher Byte of Lux Value
         uint8_t LowByte;    // Holds Lower Byte of Lux Value
         uint16_t LuxBytes;  // Holds the complete Lux Value
@@ -45,14 +49,24 @@ class BH1750FVI{
         // Converts LuxBytes into a Lux Value. Currently H-Res mode only.
         uint16_t getLuxValue(); 
 };
+
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
 // Create buffers - Size defined by buffer.h or variable for compiler.
-volatile struct Buffer serial_tx_buffer {{},0,0};
-volatile struct Buffer serial_rx_buffer {{},0,0};
-volatile struct Buffer i2c_rx_buffer{{},0,0};
+//volatile struct Buffer serial_tx_buffer {{},0,0};
+//volatile struct Buffer serial_rx_buffer {{},0,0};
+//volatile struct Buffer i2c_rx_buffer{{},0,0};
+Buffer serial_rx;
+Buffer serial_tx;
+Buffer rx_buffer;
+// 16 Byte Buffer (17 - 1 due to buffer implementation)
+//circular_buffer<uint8_t> i2c_rx(17);
+//typedef circular_buffer<uint8_t> cBuffer;
+//circular_buffer<uint8_t> buffer(17);
+//cBuffer rx_buffer(17);
 ////////////////////////////////////////////////////////////////////////////////
+
 static uint8_t buffer2[1024] = {    // 128 x 64 Rodent Pattern
 
     0x00, 0x00, 0x20, 0x30, 0x28, 0x3C, 0x30, 0x30, 0x30, 0x30, 0x20, 0x20, 0x10, 0x08, 0x00, 0x00,
@@ -200,30 +214,31 @@ static uint8_t buffer3[1024] = {    // 128 x 64 Test Pattern
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
     0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
+
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
-
-
 
 // Main - Called by the startup code.
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
     SysTick_Init();     // Enable SysTick
-    
-    Serial serial;      // Create instance of Serial class (USART1)
+   
+    // Create instance of Serial class (USART1) 
+    Serial serial(serial_rx, serial_tx);     
     serial.setup();     // Enable Serial Support - Currently USART1 Specific
     
-    I2C i2c(&i2c_rx_buffer);            // Create instance of I2C class (I2C1)
+    I2C i2c(rx_buffer);            // Create instance of I2C class (I2C1)
     i2c.I2C1Setup();
     
-    OLEDSetup(i2c);
+    //OLEDSetup(i2c);
     BH1750FVI lux(i2c);      // Create an instance of BH1750FVI Lux Sensor
     //LuxSensorSetup(i2c); // Setup BH1750FVI
 
     // USART1 Message to confirm program running - Using for Debugging
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
     // Send a message to the terminal to indicate program is running.
-    LoadBuffer(&serial_tx_buffer, test_message, 10);
-    serial.write_buffer(&serial_tx_buffer);
+    //LoadBuffer(&serial_tx_buffer, test_message, 10);
+    serial.write_array(test_message, 10);
+    serial.write_buffer();
 
 
     while(1){
@@ -239,12 +254,12 @@ int main(void) {
     i2c.read(2, LUX_ADDR);
     serial.write(i2c.getbyte());
     
-    uint8_t Byte1; // High Byte
-    uint8_t Byte2; // Low Byte
+    //uint8_t Byte1; // High Byte
+    //uint8_t Byte2; // Low Byte
     //bufferRead(&i2c_rx_buffer, &Byte1); 
     //bufferRead(&i2c_rx_buffer, &Byte2);
-    //uint8_t Byte1 = i2c.getbyte();
-    //uint8_t Byte2 = i2c.getbyte();
+    uint8_t Byte1 = i2c.getbyte();
+    uint8_t Byte2 = i2c.getbyte();
     
     uint16_t LuxBytes = (Byte1 <<8) + Byte2;
     
@@ -302,6 +317,7 @@ int main(void) {
     
     clear_buffer(i2c);
     delay_ms(2000);
+    
     };
 }
 

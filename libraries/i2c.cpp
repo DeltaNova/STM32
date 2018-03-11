@@ -2,7 +2,9 @@
 
 #include "stm32f103xb.h"    // Need as direct reference to HW
 #include "i2c.h"            // Library Header
-#include "buffer.h"         // Buffer Library
+//#include "buffer.h"         // Buffer Library
+
+//#include "circular_buffer.h"
 
 Status I2C::I2C1Setup(){
     // Ref: Datasheet DS5319 Section 5.3.16 I2C Interface Characteristics
@@ -217,8 +219,9 @@ Status I2C::readbyte(uint8_t SlaveAddr){
         }
     }
 
-    bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
-
+    //bufferWrite(&i2c_rx_buffer, I2C1->DR); // Read Byte into Buffer
+    buffer.write(I2C1->DR);    
+    
     Timeout = 0xFFFF;
     while (I2C1->CR1 & 0x0200){     // Wait until STOP Flag cleared by HW
         if (Timeout-- == 0){
@@ -251,10 +254,13 @@ Status I2C::read2bytes(uint8_t SlaveAddr){
     // Disable interrupts around STOP due to HW limitation
     __disable_irq();                        // Disable Interrupts
     I2C1->CR1 |= 0x0200;                    // Set Stop Flag
-    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read 1st Byte into Buffer
+    //bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read 1st Byte into Buffer
+    buffer.write(I2C1->DR);
+    
     __enable_irq();                         // Enable Interrupts
-    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read 2nd Byte into Buffer
-
+    //bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read 2nd Byte into Buffer
+    buffer.write(I2C1->DR);
+    
     Timeout = 0xFFFF;
     while (I2C1->CR1 & 0x0200){     // Wait until STOP Flag cleared by HW
         if (Timeout-- == 0){
@@ -289,8 +295,8 @@ Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead){
         }
         
         // Read Byte in Data Register and store in Buffer
-        bufferWrite(&i2c_rx_buffer, I2C1->DR);  
-        
+        //bufferWrite(&i2c_rx_buffer, I2C1->DR);  
+        buffer.write(I2C1->DR);    
         // Decrement NumberBytesToRead
         NumberBytesToRead = NumberBytesToRead - 1;
     }
@@ -315,9 +321,11 @@ Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead){
     __disable_irq();                        // Disable Interrupts
 
     // Missing read from AN2824 (Rev4) Fig 1
-    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read Byte N-2 into Buffer
+    //bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read Byte N-2 into Buffer
+    buffer.write(I2C1->DR);
     I2C1->CR1 |= 0x0200;                    // Set Stop Flag
-    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read Byte N-1 into Buffer
+    //bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read Byte N-1 into Buffer
+    buffer.write(I2C1->DR);
     __enable_irq();                         // Enable Interrupts
     
     Timeout = 0xFFFF;
@@ -327,7 +335,8 @@ Status I2C::read3bytes(uint8_t SlaveAddr, uint8_t NumberBytesToRead){
         }
     }
     
-    bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read Byte N into Buffer
+    //bufferWrite(&i2c_rx_buffer, I2C1->DR);   // Read Byte N into Buffer
+    buffer.write(I2C1->DR);
     NumberBytesToRead = 0;                  // All Bytes Read
     
     Timeout = 0xFFFF;
@@ -395,7 +404,9 @@ Status I2C::read(uint8_t NumberBytesToRead, uint8_t SlaveAddr){
 }
 
 uint8_t I2C::getbyte(){
-    uint8_t temp; // Temporary Byte
-    bufferRead(&i2c_rx_buffer, &temp);
-    return temp; 
+    //uint8_t temp; // Temporary Byte
+    //bufferRead(&i2c_rx_buffer, &temp);
+    //return temp;
+    return buffer.read(); 
 }
+
