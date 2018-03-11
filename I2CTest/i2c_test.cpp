@@ -4,10 +4,8 @@
 #include <stdio.h>          // Newlib-nano
 #include "buffer_class.h"   // Circular Buffer Class
 #include "clock.h"          // Setup system and peripheral clocks
-//#include "buffer.h"         // Circular Buffers
 #include "serial.h"         // USART1 Setup & Functions
 #include "delay.h"          // Simple Delay Function
-//#include "circular_buffer.h" // Circular Buffer Class
 #include "i2c.h"            // I2C Setup and control functions
 #include "stm32f103xb.h"    // HW Specific Header
 
@@ -25,10 +23,8 @@ void OLEDSetup(I2C& i2c);
 void draw_buffer2(I2C& i2c);
 void draw_buffer3(I2C& i2c);
 void clear_buffer(I2C& i2c);
-//void LuxSensorSetup(I2C& i2c);
 
-
-
+//TODO: Move Class to external library file.
 class BH1750FVI{
     private:
         I2C& i2c; // Holds i2c instance for use by class functions
@@ -53,18 +49,10 @@ class BH1750FVI{
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
-// Create buffers - Size defined by buffer.h or variable for compiler.
-//volatile struct Buffer serial_tx_buffer {{},0,0};
-//volatile struct Buffer serial_rx_buffer {{},0,0};
-//volatile struct Buffer i2c_rx_buffer{{},0,0};
+// Create buffers - Size defined by buffer_class.h or variable for compiler.
 Buffer serial_rx;
 Buffer serial_tx;
 Buffer rx_buffer;
-// 16 Byte Buffer (17 - 1 due to buffer implementation)
-//circular_buffer<uint8_t> i2c_rx(17);
-//typedef circular_buffer<uint8_t> cBuffer;
-//circular_buffer<uint8_t> buffer(17);
-//cBuffer rx_buffer(17);
 ////////////////////////////////////////////////////////////////////////////////
 
 static uint8_t buffer2[1024] = {    // 128 x 64 Rodent Pattern
@@ -243,19 +231,8 @@ int main(void) {
     // reading the lux sensor too often.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
     longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
-    
-    // Reads 2 Byte Measurement into i2c_rx_buffer
-    i2c.read(2, LUX_ADDR);
-    // Read lux bytes    
-    uint8_t Byte1 = i2c.getbyte(); // High Byte
-    uint8_t Byte2 = i2c.getbyte(); // Low Byte
-    // Combine lux bytes
-    uint16_t LuxBytes = (Byte1 <<8) + Byte2;
-    
-    // Convert LuxBytes into LuxValue - H-Resolution Mode
-    // Default Settings in H-Resolution mode = Resolution of 0.83lx/count.
-    // Therefore count/1.2 gives lux value
-    uint16_t LuxValue = LuxBytes / 1.2;
+
+    lux.read();         // Read the sensor data into the class instance
     
     // Send Lux Value to Serial Output
     // The maximum count is 65535 (0XFFFF)
@@ -271,8 +248,7 @@ int main(void) {
     
     // Convert and send LuxBytes for reference.
     // Convert LuxBytes and store value in char_buffer with leading zeros.
-    //snprintf(char_buffer, 6,"%05u", lux.getLuxByte()); 
-    snprintf(char_buffer, 6,"%05u", LuxBytes); 
+    snprintf(char_buffer, 6,"%05u", lux.getLuxByte()); 
     
     for(int i=0;i<5;i++){
         serial.write(char_buffer[i]);
@@ -281,8 +257,8 @@ int main(void) {
     serial.write(' '); // Separate Output on serial terminal.
     
     // Convert LuxValue and store value in char_buffer with leading zeros.
-    //snprintf(char_buffer,6, "%05u", lux.getLuxValue());
-    snprintf(char_buffer,6, "%05u", LuxValue);
+    snprintf(char_buffer,6, "%05u", lux.getLuxValue());
+
     // Step through the buffer and send each byte via the serial output.
     for(int i=0;i<5;i++){
         serial.write(char_buffer[i]);
