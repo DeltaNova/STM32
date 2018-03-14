@@ -25,30 +25,6 @@ void draw_buffer2(I2C& i2c);
 void draw_buffer3(I2C& i2c);
 void clear_buffer(I2C& i2c);
 
-/*
-//TODO: Move Class to external library file.
-class BH1750FVI{
-    private:
-        I2C& i2c; // Holds i2c instance for use by class functions
-        uint8_t HighByte;   // Holds Higher Byte of Lux Value
-        uint8_t LowByte;    // Holds Lower Byte of Lux Value
-        uint16_t LuxBytes;  // Holds the complete Lux Value
-    public:
-        // Require an reference to the I2C interface when creating instance.
-        BH1750FVI(I2C& i2c)
-        // Store the I2C reference in private.
-        :i2c(i2c){} 
-        // Setup function will use the i2c reference in private.
-        void setup();   // Setup the Sensor
-        void read();    // Read the Sensor
-        uint8_t getLowByte();
-        uint8_t getHighByte();
-        uint16_t getLuxByte();  // Returns the value in LuxBytes
-        // Converts LuxBytes into a Lux Value. Currently H-Res mode only.
-        uint16_t getLuxValue(); 
-};
-*/
-
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -451,46 +427,3 @@ void clear_buffer(I2C& i2c){
         i2c.stop();
     }
 }
-
-/*
-void BH1750FVI::setup(){
-    // Setup Function for the BH1750FVI Lux Sensor
-    i2c.start(LUX_ADDR);        // Slave Address
-    i2c.write(0x01);            // BH1750FVI - Power On
-    i2c.stop();                 // Required as part of BH1750FVI I2C Comms
-
-    i2c.start(LUX_ADDR);        // Slave Address
-    //i2c.write(0x20);          // BH1750FVI One Time H-Res Mode.
-    i2c.write(0x13);            // BH1750FVI Continuous Mode
-    i2c.stop();                 // Required as part of BH1750FVI I2C Comms 
-}
-
-void BH1750FVI::read(){
-    // Read the Sensor
-    // Reads 2 Byte Measurement into i2c_rx_buffer
-    i2c.read(2, LUX_ADDR);                      // Read 2 Bytes from sensor
-    HighByte = i2c.getbyte();                   // High Byte
-    LowByte = i2c.getbyte();                    // Low Byte
-    LuxBytes = (HighByte <<8) + LowByte;        // Combine Bytes
-}
-
-uint8_t BH1750FVI::getLowByte(){
-    return LowByte;
-}
-
-uint8_t BH1750FVI::getHighByte(){
-    return HighByte;
-}
-
-uint16_t BH1750FVI::getLuxByte(){
-    return LuxBytes;
-}
-
-uint16_t BH1750FVI::getLuxValue(){
-    // Convert LuxBytes into LuxValue - H-Resolution Mode
-    // Default Settings in H-Resolution mode = Resolution of 0.83lx/count.
-    // Therefore count/1.2 gives lux value
-    uint16_t LuxValue = LuxBytes / 1.2;
-    return LuxValue;
-}
-*/
