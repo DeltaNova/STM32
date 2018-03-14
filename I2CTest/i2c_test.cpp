@@ -7,6 +7,7 @@
 #include "serial.h"         // USART1 Setup & Functions
 #include "delay.h"          // Simple Delay Function
 #include "i2c.h"            // I2C Setup and control functions
+#include "BH1750FVI.h"      // I2C Lux Sensor
 #include "stm32f103xb.h"    // HW Specific Header
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -24,6 +25,7 @@ void draw_buffer2(I2C& i2c);
 void draw_buffer3(I2C& i2c);
 void clear_buffer(I2C& i2c);
 
+/*
 //TODO: Move Class to external library file.
 class BH1750FVI{
     private:
@@ -45,6 +47,7 @@ class BH1750FVI{
         // Converts LuxBytes into a Lux Value. Currently H-Res mode only.
         uint16_t getLuxValue(); 
 };
+*/
 
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
@@ -217,7 +220,7 @@ int main(void) {
     I2C i2c(rx_buffer);     // Create instance of I2C class (I2C1)
     i2c.I2C1Setup();        // Setup I2C1
     
-    BH1750FVI lux(i2c);     // Create an instance of BH1750FVI Lux Sensor
+    BH1750FVI lux(i2c, LUX_ADDR);  // Create an instance of BH1750FVI Lux Sensor
     lux.setup();            // Setup BH1750FVI
 
     // USART1 Message to confirm program running - Using for Debugging
@@ -449,6 +452,7 @@ void clear_buffer(I2C& i2c){
     }
 }
 
+/*
 void BH1750FVI::setup(){
     // Setup Function for the BH1750FVI Lux Sensor
     i2c.start(LUX_ADDR);        // Slave Address
@@ -489,3 +493,4 @@ uint16_t BH1750FVI::getLuxValue(){
     uint16_t LuxValue = LuxBytes / 1.2;
     return LuxValue;
 }
+*/
