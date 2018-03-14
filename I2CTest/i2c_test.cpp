@@ -9,7 +9,9 @@
 #include "i2c.h"                // I2C Setup and control functions
 #include "rodent_buffer.h"      // Rodent Display Buffer
 #include "test_pattern_buffer.h"// Test Pattern Display Buffer
+#include "ascii_buffer.h"       // ASCII Text Buffer
 #include "BH1750FVI.h"          // I2C Lux Sensor
+#include "ssd1306.h"            // OLED Display
 #include "stm32f103xb.h"        // HW Specific Header
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +52,11 @@ int main(void) {
     
     I2C i2c(rx_buffer);             // Create instance of I2C class (I2C1)
     i2c.I2C1Setup();                // Setup I2C1
-    OLEDSetup(i2c);                 // Create instance of OLED Display
+    
+    SSD1306 oled(i2c,OLED_ADDR);    // Create instance of OLED Display 
+    //OLEDSetup(i2c);                 // Create instance of OLED Display
+    oled.setup();                   // Setup OLED Display
+    
     BH1750FVI lux(i2c, LUX_ADDR);   // Create an instance of BH1750FVI Sensor
     lux.setup();                    // Setup BH1750FVI
 
@@ -101,18 +107,28 @@ int main(void) {
     serial.write('\r');
     serial.write('\n');
     
-    draw_buffer2(i2c);
+    //draw_buffer2(i2c);
+    oled.drawBuffer(rodent);
     delay_ms(2000);
     
-    clear_buffer(i2c);
+    //clear_buffer(i2c);
+    oled.clear_buffer();
     delay_ms(1000);
     
-    draw_buffer3(i2c);
+    //draw_buffer3(i2c);
+    oled.drawBuffer(test_pattern);
     delay_ms(2000);
     
-    clear_buffer(i2c);
+    //clear_buffer(i2c);
+    oled.clear_buffer();
     delay_ms(1000);
     
+    oled.drawBuffer(ascii_buffer);
+    delay_ms(2000);
+    
+    //clear_buffer(i2c);
+    oled.clear_buffer();
+    delay_ms(1000);
     };
 }
 
@@ -160,7 +176,7 @@ void delay_ms(uint32_t ms){
     while(ticks);
     
 }
-
+/*
 void OLEDSetup(I2C& i2c){
     // Setup the I2C OLED Display    
     i2c.start(OLED_ADDR);
@@ -282,3 +298,4 @@ void clear_buffer(I2C& i2c){
         i2c.stop();
     }
 }
+*/
