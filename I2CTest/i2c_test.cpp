@@ -193,11 +193,11 @@ int main(void) {
     Serial serial(serial_rx, serial_tx);     
     serial.setup();     // Enable Serial Support - Currently USART1 Specific
     
-    I2C i2c(rx_buffer);     // Create instance of I2C class (I2C1)
-    i2c.I2C1Setup();        // Setup I2C1
-    
-    BH1750FVI lux(i2c, LUX_ADDR);  // Create an instance of BH1750FVI Lux Sensor
-    lux.setup();            // Setup BH1750FVI
+    I2C i2c(rx_buffer);             // Create instance of I2C class (I2C1)
+    i2c.I2C1Setup();                // Setup I2C1
+    OLEDSetup(i2c);                 // Create instance of OLED Display
+    BH1750FVI lux(i2c, LUX_ADDR);   // Create an instance of BH1750FVI Sensor
+    lux.setup();                    // Setup BH1750FVI
 
     // USART1 Message to confirm program running - Using for Debugging
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
