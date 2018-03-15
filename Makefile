@@ -172,9 +172,7 @@ LIBS += $(STMCUBE_REPO)$(STMCUBE_PATH)Include/
 # Path to cmsis_ghh.h core_cm3.h
 LIBS += $(STMCUBE_REPO)$(STMCUBE_PATH2)
 
-#LDFLAGS += -Wl, --gc-sections
-#LDFLAGS += --gc-sections -Wl,
-#LDFLAGS += -Map=$(TARGET).map
+LDFLAGS += -Wl,-Map=$(TARGET).map
 #LDFLAGS += $(addprefix -I, $(LIBS))
 LDFLAGS += -mcpu=$(MCPU)
 LDFLAGS += -mlittle-endian
