@@ -162,6 +162,8 @@ CPPFLAGS += -D$(DEVICE_STM_HEADER)
 CPPFLAGS += -Os
 # Compile but do not link
 CPPFLAGS += -c
+# Generate stack usage (.su) files for each .o file.
+#CPPFLAGS += -fstack-usage
 
 # Add a -I prefix to each library path.
 CPPFLAGS += $(addprefix -I, $(LIBS))
@@ -172,6 +174,9 @@ LIBS += $(STMCUBE_REPO)$(STMCUBE_PATH)Include/
 # Path to cmsis_ghh.h core_cm3.h
 LIBS += $(STMCUBE_REPO)$(STMCUBE_PATH2)
 
+# Display a summary of Flash & Ram usage
+LDFLAGS += -Wl,--print-memory-usage
+# Create .map file
 LDFLAGS += -Wl,-Map=$(TARGET).map
 #LDFLAGS += $(addprefix -I, $(LIBS))
 LDFLAGS += -mcpu=$(MCPU)
@@ -261,7 +266,8 @@ clean:
 	@echo "[REMOVE] $(TARGET).map"; rm -f $(TARGET).map
 	@echo "[REMOVE] $(TARGET).lst"; rm -f $(TARGET).lst
 	@echo "[REMOVE] $(TARGET).hex"; rm -f $(TARGET).hex
-	@echo "[REMOVE] *.o"; rm *.o
+	@echo "[REMOVE] *.o"; rm -f *.o
+	@echo "[REMOVE] *.su"; rm -f *.su
 
 # Launch STMCubeMX GUI
 mx:
