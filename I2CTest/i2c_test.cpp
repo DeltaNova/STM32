@@ -7,11 +7,11 @@
 #include "serial.h"             // USART1 Setup & Functions
 #include "delay.h"              // Simple Delay Function
 #include "i2c.h"                // I2C Setup and control functions
-#include "rodent_buffer.h"      // Rodent Display Buffer
-#include "test_pattern_buffer.h"// Test Pattern Display Buffer
-#include "ascii_buffer.h"       // ASCII Text Buffer
-#include "BH1750FVI.h"          // I2C Lux Sensor
-#include "ssd1306.h"            // OLED Display
+#include "displays/rodent_buffer.h"         // Rodent Display Buffer
+#include "displays/test_pattern_buffer.h"   // Test Pattern Display Buffer
+#include "displays/ascii_buffer.h"          // ASCII Text Buffer
+#include "sensors/BH1750FVI.h"              // I2C Lux Sensor
+#include "displays/ssd1306.h"               // OLED Display
 #include "stm32f103xb.h"        // HW Specific Header
 
 ////////////////////////////////////////////////////////////////////////////////
