@@ -69,9 +69,10 @@ int main(void) {
     while(1){
     // The total delay in the loop needs to be adjusted so that we dont end up
     // reading the lux sensor too often.
-    longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
-    longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
-
+    //longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
+    //longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
+    delay_ms(1000);
+    
     lux.read();         // Read the sensor data into the class instance
     
     // Send Lux Value to Serial Output
