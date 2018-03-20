@@ -91,22 +91,33 @@ int main(void) {
     // Convert LuxBytes and store value in char_buffer with leading zeros.
     snprintf(char_buffer, 6,"%05u", lux.getLuxByte()); 
     
+    // Test Code - Attemp to write the Lux measurement to the OLED display
+    oled.clear_buffer(); // Clear the buffer to begin with
+    oled.setCursor(0,0); 
+    
     for(int i=0;i<5;i++){
-        serial.write(char_buffer[i]);
+        serial.write(char_buffer[i]); // Write Character to Serial Port
+        oled.write(char_buffer[i], ascii_buffer); // Draw character on OLED
     }
     
     serial.write(' '); // Separate Output on serial terminal.
+    oled.write(' ', ascii_buffer);
     
     // Convert LuxValue and store value in char_buffer with leading zeros.
     snprintf(char_buffer,6, "%05u", lux.getLuxValue());
 
     // Step through the buffer and send each byte via the serial output.
     for(int i=0;i<5;i++){
-        serial.write(char_buffer[i]);
+        serial.write(char_buffer[i]); // Write Char to Serial Port
+        oled.write(char_buffer[i], ascii_buffer); // Draw character on OLED
     }
 
     serial.write('\r');
     serial.write('\n');
+    delay_ms(2000); 
+    oled.clear_buffer();
+
+    
     
     
     // Test code to draw test patterns to the OLED display.
