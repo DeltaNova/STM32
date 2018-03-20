@@ -58,8 +58,8 @@ class SSD1306
         //          buffer_to_draw is therefore accessed using a pointer. 
         void drawBuffer(const uint8_t *buffer_to_draw);
         
-        void writeLine(uint8_t &line_buffer, uint8_t buffer_length, uint8_t &symbol_buffer); // TODO: Need to implement
-        void writeChar(uint8_t char2write, uint8_t &symbol_buffer); // TODO: Need to implement
+        void writeLine(uint8_t &line_buffer, uint8_t buffer_length, uint8_t *symbol_buffer); // TODO: Need to implement
+        void write(uint8_t char2write, const uint8_t *symbol_buffer);
 
         ////////////////////////////////////////////////////////////////////////
         // AVR Specific Functions

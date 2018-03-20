@@ -198,8 +198,6 @@ void SSD1306::setPageStartAddress(uint8_t pageStartAddress){
     i2c.stop();
 }
 
-
-
 void SSD1306::setupHorizScroll(uint8_t direction, uint8_t startPage, uint8_t endPage, uint8_t interval){
     // Continuous Horizontal Scroller
 
@@ -219,7 +217,6 @@ void SSD1306::setupHorizScroll(uint8_t direction, uint8_t startPage, uint8_t end
     i2c.stop();
 }
 
-
 void SSD1306::setupHVScroll(uint8_t direction, uint8_t startPage, uint8_t endPage, uint8_t interval, uint8_t voffset){
     // Horizontal & Vertical Scroller
 
@@ -238,7 +235,6 @@ void SSD1306::setupHVScroll(uint8_t direction, uint8_t startPage, uint8_t endPag
     i2c.stop();
 }
 
-
 void SSD1306::setupVertScrollArea(uint8_t fixedTopRows, uint8_t scrollRows){
     // Setup Vertical Scrolling Area
     i2c.start(Address);
@@ -248,7 +244,6 @@ void SSD1306::setupVertScrollArea(uint8_t fixedTopRows, uint8_t scrollRows){
     i2c.write(scrollRows); // Number of rows to scroll below fixed rows.
     i2c.stop();
 }
-
 
 void SSD1306::scrollToggle(bool toggle){
     // Toggle Scrolling
@@ -284,6 +279,23 @@ void SSD1306::drawBuffer(const uint8_t *buffer_to_draw){
         i--;
         i2c.stop();
     }
+}
+
+void SSD1306::write(uint8_t char2write, const uint8_t* symbol_buffer){
+    // Write Character, symbol buffer used from PROGMEM
+    // Note: Set cursor position before writing.
+    i2c.start(Address);
+    i2c.write(0x40);                   // Control Byte Data Stream
+    // Multiply by 6 to get char start position in the ascii_buffer
+    uint16_t offset =  char2write * 6;
+    // Print each byte that makes up the character
+    for ( uint16_t x =0; x<6; x++) {
+        i2c.write(symbol_buffer[offset+x]);
+    }
+    i2c.stop();
+
+    // Note: Reset the cursor position to Row 0, Col 0. Otherwise the
+    //       buffers become offset on the next loop.
 }
 
 ////////////////////////////////////////////////////////////////////////////////
