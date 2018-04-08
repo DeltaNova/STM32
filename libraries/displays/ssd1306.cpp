@@ -281,8 +281,20 @@ void SSD1306::drawBuffer(const uint8_t *buffer_to_draw){
     }
 }
 
+void SSD1306::drawColumn(uint8_t col_data){
+    // Write a byte  of column of data to the cursor position.
+    // Note: Set cursor position before writing.
+    i2c.start(Address);
+    i2c.write(0x40); // Control Byte Data Stream
+    i2c.write(col_data);
+    i2c.stop();
+
+    // Note: Reset the cursor position to Row 0, Col 0. Otherwise the
+    //       buffers become offset on the next loop.
+}
+
 void SSD1306::write(uint8_t char2write, const uint8_t* symbol_buffer){
-    // Write Character, symbol buffer used from PROGMEM
+    // Write Character, symbol buffer used
     // Note: Set cursor position before writing.
     i2c.start(Address);
     i2c.write(0x40);                   // Control Byte Data Stream

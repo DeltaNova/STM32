@@ -59,6 +59,7 @@ class SSD1306
         void drawBuffer(const uint8_t *buffer_to_draw);
         
         void writeLine(uint8_t &line_buffer, uint8_t buffer_length, uint8_t *symbol_buffer); // TODO: Need to implement
+        void drawColumn(uint8_t col_data);
         void write(uint8_t char2write, const uint8_t *symbol_buffer);
 
         ////////////////////////////////////////////////////////////////////////
