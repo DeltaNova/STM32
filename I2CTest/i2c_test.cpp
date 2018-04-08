@@ -29,6 +29,7 @@ void draw_buffer2(I2C& i2c);
 void draw_buffer3(I2C& i2c);
 void clear_buffer(I2C& i2c);
 void draw_progress(uint8_t progress, uint8_t steps, SSD1306& oled);
+void draw_progress_fine(uint8_t progress, uint8_t steps, SSD1306& oled);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -122,12 +123,23 @@ int main(void) {
     // Progress Bar will have 10 steps + start and stop point. Width 12.
     oled.setCursor(0,0);
     draw_progress(0,10,oled);
+    oled.drawColumn(0x00);// Add a space between the progress bar styles
+    draw_progress_fine(0,10,oled);
+    
     oled.setCursor(2,0);
     draw_progress(40,10,oled);
+    oled.drawColumn(0x00);// Add a space between the progress bar styles
+    draw_progress_fine(40,10,oled);
+    
     oled.setCursor(4,0);
     draw_progress(85,10,oled);
+    oled.drawColumn(0x00); // Add a space between the progress bar styles
+    draw_progress_fine(85,10,oled);
+    
     oled.setCursor(6,0);
     draw_progress(100,10,oled);
+    oled.drawColumn(0x00);// Add a space between the progress bar styles
+    draw_progress_fine(100,10,oled);
 
     delay_ms(2000);
     oled.clear_buffer();
@@ -173,6 +185,28 @@ void draw_progress(uint8_t progress, uint8_t steps, SSD1306& oled){
         }
     }
 }
+
+void draw_progress_fine(uint8_t progress, uint8_t steps, SSD1306& oled){
+    uint8_t width = steps +2;
+        
+    for(int i=0; i<width; i++){
+        if(i==0){                               // If Start/End Point
+            oled.drawColumn(0x7F);        // Start Point Character
+        }else if (i==11){
+            oled.drawColumn(0x7F);        // End Point Character
+        }else{
+            // Compare progress with step position.
+            // If progress is beyond or equal to the step, fill in step.
+            // Otherwise show as an empty step.
+            if (progress/steps >= i){
+                oled.drawColumn(0x5D);   // Filled Step
+            }else{
+                oled.drawColumn(0x41);    // Empty Step
+            }
+        }
+    }
+}
+
 
 
 void SysTick_Init(void){
