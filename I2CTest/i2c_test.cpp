@@ -28,7 +28,7 @@ void OLEDSetup(I2C& i2c);
 void draw_buffer2(I2C& i2c);
 void draw_buffer3(I2C& i2c);
 void clear_buffer(I2C& i2c);
-
+void draw_progress(uint8_t progress, uint8_t steps, SSD1306& oled);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -117,8 +117,20 @@ int main(void) {
     delay_ms(2000); 
     oled.clear_buffer();
 
+    // Progress Bar
     
-    
+    // Progress Bar will have 10 steps + start and stop point. Width 12.
+    oled.setCursor(0,0);
+    draw_progress(0,10,oled);
+    oled.setCursor(2,0);
+    draw_progress(40,10,oled);
+    oled.setCursor(4,0);
+    draw_progress(85,10,oled);
+    oled.setCursor(6,0);
+    draw_progress(100,10,oled);
+
+    delay_ms(2000);
+    oled.clear_buffer();
     
     // Test code to draw test patterns to the OLED display.
     oled.drawBuffer(rodent);
@@ -140,6 +152,28 @@ int main(void) {
     delay_ms(1000);
     };
 }
+
+void draw_progress(uint8_t progress, uint8_t steps, SSD1306& oled){
+    uint8_t width = steps +2;
+        
+    for(int i=0; i<width; i++){
+        if(i==0){                               // If Start/End Point
+            oled.write(91,ascii_buffer);        // Start Point Character '['
+        }else if (i==11){
+            oled.write(93,ascii_buffer);        // End Point Character ']'
+        }else{
+            // Compare progress with step position.
+            // If progress is beyond or equal to the step, fill in step.
+            // Otherwise show as an empty step.
+            if (progress/steps >= i){
+                oled.write(127,ascii_buffer);   // Checkered Block
+            }else{
+                oled.write(45,ascii_buffer);    // '-'
+            }
+        }
+    }
+}
+
 
 void SysTick_Init(void){
     // SystemCoreClock/1000     =  1ms
