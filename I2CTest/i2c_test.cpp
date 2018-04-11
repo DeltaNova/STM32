@@ -30,6 +30,7 @@ void draw_buffer3(I2C& i2c);
 void clear_buffer(I2C& i2c);
 void draw_progress(uint8_t progress, uint8_t steps, SSD1306& oled);
 void draw_progress_fine(uint8_t progress, uint8_t steps, SSD1306& oled);
+void exectute_step(uint8_t step);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -66,8 +67,44 @@ int main(void) {
     // Send a message to the terminal to indicate program is running.
     serial.write_array(test_message, 10);
     serial.write_buffer();
+    
+    // PortA GPIO Setup
+    // Enable I/O Clock for PortA
+    RCC->APB2ENR |= 0x00000004;
+    // Configure PA0-PA3 
+    // - General Purpose Output Push-Pull
+    // - Max Speed 50MHz
+    
+    GPIOA->CRL &= 0xFFFF0000; // Zero Settings for PA0-PA3, preserve PA4-PA7
+    //GPIOA->CRL |= 0x00002222; // Apply Config to PA0-PA3 (2MHz)
+    GPIOA->CRL |= 0x00003333; // Apply Config to PA0-PA3 (50MHz)
+    
+    // Stepper Motor is controlled by PA0-PA3
+    int8_t step = 0; // Initial step stage
+    //bool direction = true;  // True = Forwards, False = Reverse
 
     while(1){
+        
+        for(uint16_t i=0; i<4096;i++){ // Forward
+            exectute_step(step);
+            step++;
+            delay_ms(1);
+            if (step>7){
+                step = 0;
+            }
+        }
+        delay_ms(1000);
+        for(uint16_t i=0; i<4096;i++){ // Reverse
+            exectute_step(step);
+            step--;
+            delay_ms(1);
+            if (step<0){
+                step = 7;
+            }
+        }
+        
+        
+        
     // The total delay in the loop needs to be adjusted so that we dont end up
     // reading the lux sensor too often.
     //longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
@@ -163,6 +200,39 @@ int main(void) {
     oled.clear_buffer();
     delay_ms(1000);
     };
+}
+
+void exectute_step(uint8_t step){
+    // Set/Clear GPIO Port pins according to step.
+    switch(step){
+        case 0:
+            GPIOA->BSRR = 0x00070008;
+            break;
+        case 1:
+            GPIOA->BSRR = 0x0003000C;
+            break;
+        case 2:
+            GPIOA->BSRR = 0x000B0004;
+            break;
+        case 3:
+            GPIOA->BSRR = 0x00090006;
+            break;
+        case 4:
+            GPIOA->BSRR = 0x000D0002;
+            break;
+        case 5:
+            GPIOA->BSRR = 0x000C0003;
+            break;
+        case 6:
+            GPIOA->BSRR = 0x000E0001;
+            break;
+        case 7:
+            GPIOA->BSRR = 0x00060009;
+            break;
+        default:
+            GPIOA->BSRR = 0x000F0000;
+            break;
+    }
 }
 
 void draw_progress(uint8_t progress, uint8_t steps, SSD1306& oled){
