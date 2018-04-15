@@ -103,8 +103,6 @@ int main(void) {
             }
         }
         
-        
-        
     // The total delay in the loop needs to be adjusted so that we dont end up
     // reading the lux sensor too often.
     //longdelay(0xFFFF);  // Allow time for reading to be taken, auto power down.
