@@ -364,7 +364,12 @@ int8_t bme280_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint
      * | Stop       | -                   |
      * |------------+---------------------|
      */
-
+     
+    //i2c.start(dev.id);
+    //i2c.stop();
+    //i2c.read(len,dev.id);
+    //i2c.stop();
+    
     return rslt;
 }
 
@@ -389,6 +394,11 @@ int8_t bme280_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uin
      * | Stop       | -                   |
      * |------------+---------------------|
      */
+     
+     //i2c.start(dev.id);
+     //while(len >= 1):
+     //   i2c.write
+     //   len = len - 1;
 
     return rslt;
 }
