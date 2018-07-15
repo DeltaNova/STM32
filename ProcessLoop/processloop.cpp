@@ -14,6 +14,7 @@
 #include "displays/ascii_buffer.h"          // ASCII Text Buffer
 #include "sensors/BH1750FVI.h"              // I2C Lux Sensor
 #include "displays/ssd1306.h"               // OLED Display
+#include "sensors/BME280/bme280.h"          // BME280 Temp/Pressure/Humidity
 #include "stm32f103xb.h"        // HW Specific Header
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,6 +67,19 @@ int main(void) {
     
     BH1750FVI lux(i2c, LUX_ADDR);   // Create an instance of BH1750FVI Sensor
     lux.setup();                    // Setup BH1750FVI
+    
+    // Setup BME280 Sensor Package
+    struct bme280_dev dev;
+    int8_t rslt = BME280_OK;
+    
+    dev.dev_id = BME280_I2C_ADDR_PRIM;  // I2C ADDRESS 0x76
+    dev.intf = BME280_I2C_INTF;         // Sensor Interface = I2C
+    dev.read = bme280_i2c_read;         // Use custom i2c read function
+    dev.write = bme280_i2c_write;       // Use custom i2c write function
+    dev.delay_ms = delay_ms;            // Use existing ms delay function
+    
+    
+    rslt = bme280_init(&dev);
 
     // USART1 Message to confirm program running - Using for Debugging
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
@@ -327,7 +341,57 @@ void draw_progress_fine(uint8_t progress, uint8_t steps, SSD1306& oled){
     }
 }
 
+int8_t bme280_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len)
+{
+    int8_t rslt = 0; /* Return 0 for Success, non-zero for failure */
 
+    /*
+     * The parameter dev_id can be used as a variable to store the I2C address of the device
+     */
+
+    /*
+     * Data on the bus should be like
+     * |------------+---------------------|
+     * | I2C action | Data                |
+     * |------------+---------------------|
+     * | Start      | -                   |
+     * | Write      | (reg_addr)          |
+     * | Stop       | -                   |
+     * | Start      | -                   |
+     * | Read       | (reg_data[0])       |
+     * | Read       | (....)              |
+     * | Read       | (reg_data[len - 1]) |
+     * | Stop       | -                   |
+     * |------------+---------------------|
+     */
+
+    return rslt;
+}
+
+int8_t bme280_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len)
+{
+    int8_t rslt = 0; /* Return 0 for Success, non-zero for failure */
+
+    /*
+     * The parameter dev_id can be used as a variable to store the I2C address of the device
+     */
+
+    /*
+     * Data on the bus should be like
+     * |------------+---------------------|
+     * | I2C action | Data                |
+     * |------------+---------------------|
+     * | Start      | -                   |
+     * | Write      | (reg_addr)          |
+     * | Write      | (reg_data[0])       |
+     * | Write      | (....)              |
+     * | Write      | (reg_data[len - 1]) |
+     * | Stop       | -                   |
+     * |------------+---------------------|
+     */
+
+    return rslt;
+}
 
 void SysTick_Init(void){
     // SystemCoreClock/1000     =  1ms
