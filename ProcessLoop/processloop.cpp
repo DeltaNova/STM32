@@ -35,6 +35,8 @@ void draw_progress_fine(uint8_t progress, uint8_t steps, SSD1306& oled);
 void exectute_step(int8_t step);
 void toggleLed();
 int8_t moveStep(int8_t step);
+int8_t moveFullStep(int8_t step);
+int8_t moveFullStep2(int8_t step);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -98,12 +100,15 @@ int main(void) {
     
     // Stepper Motor is controlled by PA0-PA3
     int8_t step = 0; // Initial step stage
+    //int8_t step = 1; // Initial step stage
     //bool direction = true;  // True = Forwards, False = Reverse
 
     while(1){
         toggleLed();    // Toggle LED (PA13)  to indicate loop operational
         
         uint8_t nextstep = moveStep(step);     // Move the stepper motor
+        //uint8_t nextstep = moveFullStep(step); // Move the stepper motor
+        //uint8_t nextstep = moveFullStep2(step); // Move the stepper motor
         step = nextstep;
     }
 
@@ -253,10 +258,35 @@ int8_t moveStep(int8_t step){
     return step;
 }
 
+int8_t moveFullStep(int8_t step){
+    // Move the stepper motor - Full Step (One Phase On)
+    // makestep is decremented by ISR, execute step when zero.
+    if (makestep == 0){
+        exectute_step(step);
+        step++;
+        step++;
+        if (step>6){
+            step = 0;
+        }
+        makestep = 1;       // Reset makestep ISR counter
     }
     return step;
 }
 
+int8_t moveFullStep2(int8_t step){
+    // Move the stepper motor - Full Step (Two Phase On)
+    // makestep is decremented by ISR, execute step when zero.
+    if (makestep == 0){
+        exectute_step(step);
+        step++;
+        step++;
+        if (step>7){
+            step = 0;
+        }
+        makestep = 1;       // Reset makestep ISR counter
+    }
+    return step;
+}
 
 void exectute_step(int8_t step){
     // Set/Clear GPIO Port pins according to step.
