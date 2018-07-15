@@ -239,14 +239,20 @@ void toggleLed(){
 }
 
 int8_t moveStep(int8_t step){
-    // Move the stepper motor
-    if (makestep == 0){
+    // Move the stepper motor - Half Step
+    // makestep is decremented by ISR, execute step when zero.
+    
+    if (makestep == 0){     
         exectute_step(step);
         step++;
         if (step>7){
             step = 0;
         }
-        makestep = 1;
+        makestep = 1;       // Reset makestep ISR counter
+    }
+    return step;
+}
+
     }
     return step;
 }
@@ -256,31 +262,31 @@ void exectute_step(int8_t step){
     // Set/Clear GPIO Port pins according to step.
     switch(step){
         case 0:
-            GPIOA->BSRR = 0x00070008;
+            GPIOA->BSRR = 0x00070008; // PA3
             break;
         case 1:
-            GPIOA->BSRR = 0x0003000C;
+            GPIOA->BSRR = 0x0003000C; // PA3 + PA2
             break;
         case 2:
-            GPIOA->BSRR = 0x000B0004;
+            GPIOA->BSRR = 0x000B0004; // PA2
             break;
         case 3:
-            GPIOA->BSRR = 0x00090006;
+            GPIOA->BSRR = 0x00090006; // PA2 + PA1
             break;
         case 4:
-            GPIOA->BSRR = 0x000D0002;
+            GPIOA->BSRR = 0x000D0002; // PA1
             break;
         case 5:
-            GPIOA->BSRR = 0x000C0003;
+            GPIOA->BSRR = 0x000C0003; // PA1 + PA0
             break;
         case 6:
-            GPIOA->BSRR = 0x000E0001;
+            GPIOA->BSRR = 0x000E0001; // PA0
             break;
         case 7:
-            GPIOA->BSRR = 0x00060009;
+            GPIOA->BSRR = 0x00060009; // PA0 + PA3
             break;
         default:
-            GPIOA->BSRR = 0x000F0000;
+            GPIOA->BSRR = 0x000F0000; // OFF
             break;
     }
 }
