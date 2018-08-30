@@ -16,6 +16,7 @@ extern "C" void TIM2_IRQHandler(void);
 void SysTick_Init(void);
 void delay_ms(uint32_t ms);
 void toggleLed();
+void PWM_Setup();
 void Timebase_Setup();
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
@@ -33,7 +34,8 @@ volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
     SysTick_Init();     // Enable SysTick
-    Timebase_Setup();  
+    PWM_Setup();
+    //Timebase_Setup();  
     // PortA GPIO Setup
     // Enable I/O Clock for PortA
     //RCC->APB2ENR |= 0x00000004;
@@ -62,6 +64,9 @@ int main(void) {
 
     while(1){
         toggleLed();    // Toggle LED (PA13)  to indicate loop operational
+        TIM2->CCR2 = 0x8000; // Load 32762, 50% duty cycle.
+        // TIM2->CCR2 = 0xF000; // Dim LED
+        // TIM2->CCR2 = 0x2000; // Bright LED
     }
 }
 
@@ -101,6 +106,62 @@ void Timebase_Setup(){
     TIM2->DIER |= 0x0001; // Update Interrupt Enabled
     TIM2->CR1 |=  0x0081; // Auto Preload Enable, Enable Timer Counter
 }
+
+
+void PWM_Setup(){
+    // Setup PWM using Timer2 (PA0, PA1)
+    
+    // Enable Clocks - Port A, Alternate Function
+    RCC->APB2ENR |= 0x00000005;
+    
+    // Enable Timer 2
+    RCC->APB1ENR |= 0x00000001;
+    
+    // Configure PA0, PA1 as AF Push-Pull Output Compare, 50MHz
+    // Note: Reset Value For GPIOA-> is 0x44444444. Be careful when setting up
+    // as incorrect function maybe selected.
+    GPIOA->CRL = 0x000000BB;
+    
+    // Values Based on some example code
+    // System Clock 72MHz
+    // Timer Period (1/50Hz) = 0.02seconds
+    // Let ARR (Reload Value) be 65536 (0xFFFF)
+    // Prescaler + 1 = 72000000 / ((ARR+1)*50)
+    // Prescaler = 21 (Approx)
+    
+    // Set Timer 2 Reload Value
+    TIM2->ARR = 0xFFFF; //65536
+    
+    // Set Timer2 Prescaler Value
+    TIM2->PSC = 0x0015; //21
+    
+    // PWM Mode 2: 
+    // Channel 2 in upcounting is inactive as long as 
+    // TIM2_CNT < TIM2_CCR2 else active.
+    // Channel 2 in downcounting is inactiva as long as 
+    // TIM2CNT>TIM2_CCR1 else active.
+    TIM2->CCMR1 = 0x7800;
+    // Alternatively
+    // PWM Mode 1: Channel 2 in upcounting is active as long as 
+    // TIM2_CNT<TIM2_CCR1
+    // TIM2->CCMR1 = 0x6800;
+    
+    
+    //Enable Update Generation
+    TIM2->EGR |= 0x0001; // Reinitialise Counter & Update Registers
+    
+    // Channel 1 Enable
+    TIM2->CCER |= 0x0001; // TODO: Not Working?
+    
+    // Channel 2 Enabled, polarity active high
+    TIM2->CCER |= 0x0010; // 0x0020 for active low
+    
+    // Auto Preload Enable & Enable Timer Counter
+    TIM2->CR1 |= 0x0081;
+    
+}
+
+
 void toggleLed(){
     // Toggle the LED attached to PA13
     if (flash == 0){
