@@ -12,9 +12,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void SysTick_Handler(void);
+extern "C" void TIM2_IRQHandler(void);
 void SysTick_Init(void);
 void delay_ms(uint32_t ms);
 void toggleLed();
+void Timebase_Setup();
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -31,8 +33,7 @@ volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
     SysTick_Init();     // Enable SysTick
-   
-      
+    Timebase_Setup();  
     // PortA GPIO Setup
     // Enable I/O Clock for PortA
     //RCC->APB2ENR |= 0x00000004;
@@ -64,6 +65,42 @@ int main(void) {
     }
 }
 
+void TIM2_IRQHandler(void){
+    // Timer 2 Interrupt Handler
+    TIM2->SR &= 0xFFFE;         // Clear UIE Flag (Update Interrupt Enable)
+    GPIOA->ODR ^= 0x00000001;   // Toggle PA0
+}
+
+void Timebase_Setup(){
+    // Setup a Timebase using a Timer and Interrupts
+    // Using Timer 2 (PA0)
+    
+    // Enable Clocks - Port A, Alternate Function
+    RCC->APB2ENR |= 0x00000005;
+    
+    // Enable Timer 2
+    RCC->APB1ENR |= 0x00000001;
+    
+    // Configure PA0 as GPIO Push-Pull Output, 50MHz
+    GPIOA->CRL &= 0xFFFFFFF0; // Clear Bits for PA0. Preserve Rest
+    GPIOA->CRL |= 0x00000003; // Setup PA0
+        
+    // Timer_Period (Hz) = Timer_Clock / ((Prescaler + 1)(AutoReloadReg + 1)) 
+    // Timer_Clock = 72MHz
+    // If Prescaler = 575, AutoReloadReg = 62499
+    // Then Timer_Period = 2Hz (500ms)
+        
+    // Setup Timer2 Auto Reload Value
+    TIM2->ARR = 0xF423; // 62499
+    
+    // Setup Timer2 Presaler Value
+    TIM2->PSC = 0x023F; // 575
+    
+    // Enable Interrupt
+    NVIC_EnableIRQ(TIM2_IRQn); // IRQ 28
+    TIM2->DIER |= 0x0001; // Update Interrupt Enabled
+    TIM2->CR1 |=  0x0081; // Auto Preload Enable, Enable Timer Counter
+}
 void toggleLed(){
     // Toggle the LED attached to PA13
     if (flash == 0){
@@ -76,9 +113,6 @@ void toggleLed(){
         flash = 1001;
     }
 }
-
-
-
 
 void SysTick_Init(void){
     // SystemCoreClock/1000     =  1ms
