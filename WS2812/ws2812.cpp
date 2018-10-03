@@ -60,11 +60,12 @@ int main(void) {
     GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
     GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
     
-    
+    TIM2->CCR2 = 0x8000; // Load 32762, 50% duty cycle.
+    TIM2->CCR1 = 0x4000;
 
     while(1){
         toggleLed();    // Toggle LED (PA13)  to indicate loop operational
-        TIM2->CCR2 = 0x8000; // Load 32762, 50% duty cycle.
+
         // TIM2->CCR2 = 0xF000; // Dim LED
         // TIM2->CCR2 = 0x2000; // Bright LED
     }
@@ -73,7 +74,7 @@ int main(void) {
 void TIM2_IRQHandler(void){
     // Timer 2 Interrupt Handler
     TIM2->SR &= 0xFFFE;         // Clear UIE Flag (Update Interrupt Enable)
-    GPIOA->ODR ^= 0x00000001;   // Toggle PA0
+    //GPIOA->ODR ^= 0x00000001;   // Toggle PA0
 }
 
 void Timebase_Setup(){
@@ -135,14 +136,13 @@ void PWM_Setup(){
     // Set Timer2 Prescaler Value
     TIM2->PSC = 0x0015; //21
     
-    // PWM Mode 2: 
-    // Channel 2 in upcounting is inactive as long as 
-    // TIM2_CNT < TIM2_CCR2 else active.
-    // Channel 2 in downcounting is inactiva as long as 
-    // TIM2CNT>TIM2_CCR1 else active.
-    TIM2->CCMR1 = 0x7800;
+    // Channel 1 & 2 - PWM Mode 2: 
+    // Ch in upcounting is inactive as long as TIM2_CNT < TIM2_CCR2 else active.
+    // Ch in downcounting is inactive as long as TIM2CNT>TIM2_CCR1 else active.
+    TIM2->CCMR1 = 0x7878;
     // Alternatively
-    // PWM Mode 1: Channel 2 in upcounting is active as long as 
+    // Channel 1 & 2 - PWM Mode 1: 
+    // Ch in upcounting is active as long as 
     // TIM2_CNT<TIM2_CCR1
     // TIM2->CCMR1 = 0x6800;
     
