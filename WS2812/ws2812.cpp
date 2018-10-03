@@ -1,4 +1,4 @@
-// processloop.cpp
+// ws2812.cpp
 // Rewrite of I2CTest Code to create the appearance of concurrent operation of 
 // the stepper motor, oled display and sensor readings without an RTOS. 
 ////////////////////////////////////////////////////////////////////////////////
@@ -16,8 +16,8 @@ extern "C" void TIM2_IRQHandler(void);
 void SysTick_Init(void);
 void delay_ms(uint32_t ms);
 void toggleLed();
-void PWM_Setup();
-void Timebase_Setup();
+void PWM_Setup();      // Timer 2 PWM - Ch1 & Ch2
+void Timebase_Setup(); // Timebase from Timer using interrupts
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -36,17 +36,6 @@ int main(void) {
     SysTick_Init();     // Enable SysTick
     PWM_Setup();
     //Timebase_Setup();  
-    // PortA GPIO Setup
-    // Enable I/O Clock for PortA
-    //RCC->APB2ENR |= 0x00000004;
-    // Configure PA0-PA3 
-    // - General Purpose Output Push-Pull
-    // - Max Speed 50MHz
-        
-    //GPIOA->CRL &= 0xFFFF0000; // Zero Settings for PA0-PA3, preserve PA4-PA7
-    //GPIOA->CRL |= 0x00002222; // Apply Config to PA0-PA3 (2MHz)
-    //GPIOA->CRL |= 0x00003333; // Apply Config to PA0-PA3 (50MHz)
-
 
     // PortC GPIO Setup
     // Enable I/O Clock for PortC
@@ -60,25 +49,42 @@ int main(void) {
     GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
     GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
     
-    TIM2->CCR2 = 0x8000; // Load 32762, 50% duty cycle.
+    
+    // The counter will count to the reload value where upon it will toggle the
+    // output state of each channel back to its reset value. 
+    // During the count, before the reload value is reached, the count is 
+    // compared with each channels compare value. If the compare value is
+    // matched the output state of the matched channel will be toggled.
+    
+    // Timer 2 Channel 1 Compare Value
     TIM2->CCR1 = 0x4000;
+    
+    // Timer 2 Channel 2 Compare Value
+    TIM2->CCR2 = 0x8000; // Load 32762, 50% duty cycle.
+    // TIM2->CCR2 = 0xF000; // Dim LED
+    // TIM2->CCR2 = 0x2000; // Bright LED
+    
 
     while(1){
         toggleLed();    // Toggle LED (PA13)  to indicate loop operational
 
-        // TIM2->CCR2 = 0xF000; // Dim LED
-        // TIM2->CCR2 = 0x2000; // Bright LED
+        
     }
 }
 
 void TIM2_IRQHandler(void){
     // Timer 2 Interrupt Handler
     TIM2->SR &= 0xFFFE;         // Clear UIE Flag (Update Interrupt Enable)
-    //GPIOA->ODR ^= 0x00000001;   // Toggle PA0
+    GPIOA->ODR ^= 0x00000001;   // Toggle PA0
 }
 
 void Timebase_Setup(){
     // Setup a Timebase using a Timer and Interrupts
+    
+    // Timer will count to the reset value at the programmed frequency.
+    // When the count is reached it sets the Update Interrupt Flag for the Timer
+    // TIM2_IRQHandler will in this case clear the interrupt flag and toggle PA0
+    
     // Using Timer 2 (PA0)
     
     // Enable Clocks - Port A, Alternate Function
