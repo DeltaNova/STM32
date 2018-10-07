@@ -156,8 +156,8 @@ void PWM_Setup(){
     //Enable Update Generation
     TIM2->EGR |= 0x0001; // Reinitialise Counter & Update Registers
     
-    // Channel 1 Enable
-    TIM2->CCER |= 0x0001; // TODO: Not Working?
+    // Channel 1 Enable, polarity active high
+    TIM2->CCER |= 0x0001; // 0x0020 for active low
     
     // Channel 2 Enabled, polarity active high
     TIM2->CCER |= 0x0010; // 0x0020 for active low
