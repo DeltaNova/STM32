@@ -64,11 +64,25 @@ int main(void) {
     // TIM2->CCR2 = 0xF000; // Dim LED
     // TIM2->CCR2 = 0x2000; // Bright LED
     
-
+    
+    
+    uint8_t count = 0;        // Loop Counter
+    
+    // Adjust the PWM ratio of CH1 by changing the compare value. An LED 
+    // connected to CH1 will fade down before returning to full brightness
+    // and facing again.
+    uint16_t change = 0x0001; // Change in compare value.
+    
     while(1){
         toggleLed();    // Toggle LED (PA13)  to indicate loop operational
-
         
+        // Apply change after a certain number of loops to slow the trahsition.
+        if (count == 20){
+            TIM2->CCR1 = TIM2->CCR1 + change; // Apply change
+            count = 0; // Reset loop counter
+        }else{
+            count = count + 1; // Increment count
+        }
     }
 }
 
