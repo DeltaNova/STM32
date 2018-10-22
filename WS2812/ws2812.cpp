@@ -18,6 +18,7 @@ void delay_ms(uint32_t ms);
 void toggleLed();
 void PWM_Setup();      // Timer 2 PWM - Ch1 & Ch2
 void Timebase_Setup(); // Timebase from Timer using interrupts
+void PC13_LED_Setup(); // Setup PC13 for output LED
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -34,22 +35,10 @@ volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
     SysTick_Init();     // Enable SysTick
+    PC13_LED_Setup();   // Setup PC13 for output LED
     PWM_Setup();
     //Timebase_Setup();  
 
-    // PortC GPIO Setup
-    // Enable I/O Clock for PortC
-    RCC->APB2ENR |= 0x00000010;
-
-    // Configure PC13
-    // - LED Indicator
-    // - General Purpose Output Push-Pull
-    // - Max Speed 50MHz
-    
-    GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
-    GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
-    
-    
     // The counter will count to the reload value where upon it will toggle the
     // output state of each channel back to its reset value. 
     // During the count, before the reload value is reached, the count is 
@@ -60,21 +49,20 @@ int main(void) {
     TIM2->CCR1 = 0x4000;
     
     // Timer 2 Channel 2 Compare Value
-    TIM2->CCR2 = 0x8000; // Load 32762, 50% duty cycle.
-    // TIM2->CCR2 = 0xF000; // Dim LED
-    // TIM2->CCR2 = 0x2000; // Bright LED
+    // 0xF000 Dim LED
+    // 0x2000 Bright LED
+    TIM2->CCR2 = 0x8000;        // Load 32762, 50% duty cycle.
+
     
-    
-    
-    uint8_t count = 0;        // Loop Counter
+    uint8_t count = 0;          // Loop Counter
     
     // Adjust the PWM ratio of CH1 by changing the compare value. An LED 
     // connected to CH1 will fade down before returning to full brightness
     // and facing again.
-    uint16_t change = 0x0001; // Change in compare value.
+    uint16_t change = 0x0001;   // Change in compare value.
     
     while(1){
-        toggleLed();    // Toggle LED (PA13)  to indicate loop operational
+        toggleLed();    // Toggle LED (PC13)  to indicate loop operational
         
         // Apply change after a certain number of loops to slow the trahsition.
         if (count == 20){
@@ -128,6 +116,19 @@ void Timebase_Setup(){
     TIM2->CR1 |=  0x0081; // Auto Preload Enable, Enable Timer Counter
 }
 
+void PC13_LED_Setup(){
+    // PortC GPIO Setup
+    // Enable I/O Clock for PortC
+    RCC->APB2ENR |= 0x00000010;
+
+    // Configure PC13
+    // - LED Indicator
+    // - General Purpose Output Push-Pull
+    // - Max Speed 50MHz
+    
+    GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
+    GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
+}
 
 void PWM_Setup(){
     // Setup PWM using Timer2 (PA0, PA1)
@@ -183,7 +184,7 @@ void PWM_Setup(){
 
 
 void toggleLed(){
-    // Toggle the LED attached to PA13
+    // Toggle the LED attached to PC13
     if (flash == 0){
         // Get LED Status
         if (GPIOC->ODR & 0x00002000){ // If Set
