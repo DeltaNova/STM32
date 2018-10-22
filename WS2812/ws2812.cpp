@@ -46,12 +46,10 @@ int main(void) {
     // matched the output state of the matched channel will be toggled.
     
     // Timer 2 Channel 1 Compare Value
-    TIM2->CCR1 = 0x4000;
+    TIM2->CCR1 = 0x000F;        // 15 (Logic 1)
     
     // Timer 2 Channel 2 Compare Value
-    // 0xF000 Dim LED
-    // 0x2000 Bright LED
-    TIM2->CCR2 = 0x8000;        // Load 32762, 50% duty cycle.
+    TIM2->CCR2 = 0x0009;        // 9 (Logic 0)
 
     
     uint8_t count = 0;          // Loop Counter
@@ -63,7 +61,7 @@ int main(void) {
     
     while(1){
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
-        
+        /*
         // Apply change after a certain number of loops to slow the trahsition.
         if (count == 20){
             TIM2->CCR1 = TIM2->CCR1 + change; // Apply change
@@ -71,6 +69,7 @@ int main(void) {
         }else{
             count = count + 1; // Increment count
         }
+        */
     }
 }
 
@@ -130,7 +129,7 @@ void PC13_LED_Setup(){
     GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
 }
 
-void PWM_Setup(){
+/*void PWM_Setup(){
     // Setup PWM using Timer2 (PA0, PA1)
     
     // Enable Clocks - Port A, Alternate Function
@@ -180,9 +179,71 @@ void PWM_Setup(){
     // Auto Preload Enable & Enable Timer Counter
     TIM2->CR1 |= 0x0081;
     
+}*/
+
+void PWM_Setup(){
+    // Setup PWM using Timer2 (PA0, PA1)
+    
+    // Enable Clocks - Port A, Alternate Function
+    RCC->APB2ENR |= 0x00000005;
+    
+    // Enable Timer 2
+    RCC->APB1ENR |= 0x00000001;
+    
+    // Configure PA0, PA1 as AF Push-Pull Output Compare, 50MHz
+    // Note: Reset Value For GPIOA-> is 0x44444444. Be careful when setting up
+    // as incorrect function maybe selected.
+    GPIOA->CRL = 0x000000BB;
+    
+    // Values Based on some example code
+    // System Clock 72MHz
+    // Timer Period (1/800kHz) = 0.00000125 seconds
+    
+    // SysClk/Timer Period = (Prescaler + 1)(Auto Reload Value +1)
+    // 72x10^6/800x10^3 = 90
+    
+    // The values for the Prescaler and ARR are subject to interpretation on the 
+    // ammount of steps (level of control) required over the output. The values
+    // that follow are based on the example code of others and appear to have
+    // been selected to make the maths easier.
+    
+    // Let Prescaler = 2
+    
+    // 90 = (Prescaler + 1)(Auto Reload Value +1)
+    // 90 = 3(Auto Reload Value +1)
+    // 90/3 = 30 = Auto Reload Value + 1
+    // Auto Reload Value = 29
+        
+    // Set Timer 2 Reload Value
+    TIM2->ARR = 0x001D; //29
+    
+    // Set Timer2 Prescaler Value
+    TIM2->PSC = 0x0002; //2
+    
+    // Channel 1 & 2 - PWM Mode 2: 
+    // Ch in upcounting is inactive as long as TIM2_CNT < TIM2_CCR2 else active.
+    // Ch in downcounting is inactive as long as TIM2CNT>TIM2_CCR1 else active.
+    TIM2->CCMR1 = 0x7878;
+    // Alternatively
+    // Channel 1 & 2 - PWM Mode 1: 
+    // Ch in upcounting is active as long as 
+    // TIM2_CNT<TIM2_CCR1
+    // TIM2->CCMR1 = 0x6800;
+    
+    
+    //Enable Update Generation
+    TIM2->EGR |= 0x0001; // Reinitialise Counter & Update Registers
+    
+    // Channel 1 Enable
+    TIM2->CCER |= 0x0003; // 0x0003 for active low, 0x0001 for active high
+    
+    // Channel 2 Enabled
+    TIM2->CCER |= 0x0030; // 0x0030 for active low, 0x0010 for active high
+    
+    // Auto Preload Enable & Enable Timer Counter
+    TIM2->CR1 |= 0x0081;
+    
 }
-
-
 void toggleLed(){
     // Toggle the LED attached to PC13
     if (flash == 0){
