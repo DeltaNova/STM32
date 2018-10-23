@@ -34,7 +34,7 @@ volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 // Main - Called by the startup code.
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
-    SysTick_Init();     // Enable SysTick
+    //SysTick_Init();     // Enable SysTick
     PC13_LED_Setup();   // Setup PC13 for output LED
     PWM_Setup();
     //Timebase_Setup();  
@@ -60,8 +60,8 @@ int main(void) {
     uint16_t change = 0x0001;   // Change in compare value.
     bool x = 0;
     while(1){
-        toggleLed();    // Toggle LED (PC13)  to indicate loop operational
-        
+        //toggleLed();    // Toggle LED (PC13)  to indicate loop operational
+        /*
         if (TIM2->SR && 0x00001){
             if (x){ //x=1
                 TIM2->CCR1 = 0x000F; // Logic 1
@@ -73,6 +73,14 @@ int main(void) {
                 x = 1;
             }
         }
+        */
+        while (!(TIM2->SR && 0x00001)){}
+        TIM2->CCR1 = 0x000F; // Logic 1
+        TIM2->SR &= 0xFFFE; // Clear Update Flag
+        while (!(TIM2->SR && 0x0001)){}
+        TIM2->CCR1 = 0x0009; // Logic 0
+        TIM2->SR &= 0xFFFE; // Clear Update Flag
+    
                 
         
         
@@ -87,13 +95,14 @@ int main(void) {
         */
     }
 }
-
+/*
 void TIM2_IRQHandler(void){
     // Timer 2 Interrupt Handler
     TIM2->SR &= 0xFFFE;         // Clear UIE Flag (Update Interrupt Enable)
     GPIOA->ODR ^= 0x00000001;   // Toggle PA0
 }
-
+*/
+/*
 void Timebase_Setup(){
     // Setup a Timebase using a Timer and Interrupts
     
@@ -129,7 +138,7 @@ void Timebase_Setup(){
     TIM2->DIER |= 0x0001; // Update Interrupt Enabled
     TIM2->CR1 |=  0x0081; // Auto Preload Enable, Enable Timer Counter
 }
-
+*/
 void PC13_LED_Setup(){
     // PortC GPIO Setup
     // Enable I/O Clock for PortC
