@@ -46,8 +46,8 @@ int main(void) {
     // matched the output state of the matched channel will be toggled.
     
     // Timer 2 Channel 1 Compare Value
-    TIM2->CCR1 = 0x000F;        // 15 (Logic 1)
-    
+    //TIM2->CCR1 = 0x000F;        // 15 (Logic 1)
+    TIM2->CCR1 = 0x0000; 
     // Timer 2 Channel 2 Compare Value
     TIM2->CCR2 = 0x0009;        // 9 (Logic 0)
 
@@ -58,9 +58,24 @@ int main(void) {
     // connected to CH1 will fade down before returning to full brightness
     // and facing again.
     uint16_t change = 0x0001;   // Change in compare value.
-    
+    bool x = 0;
     while(1){
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
+        
+        if (TIM2->SR && 0x00001){
+            if (x){ //x=1
+                TIM2->CCR1 = 0x000F; // Logic 1
+                TIM2->SR &= 0xFFFE; // Clear Update Flag
+                x = 0;
+            }else{ //x=0
+                TIM2->CCR1 = 0x0009; // Logic 0
+                TIM2->SR &= 0xFFFE; // Clear Update Flag
+                x = 1;
+            }
+        }
+                
+        
+        
         /*
         // Apply change after a certain number of loops to slow the trahsition.
         if (count == 20){
