@@ -75,11 +75,13 @@ int main(void) {
         }
         */
         while (!(TIM2->SR && 0x00001)){}
+        TIM2->SR &= 0xFFFE; // Clear Update Flag
         TIM2->CCR1 = 0x000F; // Logic 1
-        TIM2->SR &= 0xFFFE; // Clear Update Flag
+        
         while (!(TIM2->SR && 0x0001)){}
-        TIM2->CCR1 = 0x0009; // Logic 0
         TIM2->SR &= 0xFFFE; // Clear Update Flag
+        TIM2->CCR1 = 0x0009; // Logic 0
+        
     
                 
         
