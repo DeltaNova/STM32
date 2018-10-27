@@ -17,6 +17,7 @@ void SysTick_Init(void);
 void delay_ms(uint32_t ms);
 void toggleLed();
 void PWM_Setup();      // Timer 2 PWM - Ch1 & Ch2
+void DMA_Setup();
 void Timebase_Setup(); // Timebase from Timer using interrupts
 void PC13_LED_Setup(); // Setup PC13 for output LED
 ////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +39,9 @@ int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
     //SysTick_Init();     // Enable SysTick
     PC13_LED_Setup();   // Setup PC13 for output LED
+    DMA_Setup();
     PWM_Setup();
+
 
     // The counter will count to the reload value where upon it will toggle the
     // output state of each channel back to its reset value. 
@@ -55,6 +58,40 @@ int main(void) {
     while(1){
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
     }
+}
+
+void DMA_Setup(){
+    // DMA Setup - DMA1 Channel 5 for use with TIM2 Channel 1
+    RCC->AHBENR |= 0x00000001; // Enable DMA 1 Clock
+    
+    // DMA Channel 5 Configuration
+    // Load base address of peripheral register to which data will be written.
+    // Load the address of the compare register converting from 16 to 32 bits
+    DMA1_Channel5->CPAR = (uint32_t)(&(TIM2->CCR1));
+    
+    // Load the memory address data will be read from
+    DMA1_Channel5->CMAR = (uint32_t)pwm_array;
+    
+    // Load the number of data transfers.
+    // Circular mode will be used to loop over the two values in the array
+    // so only to values need to be transferred before everyting resets.
+    DMA1_Channel5->CNDTR = 2;
+    
+    // Configure Channel Priority
+    // Leaving at default 'Low' priority
+    //DMA-CCR5 |= 0x00000000; 
+    
+    // Configure additional channel features
+    //  Memory Size 16 bits
+    //  Peripheral Size 16 bits
+    //  Memory Increment Mode Enabled
+    //  Circular Mode Enabled
+    //  Direction: Read From Memory
+    DMA1_Channel5->CCR |= 0x000005B2;
+    
+    // Activate Channel
+    DMA1_Channel5->CCR |= 0x00000001;
+    
 }
 
 void PWM_Setup(){
