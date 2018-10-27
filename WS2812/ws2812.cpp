@@ -49,15 +49,8 @@ int main(void) {
     TIM2->CCR1 = 0x0000; 
     // Timer 2 Channel 2 Compare Value
     TIM2->CCR2 = 0x0009;        // 9 (Logic 0)
-
     
-    uint8_t count = 0;          // Loop Counter
     
-    // Adjust the PWM ratio of CH1 by changing the compare value. An LED 
-    // connected to CH1 will fade down before returning to full brightness
-    // and facing again.
-    uint16_t change = 0x0001;   // Change in compare value.
-    bool x = 0;
     while(1){
         //toggleLed();    // Toggle LED (PC13)  to indicate loop operational
 
