@@ -153,6 +153,11 @@ void PWM_Setup(){
     // Channel 2 Enabled
     TIM2->CCER |= 0x0030; // 0x0030 for active low, 0x0010 for active high
     
+    TIM2->CR2 |= 0x0004; // DMA Requests Sent when update event occurs.
+    
+    TIM2->DIER |= 0x0300; // Update DMA Request Enable, Ch 1 DMA Request Enable
+    
+    
     // Auto Preload Enable & Enable Timer Counter
     TIM2->CR1 |= 0x0081;
     
