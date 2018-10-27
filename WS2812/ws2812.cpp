@@ -37,7 +37,6 @@ int main(void) {
     //SysTick_Init();     // Enable SysTick
     PC13_LED_Setup();   // Setup PC13 for output LED
     PWM_Setup();
-    //Timebase_Setup();  
 
     // The counter will count to the reload value where upon it will toggle the
     // output state of each channel back to its reset value. 
@@ -61,19 +60,7 @@ int main(void) {
     bool x = 0;
     while(1){
         //toggleLed();    // Toggle LED (PC13)  to indicate loop operational
-        /*
-        if (TIM2->SR && 0x00001){
-            if (x){ //x=1
-                TIM2->CCR1 = 0x000F; // Logic 1
-                TIM2->SR &= 0xFFFE; // Clear Update Flag
-                x = 0;
-            }else{ //x=0
-                TIM2->CCR1 = 0x0009; // Logic 0
-                TIM2->SR &= 0xFFFE; // Clear Update Flag
-                x = 1;
-            }
-        }
-        */
+
         while (!(TIM2->SR && 0x00001)){}
         TIM2->SR &= 0xFFFE; // Clear Update Flag
         TIM2->CCR1 = 0x000F; // Logic 1
@@ -82,130 +69,8 @@ int main(void) {
         TIM2->SR &= 0xFFFE; // Clear Update Flag
         TIM2->CCR1 = 0x0009; // Logic 0
         
-    
-                
-        
-        
-        /*
-        // Apply change after a certain number of loops to slow the trahsition.
-        if (count == 20){
-            TIM2->CCR1 = TIM2->CCR1 + change; // Apply change
-            count = 0; // Reset loop counter
-        }else{
-            count = count + 1; // Increment count
-        }
-        */
     }
 }
-/*
-void TIM2_IRQHandler(void){
-    // Timer 2 Interrupt Handler
-    TIM2->SR &= 0xFFFE;         // Clear UIE Flag (Update Interrupt Enable)
-    GPIOA->ODR ^= 0x00000001;   // Toggle PA0
-}
-*/
-/*
-void Timebase_Setup(){
-    // Setup a Timebase using a Timer and Interrupts
-    
-    // Timer will count to the reset value at the programmed frequency.
-    // When the count is reached it sets the Update Interrupt Flag for the Timer
-    // TIM2_IRQHandler will in this case clear the interrupt flag and toggle PA0
-    
-    // Using Timer 2 (PA0)
-    
-    // Enable Clocks - Port A, Alternate Function
-    RCC->APB2ENR |= 0x00000005;
-    
-    // Enable Timer 2
-    RCC->APB1ENR |= 0x00000001;
-    
-    // Configure PA0 as GPIO Push-Pull Output, 50MHz
-    GPIOA->CRL &= 0xFFFFFFF0; // Clear Bits for PA0. Preserve Rest
-    GPIOA->CRL |= 0x00000003; // Setup PA0
-        
-    // Timer_Period (Hz) = Timer_Clock / ((Prescaler + 1)(AutoReloadReg + 1)) 
-    // Timer_Clock = 72MHz
-    // If Prescaler = 575, AutoReloadReg = 62499
-    // Then Timer_Period = 2Hz (500ms)
-        
-    // Setup Timer2 Auto Reload Value
-    TIM2->ARR = 0xF423; // 62499
-    
-    // Setup Timer2 Presaler Value
-    TIM2->PSC = 0x023F; // 575
-    
-    // Enable Interrupt
-    NVIC_EnableIRQ(TIM2_IRQn); // IRQ 28
-    TIM2->DIER |= 0x0001; // Update Interrupt Enabled
-    TIM2->CR1 |=  0x0081; // Auto Preload Enable, Enable Timer Counter
-}
-*/
-void PC13_LED_Setup(){
-    // PortC GPIO Setup
-    // Enable I/O Clock for PortC
-    RCC->APB2ENR |= 0x00000010;
-
-    // Configure PC13
-    // - LED Indicator
-    // - General Purpose Output Push-Pull
-    // - Max Speed 50MHz
-    
-    GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
-    GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
-}
-
-/*void PWM_Setup(){
-    // Setup PWM using Timer2 (PA0, PA1)
-    
-    // Enable Clocks - Port A, Alternate Function
-    RCC->APB2ENR |= 0x00000005;
-    
-    // Enable Timer 2
-    RCC->APB1ENR |= 0x00000001;
-    
-    // Configure PA0, PA1 as AF Push-Pull Output Compare, 50MHz
-    // Note: Reset Value For GPIOA-> is 0x44444444. Be careful when setting up
-    // as incorrect function maybe selected.
-    GPIOA->CRL = 0x000000BB;
-    
-    // Values Based on some example code
-    // System Clock 72MHz
-    // Timer Period (1/50Hz) = 0.02seconds
-    // Let ARR (Reload Value) be 65536 (0xFFFF)
-    // Prescaler + 1 = 72000000 / ((ARR+1)*50)
-    // Prescaler = 21 (Approx)
-    
-    // Set Timer 2 Reload Value
-    TIM2->ARR = 0xFFFF; //65536
-    
-    // Set Timer2 Prescaler Value
-    TIM2->PSC = 0x0015; //21
-    
-    // Channel 1 & 2 - PWM Mode 2: 
-    // Ch in upcounting is inactive as long as TIM2_CNT < TIM2_CCR2 else active.
-    // Ch in downcounting is inactive as long as TIM2CNT>TIM2_CCR1 else active.
-    TIM2->CCMR1 = 0x7878;
-    // Alternatively
-    // Channel 1 & 2 - PWM Mode 1: 
-    // Ch in upcounting is active as long as 
-    // TIM2_CNT<TIM2_CCR1
-    // TIM2->CCMR1 = 0x6800;
-    
-    
-    //Enable Update Generation
-    TIM2->EGR |= 0x0001; // Reinitialise Counter & Update Registers
-    
-    // Channel 1 Enable, polarity active high
-    TIM2->CCER |= 0x0001; // 0x0020 for active low
-    
-    // Channel 2 Enabled, polarity active high
-    TIM2->CCER |= 0x0010; // 0x0020 for active low
-    
-    // Auto Preload Enable & Enable Timer Counter
-    TIM2->CR1 |= 0x0081;
-    
-}*/
 
 void PWM_Setup(){
     // Setup PWM using Timer2 (PA0, PA1)
@@ -270,6 +135,20 @@ void PWM_Setup(){
     TIM2->CR1 |= 0x0081;
     
 }
+void PC13_LED_Setup(){
+    // PortC GPIO Setup
+    // Enable I/O Clock for PortC
+    RCC->APB2ENR |= 0x00000010;
+
+    // Configure PC13
+    // - LED Indicator
+    // - General Purpose Output Push-Pull
+    // - Max Speed 50MHz
+    
+    GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
+    GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
+}
+
 void toggleLed(){
     // Toggle the LED attached to PC13
     if (flash == 0){
