@@ -30,6 +30,8 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
+// Array of values to be transferred by DMA to TIM2->CCR1
+uint16_t pwm_array[] = {0x000F, 0x0009};
 ////////////////////////////////////////////////////////////////////////////////
 // Main - Called by the startup code.
 int main(void) {
