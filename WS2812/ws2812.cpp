@@ -49,19 +49,9 @@ int main(void) {
     TIM2->CCR1 = 0x0000; 
     // Timer 2 Channel 2 Compare Value
     TIM2->CCR2 = 0x0009;        // 9 (Logic 0)
-    
-    
-    while(1){
-        //toggleLed();    // Toggle LED (PC13)  to indicate loop operational
 
-        while (!(TIM2->SR && 0x00001)){}
-        TIM2->SR &= 0xFFFE; // Clear Update Flag
-        TIM2->CCR1 = 0x000F; // Logic 1
-        
-        while (!(TIM2->SR && 0x0001)){}
-        TIM2->SR &= 0xFFFE; // Clear Update Flag
-        TIM2->CCR1 = 0x0009; // Logic 0
-        
+    while(1){
+        toggleLed();    // Toggle LED (PC13)  to indicate loop operational
     }
 }
 
