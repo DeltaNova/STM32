@@ -32,10 +32,7 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 // Array of values to be transferred by DMA to TIM2->CCR1
-//uint16_t pwm_array[] = {0x000F, 0x0009};
-
-
-uint16_t pwm_array[] = {
+uint8_t pwm_array[] = {
     0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // G = 63
     0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // R = 63
     0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // B = 63
@@ -103,12 +100,12 @@ void DMA_Setup(){
     //DMA-CCR5 |= 0x00000000; 
     
     // Configure additional channel features
-    //  Memory Size 16 bits
+    //  Memory Size 8 bits
     //  Peripheral Size 16 bits
     //  Memory Increment Mode Enabled
     //  Circular Mode Enabled
     //  Direction: Read From Memory
-    DMA1_Channel5->CCR |= 0x000005B2;
+    DMA1_Channel5->CCR |= 0x000001B2;
     
     // Activate Channel
     DMA1_Channel5->CCR |= 0x00000001;
