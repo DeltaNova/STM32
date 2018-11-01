@@ -13,6 +13,7 @@
 // Function Declarations
 extern "C" void SysTick_Handler(void);
 //extern "C" void TIM2_IRQHandler(void);
+extern "C" void DMA1_Channel5_IRQHandler(void);
 void SysTick_Init(void);
 void delay_ms(uint32_t ms);
 void toggleLed();
@@ -107,8 +108,24 @@ void DMA_Setup(){
     //  Direction: Read From Memory
     DMA1_Channel5->CCR |= 0x000001B2;
     
+    NVIC_ClearPendingIRQ(DMA1_Channel5_IRQn);    // Clear Pending Status
+    NVIC_EnableIRQ(DMA1_Channel5_IRQn);          // Enable Interrupt
+        
     // Activate Channel
     DMA1_Channel5->CCR |= 0x00000001;
+    
+}
+void DMA1_Channel5_IRQHandler(void){
+
+    // If Channel 5 Transfer Complete, Disable Timer 2 and DMA 1 Channel 5
+    if (DMA1->ISR & 0x00020000){ 
+        // Disable Timer 2
+        TIM2->CR1 &= ~0x0001; // Clear Enable Bit
+        // Disable DMA1 Channel 5
+        DMA1_Channel5->CCR &= ~0x00000001; // Clear Enable Bit 
+        // Failing to 
+        DMA1->IFCR = 0x00020000; // Reset Transfer Complete Flag
+    }
     
 }
 
