@@ -12,7 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void SysTick_Handler(void);
-extern "C" void TIM2_IRQHandler(void);
+//extern "C" void TIM2_IRQHandler(void);
 void SysTick_Init(void);
 void delay_ms(uint32_t ms);
 void toggleLed();
@@ -31,6 +31,7 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
+
 // Array of values to be transferred by DMA to TIM2->CCR1
 uint8_t pwm_array[] = {
     0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // G = 63
@@ -53,11 +54,10 @@ uint8_t pwm_array[] = {
 // Main - Called by the startup code.
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
-    //SysTick_Init();     // Enable SysTick
+    SysTick_Init();     // Enable SysTick
     PC13_LED_Setup();   // Setup PC13 for output LED
     DMA_Setup();
     PWM_Setup();
-
 
     // The counter will count to the reload value where upon it will toggle the
     // output state of each channel back to its reset value. 
@@ -174,7 +174,6 @@ void PWM_Setup(){
     TIM2->CR2 |= 0x0004; // DMA Requests Sent when update event occurs.
     
     TIM2->DIER |= 0x0300; // Update DMA Request Enable, Ch 1 DMA Request Enable
-    
     
     // Auto Preload Enable & Enable Timer Counter
     TIM2->CR1 |= 0x0081;
