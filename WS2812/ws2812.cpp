@@ -29,6 +29,13 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 //Buffer serial_tx;
 //Buffer rx_buffer;
 ////////////////////////////////////////////////////////////////////////////////
+// RGB Colour Definitions - Reduced Brightness
+uint8_t RED[]   = {63,0,0};
+uint8_t GREEN[] = {0,63,0};
+uint8_t BLUE[]  = {0,0,63};
+uint8_t WHITE[] = {63,63,63};
+uint8_t OFF[]   = {0,0,0};
+////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
@@ -76,6 +83,27 @@ int main(void) {
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
     }
 }
+    
+void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
+    // Load a colour into an array. An offset is provided to enable
+    // multiple colours to be loaded into the same array.
+    uint8_t i;
+    // colour is an RGB Array
+    // colour[0] = RED Component
+    // colour[1] = GREEN Component
+    // colour[2] = BLUE Component
+    // Order for output array is GRB
+    for(i=0; i<8; i++){ // Load GREEN Component
+        array[i+offset] = ((colour[1]<<i) & 0x80) ? 0x0F:0x09;
+    }
+    for(i=0; i<8; i++){ // Load RED Component (Offset by 8 bits from GREEN)
+        array[i+offset+8] = ((colour[0]<<i) & 0x80) ? 0x0F:0x09;
+    }
+    for(i=0; i<8; i++){ // Load BLUE Component (Offset by 16 bits from GREEN)
+        array[i+offset+16] = ((colour[2]<<i) & 0x80) ? 0x0F:0x09;
+    }
+   
+}    
 
 void DMA_Setup(){
     // DMA Setup - DMA1 Channel 5 for use with TIM2 Channel 1
