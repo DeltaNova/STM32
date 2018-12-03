@@ -60,6 +60,10 @@ volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 volatile uint32_t colour_change = 6001; // Used LED Colour Change Interval
 uint8_t colour_rotation = 0;         // Used in loading colour sequence.
 
+static uint8_t currentLED = 0;      // Tracks LED write progress
+// Points to the colour sequence being sent. Used to allow DMA_ISR to load
+// data into buffer.
+static uint8_t (*LEDSequence)[3];
 /*         
 // Array of values to be transferred by DMA to TIM2->CCR1
 uint8_t pwm_array[] = {
@@ -231,17 +235,43 @@ void DMA_Setup(){
     
 }
 void DMA1_Channel5_IRQHandler(void){
-
-    // If Channel 5 Transfer Complete, Disable Timer 2 and DMA 1 Channel 5
-    if (DMA1->ISR & 0x00020000){ 
+    uint8_t *DMA_Buffer;
+    uint8_t offset = 0;                     // DMA Buffer positon
+    
+    if (DMA1->ISR & 0x00040000){            // If Channel 5 HT Flag Set
         // Disable Timer 2
-        TIM2->CR1 &= ~0x0001; // Clear Enable Bit
+        TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
         // Disable DMA1 Channel 5
-        DMA1_Channel5->CCR &= ~0x00000001; // Clear Enable Bit 
-        // Failing to 
-        DMA1->IFCR = 0x00020000; // Reset Transfer Complete Flag
+        DMA1_Channel5->CCR &= ~0x00000001;  // Clear Enable Bit 
+        DMA1->IFCR = 0x00040000;            // Clear HT Flag
     }
     
+    if (DMA1->ISR & 0x00020000){            // If Channel 5 TC Flag Set
+        // Disable Timer 2
+        TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
+        // Disable DMA1 Channel 5
+        DMA1_Channel5->CCR &= ~0x00000001;  // Clear Enable Bit 
+        DMA1->IFCR = 0x00020000;            // Clear TC Flag
+        offset = BYTES_PER_LED;             // Start of the 2nd half of buffer.        
+    }
+    
+    // Load the next LED or Reset into buffer.
+    if (currentLED < LED_COUNT){
+        // Load the colour data into the DMA Buffer (at applied offset).
+        loadColour(LEDSequence[currentLED], DMA_Buffer, offset);
+    }else{
+        loadReset(DMA_Buffer,offset);       // Load RESET Bytes
+    }
+    
+    currentLED++;                           // Next LED
+    
+    // If two RESET
+    if (currentLED >= (LED_COUNT + 2)){
+        // Disable Timer
+        TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
+        // Disable DMA
+        DMA1_Channel5->CCR &= ~0x00000001;   // Clear Enable Bit
+    }
 }
 
 void PWM_Setup(){
