@@ -31,18 +31,26 @@ void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
 //Buffer serial_tx;
 //Buffer rx_buffer;
 ////////////////////////////////////////////////////////////////////////////////
-// RGB Colour Definitions - Reduced Brightness
-uint8_t RED[]   = {63,0,0};
-uint8_t GREEN[] = {0,63,0};
-uint8_t BLUE[]  = {0,0,63};
-uint8_t WHITE[] = {63,63,63};
-uint8_t OFF[]   = {0,0,0};
 // Defines
 // -------
 
 // LED Definitions
 #define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
 uint8_t LED_COUNT = 2;      // Number of LEDs in string.
+
+// RGB Colour Definitions - Reduced Brightness (Still very bright)
+//uint8_t RED[]   = {63,0,0};
+//uint8_t GREEN[] = {0,63,0};
+//uint8_t BLUE[]  = {0,0,63};
+//uint8_t WHITE[] = {63,63,63};
+//uint8_t OFF[]   = {0,0,0};
+
+#define RED     {63,0,0}
+#define GREEN   {0,63,0}
+#define BLUE    {0,0,63}
+#define WHITE   {63,63,63}
+#define OFF     {0,0,0}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
