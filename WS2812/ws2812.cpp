@@ -36,7 +36,7 @@ void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
 
 // LED Definitions
 #define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
-uint8_t LED_COUNT = 2;      // Number of LEDs in string.
+uint8_t LED_COUNT = 5;      // Number of LEDs in string.
 
 // RGB Colour Definitions - Reduced Brightness (Still very bright)
 //uint8_t RED[]   = {63,0,0};
@@ -118,10 +118,11 @@ int main(void) {
         
         // Triggers Every 6 Seconds
         //changeColour(); // Change the colours of the WS2812B LEDS
-        writeLED(colour0, 2, DMA_Buffer);
+        writeLED(colour0, 5, DMA_Buffer);
         delay_ms(1000);
-        writeLED(colour1, 2, DMA_Buffer);
+        writeLED(colour1, 5, DMA_Buffer);
         delay_ms(1000);
+
     }
 }
     
@@ -241,18 +242,10 @@ void DMA1_Channel5_IRQHandler(void){
     uint8_t offset = 0;                     // DMA Buffer positon
     
     if (DMA1->ISR & 0x00040000){            // If Channel 5 HT Flag Set
-        // Disable Timer 2
-        //TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
-        // Disable DMA1 Channel 5
-        //DMA1_Channel5->CCR &= ~0x00000001;  // Clear Enable Bit 
         DMA1->IFCR = 0x00040000;            // Clear HT Flag
     }
     
     if (DMA1->ISR & 0x00020000){            // If Channel 5 TC Flag Set
-        // Disable Timer 2
-        //TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
-        // Disable DMA1 Channel 5
-        //DMA1_Channel5->CCR &= ~0x00000001;  // Clear Enable Bit 
         DMA1->IFCR = 0x00020000;            // Clear TC Flag
         offset = BYTES_PER_LED;             // Start of the 2nd half of buffer.        
     }
