@@ -242,21 +242,22 @@ void DMA1_Channel5_IRQHandler(void){
     
     if (DMA1->ISR & 0x00040000){            // If Channel 5 HT Flag Set
         // Disable Timer 2
-        TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
+        //TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
         // Disable DMA1 Channel 5
-        DMA1_Channel5->CCR &= ~0x00000001;  // Clear Enable Bit 
+        //DMA1_Channel5->CCR &= ~0x00000001;  // Clear Enable Bit 
         DMA1->IFCR = 0x00040000;            // Clear HT Flag
     }
     
     if (DMA1->ISR & 0x00020000){            // If Channel 5 TC Flag Set
         // Disable Timer 2
-        TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
+        //TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
         // Disable DMA1 Channel 5
-        DMA1_Channel5->CCR &= ~0x00000001;  // Clear Enable Bit 
+        //DMA1_Channel5->CCR &= ~0x00000001;  // Clear Enable Bit 
         DMA1->IFCR = 0x00020000;            // Clear TC Flag
         offset = BYTES_PER_LED;             // Start of the 2nd half of buffer.        
     }
     
+   
     // Load the next LED or Reset into buffer.
     if (currentLED < LED_COUNT){
         // Load the colour data into the DMA Buffer (at applied offset).
@@ -264,7 +265,7 @@ void DMA1_Channel5_IRQHandler(void){
     }else{
         loadReset(DMA_Buffer,offset);       // Load RESET Bytes
     }
-    
+   
     currentLED++;                           // Next LED
     
     // If two RESET
