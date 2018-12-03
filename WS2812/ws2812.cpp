@@ -225,7 +225,9 @@ void DMA_Setup(){
     //  Memory Increment Mode Enabled
     //  Circular Mode Enabled
     //  Direction: Read From Memory
-    DMA1_Channel5->CCR |= 0x000001B2;
+    //  HT Interrupt: Enabled
+    //  TC Interrupt: Enabled
+    DMA1_Channel5->CCR |= 0x000001B6;
     
     NVIC_ClearPendingIRQ(DMA1_Channel5_IRQn);    // Clear Pending Status
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);          // Enable Interrupt
