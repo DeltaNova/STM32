@@ -23,6 +23,7 @@ void DMA_Setup();
 void Timebase_Setup(); // Timebase from Timer using interrupts
 void PC13_LED_Setup(); // Setup PC13 for output LED
 void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
+void loadReset(uint8_t *array, uint8_t offset);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -190,8 +191,10 @@ void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
         loadReset(buffer,BYTES_PER_LED);
     }
     
+    currentLED++; // Next LED
+    
     // CNDTR is size of buffer to transfer NOT the size of the data to transfer.
-    DMA1_Channel5->CNDTR = sizeof(buffer);  // Set Buffer Size
+    DMA1_Channel5->CNDTR = (2*BYTES_PER_LED);  // Set Buffer Size
     DMA1_Channel5->CCR |= 0x00000001;           // Enable DMA
     TIM2->CR1 |= 0x0001;                        // Enable Timer
 }
@@ -238,7 +241,7 @@ void DMA_Setup(){
     
 }
 void DMA1_Channel5_IRQHandler(void){
-    uint8_t *DMA_Buffer;
+    //uint8_t *DMA_Buffer;
     uint8_t offset = 0;                     // DMA Buffer positon
     
     if (DMA1->ISR & 0x00040000){            // If Channel 5 HT Flag Set
