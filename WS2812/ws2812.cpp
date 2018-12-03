@@ -22,6 +22,7 @@ void PWM_Setup();      // Timer 2 PWM - Ch1 & Ch2
 void DMA_Setup();
 void Timebase_Setup(); // Timebase from Timer using interrupts
 void PC13_LED_Setup(); // Setup PC13 for output LED
+void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -135,6 +136,46 @@ void loadReset(uint8_t *array, uint8_t offset){
         array[i+offset] = 0x00;    
     }    
 }    
+
+void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
+    /*
+    // Setup the transfer of colour informaation to the LEDS.
+    // This function loads the initial information into the array buffer and
+    // tracks the progress using the global currentLED variable.
+    // The transfer is started. The data that initially isn't within the
+    // buffer is loaded later when the DMA HT/TC interrups trigger.
+    */
+    // Store the sequence being sent so it can be referenced by the ISR.
+    LEDSequence = colour; 
+    
+    if (length <1){
+        // No data to send. Return without doing anything else.
+        return; 
+    }
+    
+    currentLED = 0; // Reset Global variable
+    
+    if (currentLED < length){
+        // Load the colour data into the DMA Buffer (1st Half)
+        loadColour(LEDSequence[currentLED], buffer, 0);
+    }else{
+        loadReset(buffer,0);
+    }
+    
+    currentLED++; // Next LED
+    
+    if (currentLED < length){
+        // Load the colour data into the DMA Buffer (2nd Half)
+        loadColour(LEDSequence[currentLED], buffer, BYTES_PER_LED);
+    }else{
+        loadReset(buffer,BYTES_PER_LED);
+    }
+    
+    // CNDTR is size of buffer to transfer NOT the size of the data to transfer.
+    DMA1_Channel5->CNDTR = sizeof(buffer);  // Set Buffer Size
+    DMA1_Channel5->CCR |= 0x00000001;           // Enable DMA
+    TIM2->CR1 |= 0x0001;                        // Enable Timer
+}
 
 void DMA_Setup(){
     // DMA Setup - DMA1 Channel 5 for use with TIM2 Channel 1
