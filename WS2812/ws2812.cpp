@@ -227,7 +227,7 @@ void DMA_Setup(){
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);          // Enable Interrupt
         
     // Activate Channel
-    DMA1_Channel5->CCR |= 0x00000001;
+    //DMA1_Channel5->CCR |= 0x00000001;
     
 }
 void DMA1_Channel5_IRQHandler(void){
@@ -308,7 +308,8 @@ void PWM_Setup(){
     TIM2->DIER |= 0x0300; // Update DMA Request Enable, Ch 1 DMA Request Enable
     
     // Auto Preload Enable & Enable Timer Counter
-    TIM2->CR1 |= 0x0081;
+    //TIM2->CR1 |= 0x0081;
+    TIM2->CR1 |= 0x0080; // Preload Enabled, counter disabled
     
 }
 void PC13_LED_Setup(){
