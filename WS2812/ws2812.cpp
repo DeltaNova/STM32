@@ -36,6 +36,12 @@ uint8_t GREEN[] = {0,63,0};
 uint8_t BLUE[]  = {0,0,63};
 uint8_t WHITE[] = {63,63,63};
 uint8_t OFF[]   = {0,0,0};
+// Defines
+// -------
+
+// LED Definitions
+#define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
+uint8_t LED_COUNT = 2;      // Number of LEDs in string.
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
@@ -43,6 +49,7 @@ volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 volatile uint32_t colour_change = 6001; // Used LED Colour Change Interval
 uint8_t colour_rotation = 0;         // Used in loading colour sequence.
 
+/*         
 // Array of values to be transferred by DMA to TIM2->CCR1
 uint8_t pwm_array[] = {
     0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // G = 63
@@ -62,6 +69,13 @@ uint8_t pwm_array[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
        
 };
+*/
+// The DMA Buffer needs to be able to hold the data for 2 LEDs. When the data
+// for one LED is sent the DMA HT (Half Transfer) Flag is set. After the data 
+// for the next LED is send the DMA TC (Transfer Complete) Flag is set. 
+// The DMA transfer is setup for cicular mode and will then wrap around to the
+// start.
+uint8_t DMA_Buffer[2*BYTES_PER_LED] = {};
 ////////////////////////////////////////////////////////////////////////////////
 // Main - Called by the startup code.
 int main(void) {
@@ -132,14 +146,15 @@ void DMA_Setup(){
     DMA1_Channel5->CPAR = (uint32_t)(&(TIM2->CCR1));
     
     // Load the memory address data will be read from
-    DMA1_Channel5->CMAR = (uint32_t)pwm_array;
+    //DMA1_Channel5->CMAR = (uint32_t)pwm_array;
+    DMA1_Channel5->CMAR = (uint32_t)DMA_Buffer;
     
     // Load the number of data transfers.
     // Circular mode will be used to loop over the two values in the array
     // so only to values need to be transferred before everyting resets.
     //DMA1_Channel5->CNDTR = 2;
     
-    DMA1_Channel5->CNDTR = 96; // 24bits (GRB) + 24bits(GRB) + 48bits (Reset)
+    //DMA1_Channel5->CNDTR = 96; // 24bits (GRB) + 24bits(GRB) + 48bits (Reset)
     
     // Configure Channel Priority
     // Leaving at default 'Low' priority
