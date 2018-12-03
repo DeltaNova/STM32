@@ -51,6 +51,8 @@ uint8_t LED_COUNT = 2;      // Number of LEDs in string.
 #define WHITE   {63,63,63}
 #define OFF     {0,0,0}
 
+static uint8_t colour0[][3] = {RED, GREEN, OFF, WHITE, BLUE}; // Length 5
+static uint8_t colour1[][3] = {RED, RED, WHITE, BLUE, BLUE}; // Length 5
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
@@ -112,6 +114,10 @@ int main(void) {
         
         // Triggers Every 6 Seconds
         //changeColour(); // Change the colours of the WS2812B LEDS
+        writeLED(colour0, 2, DMA_Buffer);
+        delay_ms(1000);
+        writeLED(colour1, 2, DMA_Buffer);
+        delay_ms(1000);
     }
 }
     
