@@ -96,13 +96,13 @@ int main(void) {
     TIM2->CCR1 = 0x0000; 
     // Timer 2 Channel 2 Compare Value
     TIM2->CCR2 = 0x0009;        // 9 (Logic 0)
-
+    //delay_ms(2000);
     while(1){
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
         
         // Triggers Every 6 Seconds
-        changeColour(); // Change the colours of the WS2812B LEDS
+        //changeColour(); // Change the colours of the WS2812B LEDS
     }
 }
     
@@ -269,7 +269,7 @@ void PC13_LED_Setup(){
     GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
     GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
 }
-
+/*
 void changeColour(){
     if (colour_change == 0){
         // Change the colours of the LEDS
@@ -312,6 +312,7 @@ void changeColour(){
         colour_change = 6001; // 6 Seconds based on 1ms SysTick
     }
 }
+*/
 void toggleLed(){
     // Toggle the LED attached to PC13
     if (flash == 0){
@@ -356,9 +357,9 @@ void SysTick_Handler(void){
         --flash;
     }
     
-    if (colour_change !=0){ // Decrement the Colour Change Counter
-        --colour_change;
-    }
+    //if (colour_change !=0){ // Decrement the Colour Change Counter
+    //    --colour_change;
+    //}
 }
 
 void delay_ms(uint32_t ms){
