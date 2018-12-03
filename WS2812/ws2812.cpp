@@ -112,6 +112,14 @@ void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
         array[i+offset+16] = ((colour[2]<<i) & 0x80) ? 0x0F:0x09;
     }
    
+}
+
+void loadReset(uint8_t *array, uint8_t offset){
+    // Load zeros into buffer to generate PWM reset period.
+    uint8_t i;
+    for (i=0; i<BYTES_PER_LED; i++){
+        array[i+offset] = 0x00;    
+    }    
 }    
 
 void DMA_Setup(){
