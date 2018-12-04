@@ -40,18 +40,11 @@ void loadReset(uint8_t *array, uint8_t offset);
 uint8_t LED_COUNT = 5;      // Number of LEDs in string.
 
 // RGB Colour Definitions - Reduced Brightness (Still very bright)
-//uint8_t RED[]   = {63,0,0};
-//uint8_t GREEN[] = {0,63,0};
-//uint8_t BLUE[]  = {0,0,63};
-//uint8_t WHITE[] = {63,63,63};
-//uint8_t OFF[]   = {0,0,0};
-
 #define RED     {63,0,0}
 #define GREEN   {0,63,0}
 #define BLUE    {0,0,63}
 #define WHITE   {63,63,63}
 #define OFF     {0,0,0}
-
 static uint8_t colour0[][3] = {RED, GREEN, OFF, WHITE, BLUE}; // Length 5
 static uint8_t colour1[][3] = {RED, RED, WHITE, BLUE, BLUE}; // Length 5
 ////////////////////////////////////////////////////////////////////////////////
