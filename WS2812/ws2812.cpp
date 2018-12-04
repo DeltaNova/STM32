@@ -139,13 +139,21 @@ void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
     // The transfer is started. The data that initially isn't within the
     // buffer is loaded later when the DMA HT/TC interrups trigger.
     */
-    // Store the sequence being sent so it can be referenced by the ISR.
-    LEDSequence = colour; 
+    
     
     if (length <1){
         // No data to send. Return without doing anything else.
         return; 
     }
+    
+    // Check for exisiting write (Timer and DMA Enabled).
+    // Continue when previous write has finished.
+    while((TIM2->CR1 & 0x0001) && (DMA1_Channel5->CCR & 0x00000001)){
+        // Wait until previous write has finished
+    }
+    
+    // Store the sequence being sent so it can be referenced by the ISR.
+    LEDSequence = colour; 
     
     currentLED = 0; // Reset Global variable
     
