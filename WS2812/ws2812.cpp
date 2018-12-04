@@ -65,27 +65,7 @@ static uint8_t currentLED = 0;      // Tracks LED write progress
 // Points to the colour sequence being sent. Used to allow DMA_ISR to load
 // data into buffer.
 static uint8_t (*LEDSequence)[3];
-/*         
-// Array of values to be transferred by DMA to TIM2->CCR1
-uint8_t pwm_array[] = {
-    0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // G = 63
-    0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // R = 63
-    0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // B = 63
 
-    0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, // G = 0
-    0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // R = 63
-    0x09, 0x09, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, // B = 63
-    
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 48 no pwm cycles
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Reset 60uS 
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-       
-};
-*/
 // The DMA Buffer needs to be able to hold the data for 2 LEDs. When the data
 // for one LED is sent the DMA HT (Half Transfer) Flag is set. After the data 
 // for the next LED is send the DMA TC (Transfer Complete) Flag is set. 
@@ -129,14 +109,15 @@ int main(void) {
     
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
     // Load a colour into an array. An offset is provided to enable
-    // multiple colours to be loaded into the same array.
+    // multiple colours to be loaded into the same array at differnt points.
     uint8_t i;
+    /*
     // colour is an RGB Array
     // colour[0] = RED Component
     // colour[1] = GREEN Component
     // colour[2] = BLUE Component
     // Order for output array is GRB
-    
+    */
     for(i=0; i<8; i++){ // Load GREEN Component
         array[i+offset] = ((colour[1]<<i) & 0x80) ? 0x0F:0x09;
     }
@@ -217,8 +198,6 @@ void DMA_Setup(){
     // so only to values need to be transferred before everyting resets.
     //DMA1_Channel5->CNDTR = 2;
     
-    //DMA1_Channel5->CNDTR = 96; // 24bits (GRB) + 24bits(GRB) + 48bits (Reset)
-    
     // Configure Channel Priority
     // Leaving at default 'Low' priority
     //DMA-CCR5 |= 0x00000000; 
@@ -241,7 +220,7 @@ void DMA_Setup(){
     
 }
 void DMA1_Channel5_IRQHandler(void){
-    //uint8_t *DMA_Buffer;
+
     uint8_t offset = 0;                     // DMA Buffer positon
     
     if (DMA1->ISR & 0x00040000){            // If Channel 5 HT Flag Set
@@ -253,7 +232,6 @@ void DMA1_Channel5_IRQHandler(void){
         offset = BYTES_PER_LED;             // Start of the 2nd half of buffer.        
     }
     
-   
     // Load the next LED or Reset into buffer.
     if (currentLED < LED_COUNT){
         // Load the colour data into the DMA Buffer (at applied offset).
@@ -264,7 +242,8 @@ void DMA1_Channel5_IRQHandler(void){
    
     currentLED++;                           // Next LED
     
-    // If two RESET
+    // If two Reset cycles have been sent to finish the transfer sequence
+    // disable the Timer and DMA.
     if (currentLED >= (LED_COUNT + 2)){
         // Disable Timer
         TIM2->CR1 &= ~0x0001;               // Clear Enable Bit
