@@ -102,10 +102,21 @@ int main(void) {
         
         // Triggers Every 6 Seconds
         //changeColour(); // Change the colours of the WS2812B LEDS
-        writeLED(colour0, 5, DMA_Buffer);
-        delay_ms(1000);
-        writeLED(colour1, 5, DMA_Buffer);
-        delay_ms(1000);
+        
+        
+        // Green with single reg strobe. Delay added to slow update rate
+        writeLED(colour3, 5, DMA_Buffer);
+        delay_ms(75);
+        writeLED(colour4, 5, DMA_Buffer);
+        delay_ms(75);
+        writeLED(colour5, 5, DMA_Buffer);
+        delay_ms(75);
+        writeLED(colour6, 5, DMA_Buffer);
+        delay_ms(75);
+        writeLED(colour7, 5, DMA_Buffer);
+        delay_ms(75);
+        writeLED(colour8, 5, DMA_Buffer);
+        delay_ms(75);
 
     }
 }
