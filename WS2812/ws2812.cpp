@@ -45,13 +45,23 @@ uint8_t LED_COUNT = 5;      // Number of LEDs in string.
 #define BLUE    {0,0,63}
 #define WHITE   {63,63,63}
 #define OFF     {0,0,0}
+#define BRIGHTWHITE {255,255,255}
 static uint8_t colour0[][3] = {RED, GREEN, OFF, WHITE, BLUE}; // Length 5
 static uint8_t colour1[][3] = {RED, RED, WHITE, BLUE, BLUE}; // Length 5
+static uint8_t colour2[][3] = {BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE,BRIGHTWHITE}; // Length 5
+
+static uint8_t colour3[][3] = {GREEN, GREEN, GREEN, GREEN, GREEN};
+static uint8_t colour4[][3] = {RED, GREEN, GREEN, GREEN, GREEN};
+static uint8_t colour5[][3] = {GREEN, RED, GREEN, GREEN, GREEN};
+static uint8_t colour6[][3] = {GREEN, GREEN, RED, GREEN, GREEN};
+static uint8_t colour7[][3] = {GREEN, GREEN, GREEN, RED, GREEN};
+static uint8_t colour8[][3] = {GREEN, GREEN, GREEN, GREEN, RED};
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 volatile uint32_t colour_change = 6001; // Used LED Colour Change Interval
+
 uint8_t colour_rotation = 0;         // Used in loading colour sequence.
 
 static uint8_t currentLED = 0;      // Tracks LED write progress
