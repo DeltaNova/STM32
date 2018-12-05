@@ -28,6 +28,8 @@ void Timebase_Setup(); // Timebase from Timer using interrupts
 void PC13_LED_Setup(); // Setup PC13 for output LED
 void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
 void loadReset(uint8_t *array, uint8_t offset);
+void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
+void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -43,12 +45,18 @@ void loadReset(uint8_t *array, uint8_t offset);
 uint8_t LED_COUNT = 5;      // Number of LEDs in string.
 
 // RGB Colour Definitions - Reduced Brightness (Still very bright)
+uint8_t RED2[] = {63,0,0};
+
 #define RED     {63,0,0}
 #define GREEN   {0,63,0}
 #define BLUE    {0,0,63}
 #define WHITE   {63,63,63}
+#define PINK    {255,20,147}
 #define OFF     {0,0,0}
 #define BRIGHTWHITE {255,255,255}
+
+static uint8_t pixels[NUM_LEDS][3]= {0};
+
 static uint8_t colour0[][3] = {RED, GREEN, OFF, WHITE, BLUE}; // Length 5
 static uint8_t colour1[][3] = {RED, RED, WHITE, BLUE, BLUE}; // Length 5
 static uint8_t colour2[][3] = {BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE,BRIGHTWHITE}; // Length 5
@@ -59,6 +67,7 @@ static uint8_t colour5[][3] = {GREEN, RED, GREEN, GREEN, GREEN};
 static uint8_t colour6[][3] = {GREEN, GREEN, RED, GREEN, GREEN};
 static uint8_t colour7[][3] = {GREEN, GREEN, GREEN, RED, GREEN};
 static uint8_t colour8[][3] = {GREEN, GREEN, GREEN, GREEN, RED};
+static uint8_t colour9[][3] = {PINK, PINK, PINK, PINK, PINK};
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
@@ -120,7 +129,15 @@ int main(void) {
         delay_ms(75);
         writeLED(colour8, 5, DMA_Buffer);
         delay_ms(75);
-
+        writeLED(colour9, 5, DMA_Buffer);
+        delay_ms(1000);
+        
+        setPixel(RED2,0,pixels);
+        setPixelRGB(0,0,63,1,pixels);
+        setPixelRGB(255,20,147,2,pixels);
+        writeLED(pixels,5, DMA_Buffer);
+        delay_ms(1000);
+        
     }
 }
     
@@ -205,6 +222,25 @@ void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
     TIM2->CR1 |= 0x0001;                        // Enable Timer
 }
 
+void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]){
+    // pixel is the LED position in the string
+    // colour is an array of R,G,B values
+    // array is the array which holds the data for all the pixels in the string.
+    array[pixel][0] = colour[0];
+    array[pixel][1] = colour[1];
+    array[pixel][2] = colour[2];
+    }
+
+void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]){
+    // pixel is the LED position in the string
+    // R,G,B are individual colour values.
+    // array is the array which holds the data for all the pixels in the string.
+    array[pixel][0] = R;
+    array[pixel][1] = G;
+    array[pixel][2] = B;
+    }
+
+
 void DMA_Setup(){
     // DMA Setup - DMA1 Channel 5 for use with TIM2 Channel 1
     RCC->AHBENR |= 0x00000001; // Enable DMA 1 Clock
@@ -276,7 +312,6 @@ void DMA1_Channel5_IRQHandler(void){
         DMA1_Channel5->CCR &= ~0x00000001;   // Clear Enable Bit
     }
 }
-
 void PWM_Setup(){
     // Setup PWM using Timer2 (PA0, PA1)
     
