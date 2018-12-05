@@ -9,6 +9,10 @@
 #include "delay.h"              // Simple Delay Function
 #include "stm32f103xb.h"        // HW Specific Header
 
+
+// LED Definitions
+#define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
+#define NUM_LEDS 5
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void SysTick_Handler(void);
@@ -35,8 +39,7 @@ void loadReset(uint8_t *array, uint8_t offset);
 // Defines
 // -------
 
-// LED Definitions
-#define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
+
 uint8_t LED_COUNT = 5;      // Number of LEDs in string.
 
 // RGB Colour Definitions - Reduced Brightness (Still very bright)
