@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <stdint.h>             // Enable fixed width integers
 #include <stdio.h>              // Newlib-nano
+#include <stdlib.h>             // rand()
 #include "buffer_class.h"       // Circular Buffer Class
 #include "clock.h"              // Setup system and peripheral clocks
 #include "delay.h"              // Simple Delay Function
@@ -32,6 +33,9 @@ void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
 void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]);
+// Effects
+void RGBLoop(uint8_t (&array)[NUM_LEDS][3]);
+void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -117,7 +121,7 @@ int main(void) {
         // Triggers Every 6 Seconds
         //changeColour(); // Change the colours of the WS2812B LEDS
         
-        
+        /*
         // Green with single reg strobe. Delay added to slow update rate
         writeLED(colour3, 5, DMA_Buffer);
         delay_ms(75);
@@ -133,15 +137,72 @@ int main(void) {
         delay_ms(75);
         writeLED(colour9, 5, DMA_Buffer);
         delay_ms(1000);
-        
+        setAllRGB(0,0,0,pixels);
         setPixel(RED2,0,pixels);
         setPixelRGB(0,0,63,1,pixels);
         setPixelRGB(255,20,147,2,pixels);
         writeLED(pixels,5, DMA_Buffer);
         delay_ms(1000);
+        setAllRGB(138,43,226, pixels);
+        writeLED(pixels,5, DMA_Buffer);
+        delay_ms(1000);
+        setAll(RED2, pixels);
+        writeLED(pixels,5, DMA_Buffer);
+        delay_ms(1000);
         
+        RGBLoop(pixels);
+        */
+        Sparkle(63,0,0,pixels,3);
     }
 }
+
+
+
+
+void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
+  for(int j = 0; j < 3; j++ ) { 
+    // Fade IN
+    for(int k = 0; k < 256; k++) { 
+      switch(j) { 
+        case 0: setAllRGB(k,0,0,array); break;
+        case 1: setAllRGB(0,k,0,array); break;
+        case 2: setAllRGB(0,0,k,array); break;
+      }
+
+      writeLED(array,NUM_LEDS,DMA_Buffer);
+      delay_ms(3);
+    }
+
+    // Fade OUT
+    for(int k = 255; k >= 0; k--) { 
+      switch(j) { 
+        case 0: setAllRGB(k,0,0,array); break;
+        case 1: setAllRGB(0,k,0,array); break;
+        case 2: setAllRGB(0,0,k,array); break;
+      }
+      writeLED(array,NUM_LEDS,DMA_Buffer);
+      delay_ms(3);
+    }
+  }
+}
+
+
+void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay) {
+
+  uint8_t Pixel = rand() % NUM_LEDS;
+
+  setPixelRGB(R,G,B,Pixel,array);
+
+  writeLED(array,NUM_LEDS,DMA_Buffer);
+
+  delay(SpeedDelay);
+
+  
+  setPixelRGB(0,0,0,Pixel,array);
+
+}
+
+
     
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
     // Load a colour into an array. An offset is provided to enable
