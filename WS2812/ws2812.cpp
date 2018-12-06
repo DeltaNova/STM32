@@ -30,6 +30,8 @@ void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
 void loadReset(uint8_t *array, uint8_t offset);
 void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
+void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
+void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -239,6 +241,26 @@ void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array
     array[pixel][1] = G;
     array[pixel][2] = B;
     }
+
+void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]){
+    // R,G,B are individual colour values.
+    // array is the array which holds the data for all the pixels in the string.
+    for (uint8_t i = 0; i < NUM_LEDS; i++){
+            array[i][0] = colour[0];
+            array[i][1] = colour[1];
+            array[i][2] = colour[2];   
+    }
+}
+
+void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]){
+    // R,G,B are individual colour values.
+    // array is the array which holds the data for all the pixels in the string.
+    for (uint8_t i = 0; i < NUM_LEDS; i++){
+            array[i][0] = R;
+            array[i][1] = G;
+            array[i][2] = B;   
+    }
+}
 
 
 void DMA_Setup(){
