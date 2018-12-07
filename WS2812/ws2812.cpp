@@ -13,7 +13,7 @@
 
 // LED Definitions
 #define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
-#define NUM_LEDS 5
+#define NUM_LEDS 60
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void SysTick_Handler(void);
@@ -33,9 +33,12 @@ void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
 void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]);
+int getRandomNumber(int min, int max);
 // Effects
 void RGBLoop(uint8_t (&array)[NUM_LEDS][3]);
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
+void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
+void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint8_t FlashDelay, uint8_t EndPause);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -48,7 +51,7 @@ void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uin
 // -------
 
 
-uint8_t LED_COUNT = 5;      // Number of LEDs in string.
+uint8_t LED_COUNT = NUM_LEDS;      // Number of LEDs in string.
 
 // RGB Colour Definitions - Reduced Brightness (Still very bright)
 uint8_t RED2[] = {63,0,0};
@@ -121,43 +124,95 @@ int main(void) {
         // Triggers Every 6 Seconds
         //changeColour(); // Change the colours of the WS2812B LEDS
         
-        /*
+        /* Not Working as expected with more than 5 LEDS
         // Green with single reg strobe. Delay added to slow update rate
         writeLED(colour3, 5, DMA_Buffer);
-        delay_ms(75);
+        delay_ms(1000);
         writeLED(colour4, 5, DMA_Buffer);
-        delay_ms(75);
+        delay_ms(1000);
         writeLED(colour5, 5, DMA_Buffer);
-        delay_ms(75);
+        delay_ms(1000);
         writeLED(colour6, 5, DMA_Buffer);
-        delay_ms(75);
+        delay_ms(1000);
         writeLED(colour7, 5, DMA_Buffer);
-        delay_ms(75);
+        delay_ms(1000);
         writeLED(colour8, 5, DMA_Buffer);
-        delay_ms(75);
+        delay_ms(1000);
         writeLED(colour9, 5, DMA_Buffer);
         delay_ms(1000);
+        */
+        
+        /*
         setAllRGB(0,0,0,pixels);
+        
         setPixel(RED2,0,pixels);
         setPixelRGB(0,0,63,1,pixels);
         setPixelRGB(255,20,147,2,pixels);
-        writeLED(pixels,5, DMA_Buffer);
-        delay_ms(1000);
-        setAllRGB(138,43,226, pixels);
-        writeLED(pixels,5, DMA_Buffer);
-        delay_ms(1000);
-        setAll(RED2, pixels);
-        writeLED(pixels,5, DMA_Buffer);
+        writeLED(pixels,NUM_LEDS, DMA_Buffer);
         delay_ms(1000);
         
-        RGBLoop(pixels);
+        setAllRGB(138,43,226, pixels);
+        writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        delay_ms(1000);
+        
+        setAllRGB(255,255,255, pixels);
+        writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        delay_ms(1000);
+        
+        setAllRGB(250,20,147, pixels);
+        writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        delay_ms(4000);
+        
+        setAll(RED2, pixels);
+        writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        delay_ms(1000);
         */
-        Sparkle(63,0,0,pixels,3);
+        //RGBLoop(pixels);
+        
+        //Sparkle(255,255,255,pixels,3); // White Sparkle
+        //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
+        CylonBounce(255,0,0,4,10,50);
+        //Strobe(255,0x77,0,10,100,1000); //Slow
+        //Strobe(255,255,255,10,50,1000); //Fast
     }
 }
 
 
+int getRandomNumber(int min, int max){
+    // Generate a random number between min and max (inclusive)
+    // Assumes std::srand() has already been called
+    // Assumes max - min <= RAND_MAX
+    static const double fraction = 1.0 / (RAND_MAX + 1.0);  // static used for efficiency, so we only calculate this value once
+    // evenly distribute the random number across our range
+    return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
+}
 
+
+void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay){
+  for(int i = 0; i < NUM_LEDS-EyeSize-2; i++) {
+    setAllRGB(0,0,0,pixels);
+    setPixelRGB(R/10, G/10, B/10, i,pixels);
+    for(int j = 1; j <= EyeSize; j++) {
+      setPixelRGB(R, G, B, i+j, pixels); 
+    }
+    setPixelRGB(R/10, G/10, B/10, i+EyeSize+1, pixels);
+    writeLED(pixels,NUM_LEDS, DMA_Buffer);
+    delay_ms(SpeedDelay);
+  }
+  delay_ms(ReturnDelay);
+  for(int i = NUM_LEDS-EyeSize-2; i > 0; i--) {
+    setAllRGB(0,0,0,pixels);
+    setPixelRGB(R/10, G/10, B/10,i,pixels);
+    for(int j = 1; j <= EyeSize; j++) {
+      setPixelRGB(R, G, B, i+j, pixels); 
+    }
+    setPixelRGB(R/10, G/10, B/10,i+EyeSize+1, pixels);
+    writeLED(pixels,NUM_LEDS, DMA_Buffer);
+    delay_ms(SpeedDelay);
+  }
+  delay_ms(ReturnDelay);
+
+}
 
 void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
   for(int j = 0; j < 3; j++ ) { 
@@ -189,20 +244,26 @@ void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
 
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay) {
 
-  uint8_t Pixel = rand() % NUM_LEDS;
-
+  uint8_t Pixel = getRandomNumber(0,NUM_LEDS);
   setPixelRGB(R,G,B,Pixel,array);
-
   writeLED(array,NUM_LEDS,DMA_Buffer);
-
-  delay(SpeedDelay);
-
-  
+  delay_ms(SpeedDelay);
   setPixelRGB(0,0,0,Pixel,array);
-
 }
 
+void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint8_t FlashDelay, uint8_t EndPause){
 
+  for(int j = 0; j < StrobeCount; j++) {
+
+    setAllRGB(R,G,B,pixels);
+    writeLED(pixels,NUM_LEDS, DMA_Buffer);
+    delay_ms(FlashDelay);
+    setAllRGB(0,0,0,pixels);
+    writeLED(pixels,NUM_LEDS, DMA_Buffer);
+    delay_ms(FlashDelay);
+  }
+ delay_ms(EndPause);
+}
     
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
     // Load a colour into an array. An offset is provided to enable
@@ -237,7 +298,7 @@ void loadReset(uint8_t *array, uint8_t offset){
 
 void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
     /*
-    // Setup the transfer of colour informaation to the LEDS.
+    // Setup the transfer of colour information to the LEDS.
     // This function loads the initial information into the array buffer and
     // tracks the progress using the global currentLED variable.
     // The transfer is started. The data that initially isn't within the
