@@ -5,6 +5,7 @@
 #include <stdint.h>             // Enable fixed width integers
 #include <stdio.h>              // Newlib-nano
 #include <stdlib.h>             // rand()
+#include <math.h>               // sin()
 #include "buffer_class.h"       // Circular Buffer Class
 #include "clock.h"              // Setup system and peripheral clocks
 #include "delay.h"              // Simple Delay Function
@@ -37,8 +38,17 @@ int getRandomNumber(int min, int max);
 // Effects
 void RGBLoop(uint8_t (&array)[NUM_LEDS][3]);
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
+void RunningLights(uint8_t R, uint8_t G, uint8_t B,  uint8_t WaveDelay);
+void SnowSparkle(uint8_t R, uint8_t G, uint8_t B,  uint8_t SparkleDelay, uint8_t SpeedDelay);
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
 void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint8_t FlashDelay, uint8_t EndPause);
+void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
+void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
+void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
+void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
+
+void setPixelHeatColor (uint8_t Pixel, uint8_t temperature);
+void Fire(int Cooling, int Sparking, int SpeedDelay);
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -171,9 +181,20 @@ int main(void) {
         
         //Sparkle(255,255,255,pixels,3); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
-        CylonBounce(255,0,0,4,10,50);
+        //CylonBounce(255,0,0,4,10,50);
         //Strobe(255,0x77,0,10,100,1000); //Slow
         //Strobe(255,255,255,10,50,1000); //Fast
+        //Twinkle(255,0,0,10,100,false);
+        //TwinkleRandom(20,100,false);
+        //SnowSparkle(0x10, 0x10, 0x10, 20, getRandomNumber(100,1000));
+        //RunningLights(255,255,0,50);  //Yellow
+        //RunningLights(255,0,0,50); //RED
+        //RunningLights(255,255,255,50);//WHITE
+        //RunningLights(0,0,255,50); //BLUE
+        //colorWipe(0x00,0xff,0x00, 50);
+        //colorWipe(0x00,0x00,0x00, 50);
+        //theaterChase(0xff,0,0,50);
+        Fire(55,120,15);
     }
 }
 
@@ -251,6 +272,117 @@ void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uin
   setPixelRGB(0,0,0,Pixel,array);
 }
 
+void SnowSparkle(uint8_t R, uint8_t G, uint8_t B,  uint8_t SparkleDelay, uint8_t SpeedDelay) {
+  setAllRGB(R,G,B,pixels);
+  uint8_t Pixel = getRandomNumber(0,NUM_LEDS);
+  setPixelRGB(0xff,0xff,0xff, Pixel,pixels);
+  writeLED(pixels,NUM_LEDS,DMA_Buffer);
+  delay_ms(SparkleDelay);
+  setPixelRGB(R,G,B,Pixel,pixels);
+  writeLED(pixels,NUM_LEDS,DMA_Buffer);
+  delay_ms(SpeedDelay);
+}
+
+void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
+  for(uint8_t i=0; i<NUM_LEDS; i++) {
+      setPixelRGB(R, G, B, i, pixels);
+      writeLED(pixels,NUM_LEDS,DMA_Buffer);
+      delay_ms(SpeedDelay);
+  }
+}
+// TODO : ADD rainbow cycle effect
+// TODO : ADD Theatre Chase Rainbow Effect
+
+void Fire(int Cooling, int Sparking, int SpeedDelay) {
+  static uint8_t heat[NUM_LEDS];
+  int cooldown;
+  // Step 1.  Cool down every cell a little
+  for( int i = 0; i < NUM_LEDS; i++) {
+    cooldown = getRandomNumber(0, ((Cooling * 10) / NUM_LEDS) + 2);
+    if(cooldown>heat[i]) {
+      heat[i]=0;
+    } else {
+      heat[i]=heat[i]-cooldown;
+    }
+  }
+
+  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+  for( int k= NUM_LEDS - 1; k >= 2; k--) {
+    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
+  }
+
+  // Step 3.  Randomly ignite new 'sparks' near the bottom
+  if( getRandomNumber(0,255) < Sparking ) {
+    int y = getRandomNumber(0,7);
+    heat[y] = heat[y] + getRandomNumber(160,255);
+    //heat[y] = random(160,255);
+  }
+
+  // Step 4.  Convert heat to LED colors
+  for( int j = 0; j < NUM_LEDS; j++) {
+    setPixelHeatColor(j, heat[j] );
+  }
+  writeLED(pixels,NUM_LEDS,DMA_Buffer);
+  
+  delay_ms(SpeedDelay);
+}
+
+void setPixelHeatColor (uint8_t Pixel, uint8_t temperature) {
+  // Scale 'heat' down from 0-255 to 0-191
+  uint8_t t192 = round((temperature/255.0)*191);
+  // calculate ramp up from
+  uint8_t heatramp = t192 & 0x3F; // 0..63
+  heatramp <<= 2; // scale up to 0..252
+
+  // figure out which third of the spectrum we're in:
+  if( t192 > 0x80) {                     // hottest
+    setPixelRGB(255, 255, heatramp, Pixel, pixels);
+  } else if( t192 > 0x40 ) {             // middle
+    setPixelRGB(255, heatramp, 0, Pixel, pixels);
+  } else {                               // coolest
+    setPixelRGB(heatramp, 0, 0, Pixel, pixels);
+  }
+}
+
+
+
+
+
+void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
+  for (int j=0; j<10; j++) {  //do 10 cycles of chasing
+    for (int q=0; q < 3; q++) {
+      for (int i=0; i < NUM_LEDS; i=i+3) {
+        setPixelRGB(R,G,B,i+q,pixels);    //turn every third pixel on
+      }
+      writeLED(pixels,NUM_LEDS,DMA_Buffer);
+      delay_ms(SpeedDelay);
+      for (int i=0; i < NUM_LEDS; i=i+3) {
+        setPixelRGB(0,0,0,i+q,pixels);        //turn every third pixel off
+      }
+    }
+  }
+}
+
+
+void RunningLights(uint8_t R, uint8_t G, uint8_t B,  uint8_t WaveDelay) {
+  uint8_t Position=0;
+  for(uint8_t j=0; j<NUM_LEDS*2; j++){
+      Position++; // = 0; //Position + Rate;
+      for(uint8_t i=0; i<NUM_LEDS; i++) {
+        // sine wave, 3 offset waves make a rainbow!
+        //float level = sin(i+Position) * 127 + 128;
+        //setPixelRGB(level,0,0,i, pixels);
+        //float level = sin(i+Position) * 127 + 128;
+        setPixelRGB(((sin(i+Position) * 127 + 128)/255)*R,
+                   ((sin(i+Position) * 127 + 128)/255)*G,
+                   ((sin(i+Position) * 127 + 128)/255)*B,
+                   i,pixels);
+      }
+      writeLED(pixels,NUM_LEDS,DMA_Buffer);
+      delay_ms(WaveDelay);
+  }
+}
+
 void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint8_t FlashDelay, uint8_t EndPause){
 
   for(int j = 0; j < StrobeCount; j++) {
@@ -263,6 +395,32 @@ void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint8_t FlashD
     delay_ms(FlashDelay);
   }
  delay_ms(EndPause);
+}
+
+void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
+  setAllRGB(0,0,0,pixels);
+  for (uint8_t i=0; i<Count; i++) {
+     setPixelRGB(R,G,B,getRandomNumber(0,NUM_LEDS),pixels);
+     writeLED(pixels,NUM_LEDS, DMA_Buffer);
+     delay_ms(SpeedDelay);
+     if(OnlyOne) { 
+       setAllRGB(0,0,0,pixels); 
+     }
+   }
+  delay_ms(SpeedDelay);
+}
+
+void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
+  setAllRGB(0,0,0,pixels);
+  for (uint8_t i=0; i<Count; i++) {
+     setPixelRGB(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,NUM_LEDS),pixels);
+     writeLED(pixels,NUM_LEDS, DMA_Buffer);
+     delay_ms(SpeedDelay);
+     if(OnlyOne) { 
+       setAllRGB(0,0,0,pixels); 
+     }
+   }
+  delay_ms(SpeedDelay);
 }
     
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
