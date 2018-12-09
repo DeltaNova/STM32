@@ -49,6 +49,7 @@ void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
 
 void setPixelHeatColor (uint8_t Pixel, uint8_t temperature);
 void Fire(int Cooling, int Sparking, int SpeedDelay);
+
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -195,6 +196,7 @@ int main(void) {
         //colorWipe(0x00,0x00,0x00, 50);
         //theaterChase(0xff,0,0,50);
         Fire(55,120,15);
+  
         
     }
 }
@@ -291,8 +293,11 @@ void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
       delay_ms(SpeedDelay);
   }
 }
+// TODO: ADD FadeInOut
 // TODO: ADD rainbow cycle effect
 // TODO: ADD Theatre Chase Rainbow Effect
+// TODO@ ADD Bouncing Balls
+// TODO: ADD Multi Colour Bouncing Balls
 // TODO: ADD Meteor Rain Effect
 
 void Fire(int Cooling, int Sparking, int SpeedDelay) {
