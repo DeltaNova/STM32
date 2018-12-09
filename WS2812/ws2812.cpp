@@ -101,6 +101,7 @@ static uint8_t currentLED = 0;      // Tracks LED write progress
 // data into buffer.
 static uint8_t (*LEDSequence)[3];
 
+static uint32_t counter; // Holds a ms countdown value
 // The DMA Buffer needs to be able to hold the data for 2 LEDs. When the data
 // for one LED is sent the DMA HT (Half Transfer) Flag is set. After the data 
 // for the next LED is send the DMA TC (Transfer Complete) Flag is set. 
@@ -788,6 +789,9 @@ void SysTick_Handler(void){
         --flash;
     }
     
+    if (counter !=0){ // Decrement the counter
+        --counter;
+    }
     //if (colour_change !=0){ // Decrement the Colour Change Counter
     //    --colour_change;
     //}
