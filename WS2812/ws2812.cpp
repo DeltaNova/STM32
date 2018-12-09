@@ -195,6 +195,7 @@ int main(void) {
         //colorWipe(0x00,0x00,0x00, 50);
         //theaterChase(0xff,0,0,50);
         Fire(55,120,15);
+        
     }
 }
 
@@ -290,8 +291,9 @@ void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
       delay_ms(SpeedDelay);
   }
 }
-// TODO : ADD rainbow cycle effect
-// TODO : ADD Theatre Chase Rainbow Effect
+// TODO: ADD rainbow cycle effect
+// TODO: ADD Theatre Chase Rainbow Effect
+// TODO: ADD Meteor Rain Effect
 
 void Fire(int Cooling, int Sparking, int SpeedDelay) {
   static uint8_t heat[NUM_LEDS];
@@ -343,9 +345,6 @@ void setPixelHeatColor (uint8_t Pixel, uint8_t temperature) {
     setPixelRGB(heatramp, 0, 0, Pixel, pixels);
   }
 }
-
-
-
 
 
 void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
@@ -422,6 +421,7 @@ void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
    }
   delay_ms(SpeedDelay);
 }
+
     
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
     // Load a colour into an array. An offset is provided to enable
