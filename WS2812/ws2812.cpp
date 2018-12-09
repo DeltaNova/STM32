@@ -41,7 +41,7 @@ void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uin
 void RunningLights(uint8_t R, uint8_t G, uint8_t B,  uint8_t WaveDelay);
 void SnowSparkle(uint8_t R, uint8_t G, uint8_t B,  uint8_t SparkleDelay, uint8_t SpeedDelay);
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
-void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint8_t FlashDelay, uint8_t EndPause);
+void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause);
 void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
 void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
 void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
@@ -387,7 +387,7 @@ void RunningLights(uint8_t R, uint8_t G, uint8_t B,  uint8_t WaveDelay) {
   }
 }
 
-void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint8_t FlashDelay, uint8_t EndPause){
+void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause){
 
   for(int j = 0; j < StrobeCount; j++) {
 
