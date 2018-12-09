@@ -49,7 +49,8 @@ void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
 
 void setPixelHeatColor (uint8_t Pixel, uint8_t temperature);
 void Fire(int Cooling, int Sparking, int SpeedDelay);
-
+void ChristmasLightsStart();
+void ChristmasLights();
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -76,7 +77,7 @@ uint8_t RED2[] = {63,0,0};
 #define BRIGHTWHITE {255,255,255}
 
 static uint8_t pixels[NUM_LEDS][3]= {0};
-
+/*
 static uint8_t colour0[][3] = {RED, GREEN, OFF, WHITE, BLUE}; // Length 5
 static uint8_t colour1[][3] = {RED, RED, WHITE, BLUE, BLUE}; // Length 5
 static uint8_t colour2[][3] = {BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE,BRIGHTWHITE}; // Length 5
@@ -88,6 +89,7 @@ static uint8_t colour6[][3] = {GREEN, GREEN, RED, GREEN, GREEN};
 static uint8_t colour7[][3] = {GREEN, GREEN, GREEN, RED, GREEN};
 static uint8_t colour8[][3] = {GREEN, GREEN, GREEN, GREEN, RED};
 static uint8_t colour9[][3] = {PINK, PINK, PINK, PINK, PINK};
+*/
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
@@ -100,7 +102,6 @@ static uint8_t currentLED = 0;      // Tracks LED write progress
 // Points to the colour sequence being sent. Used to allow DMA_ISR to load
 // data into buffer.
 static uint8_t (*LEDSequence)[3];
-
 static uint32_t counter; // Holds a ms countdown value
 // The DMA Buffer needs to be able to hold the data for 2 LEDs. When the data
 // for one LED is sent the DMA HT (Half Transfer) Flag is set. After the data 
@@ -129,6 +130,7 @@ int main(void) {
     // Timer 2 Channel 2 Compare Value
     TIM2->CCR2 = 0x0009;        // 9 (Logic 0)
     //delay_ms(2000);
+    ChristmasLightsStart();
     while(1){
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
@@ -154,15 +156,15 @@ int main(void) {
         delay_ms(1000);
         */
         
+        
+        //setAllRGB(0,0,0,pixels);
+        
+        //setPixel(RED2,0,pixels);
+        //setPixelRGB(0,0,63,1,pixels);
+        //setPixelRGB(255,20,147,2,pixels);
+        //writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        //delay_ms(1000);
         /*
-        setAllRGB(0,0,0,pixels);
-        
-        setPixel(RED2,0,pixels);
-        setPixelRGB(0,0,63,1,pixels);
-        setPixelRGB(255,20,147,2,pixels);
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(1000);
-        
         setAllRGB(138,43,226, pixels);
         writeLED(pixels,NUM_LEDS, DMA_Buffer);
         delay_ms(1000);
@@ -196,11 +198,128 @@ int main(void) {
         //colorWipe(0x00,0xff,0x00, 50);
         //colorWipe(0x00,0x00,0x00, 50);
         //theaterChase(0xff,0,0,50);
-        Fire(55,120,15);
-  
+        //Fire(55,120,15);
+        ChristmasLights();
+        
+
         
     }
 }
+ void ChristmasLightsStart(){
+     // My Chrsitmas Light Display
+        setAllRGB(0,0,0,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        
+        setPixelRGB(25,0,0,0,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        
+        setPixelRGB(25,0,0,1,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        setPixelRGB(25,0,0,2,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        setPixelRGB(25,0,0,3,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        setPixelRGB(25,0,0,4,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        setPixelRGB(25,0,0,5,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        setPixelRGB(25,0,0,6,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        
+        setPixelRGB(50,0,0,4,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        
+        setPixelRGB(50,0,0,2,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        
+        setPixelRGB(50,0,0,3,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        
+        setPixelRGB(128,0,0,2,pixels);
+        setPixelRGB(128,0,0,3,pixels);
+        setPixelRGB(128,0,0,4,pixels);
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(1000);
+        uint8_t i;
+        for (i=0; i < 10; i++){
+            CylonBounce(255,0,0,4,10,50);
+        }
+}
+
+
+void ChristmasLights(){
+    uint8_t i;
+    for (i=0; i < 6; i++){
+        CylonBounce(255,255,255,4,10,50);
+    }
+    colorWipe(0x10,0x10,0x10,40);
+    counter = 30000;
+    while(counter){
+        SnowSparkle(0x10, 0x10, 0x10, 20, getRandomNumber(100,1000));
+    }
+    
+    Strobe(255,255,255,10,50,1000); //Fast
+    
+    colorWipe(0x32, 0x2d, 0x91,20);
+    colorWipe(0xe6, 0xd1, 0x17,20);
+    colorWipe(0x73, 0x12, 0x1f,20);
+    colorWipe(0x61, 0xa3, 0xe6,20);
+    colorWipe(0xe6, 0x89, 0x10,20);
+    colorWipe(0x65, 0xbf, 0x74,20);
+    
+    CylonBounce(0x25,0x73,0x22,4,10,30);
+    
+    counter = 15000;
+    while(counter){
+        Sparkle(255,255,255,pixels,3); // White Sparkle
+    }
+    
+    counter = 15000;
+    while(counter){
+        Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
+    }
+    
+
+    RunningLights(255,255,255,30);//WHITE
+
+    CylonBounce(0xad,0x1a,0x4b,4,10,30);
+
+    for(i = 0; i<3; i++){
+        theaterChase(0xff,0,0,30);
+    }
+    
+    for(i = 0; i<3; i++){
+        theaterChase(0x0c,0x5e,0x9c,20);
+    }
+    
+     for(i = 0; i<3; i++){
+        theaterChase(0x97,0x21,0x9C,10);
+    }
+    
+    colorWipe(0xff, 0xbd, 0x38,20);
+    colorWipe(0x17, 0xc5, 0x15,20);
+    colorWipe(0x5c, 0x19, 0x1d,20);
+    colorWipe(0x64, 0x37, 0x88,20);
+    colorWipe(0xc4, 0x2d, 0xba,20);
+    
+    counter = 30000;
+    while(counter){
+        Fire(55,120,15);
+    }
+}
+
+
 
 
 int getRandomNumber(int min, int max){
