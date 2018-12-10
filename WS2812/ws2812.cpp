@@ -39,7 +39,10 @@ int getRandomNumber(int min, int max);
 void RGBLoop(uint8_t (&array)[NUM_LEDS][3]);
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
 void RunningLights(uint8_t R, uint8_t G, uint8_t B,  uint8_t WaveDelay);
-void SnowSparkle(uint8_t R, uint8_t G, uint8_t B,  uint8_t SparkleDelay, uint8_t SpeedDelay);
+
+void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SparkleDelay, uint8_t SpeedDelay);
+
+
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
 void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause);
 void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
@@ -266,7 +269,7 @@ void ChristmasLights(){
     colorWipe(0x10,0x10,0x10,40);
     counter = 30000;
     while(counter){
-        SnowSparkle(0x10, 0x10, 0x10, 20, getRandomNumber(100,1000));
+        SnowSparkle(0x10, 0x10, 0x10, pixels, 20, getRandomNumber(100,1000));
     }
     
     Strobe(255,255,255,10,50,1000); //Fast
@@ -395,15 +398,24 @@ void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uin
   setPixelRGB(0,0,0,Pixel,array);
 }
 
-void SnowSparkle(uint8_t R, uint8_t G, uint8_t B,  uint8_t SparkleDelay, uint8_t SpeedDelay) {
-  setAllRGB(R,G,B,pixels);
-  uint8_t Pixel = getRandomNumber(0,NUM_LEDS);
-  setPixelRGB(0xff,0xff,0xff, Pixel,pixels);
-  writeLED(pixels,NUM_LEDS,DMA_Buffer);
-  delay_ms(SparkleDelay);
-  setPixelRGB(R,G,B,Pixel,pixels);
-  writeLED(pixels,NUM_LEDS,DMA_Buffer);
-  delay_ms(SpeedDelay);
+void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay) {
+  /*
+   * SparkleDelay - Delay Time in ms (0-65535)
+   * SpeedDelay   - Delay Time in ms (0-65535)
+   * REQ: NUM_LEDS <= 255
+  */
+    
+  setAllRGB(R,G,B,array);               // Fill LED Array with specified colour.
+  uint8_t Pixel = getRandomNumber(0,NUM_LEDS); // Pick an LED at random
+  
+  // Change the colour of the selected for a short ammount of time.
+  setPixelRGB(0xff,0xff,0xff, Pixel,array); // Set LED Colour
+  writeLED(array,NUM_LEDS,DMA_Buffer);      // Update ALL LEDs
+  delay_ms(SparkleDelay);                   // Hold ALL LED colours
+  
+  setPixelRGB(R,G,B,Pixel,array);           // Set ALL LEDs to initial value
+  writeLED(array,NUM_LEDS,DMA_Buffer);      // Update ALL LEDs.
+  delay_ms(SpeedDelay);                     // Hold ALL LED colours.
 }
 
 void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
