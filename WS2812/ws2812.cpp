@@ -38,10 +38,9 @@ int getRandomNumber(int min, int max);
 // Effects
 void RGBLoop(uint8_t (&array)[NUM_LEDS][3]);
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
-void RunningLights(uint8_t R, uint8_t G, uint8_t B,  uint8_t WaveDelay);
+void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay);
 
-void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);
-
+void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);   // Updated
 void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay);                            // Updated
 
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
@@ -196,7 +195,7 @@ int main(void) {
         //SnowSparkle(0x10, 0x10, 0x10, 20, getRandomNumber(100,1000));
         //RunningLights(255,255,0,50);  //Yellow
         //RunningLights(255,0,0,50); //RED
-        //RunningLights(255,255,255,50);//WHITE
+        //RunningLights(255,255,255,pixels,50);//WHITE
         //RunningLights(0,0,255,50); //BLUE
         //colorWipe(0x00,0xff,0x00, pixels, 50);
         //colorWipe(0x00,0x00,0x00, pixels, 50);
@@ -294,7 +293,7 @@ void ChristmasLights(){
     }
     
 
-    RunningLights(255,255,255,30);//WHITE
+    RunningLights(255,255,255,pixels,30);//WHITE
 
     CylonBounce(0xad,0x1a,0x4b,4,10,30);
 
@@ -516,23 +515,28 @@ void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
 }
 
 
-void RunningLights(uint8_t R, uint8_t G, uint8_t B,  uint8_t WaveDelay) {
-  uint8_t Position=0;
-  for(uint8_t j=0; j<NUM_LEDS*2; j++){
-      Position++; // = 0; //Position + Rate;
-      for(uint8_t i=0; i<NUM_LEDS; i++) {
-        // sine wave, 3 offset waves make a rainbow!
-        //float level = sin(i+Position) * 127 + 128;
-        //setPixelRGB(level,0,0,i, pixels);
-        //float level = sin(i+Position) * 127 + 128;
-        setPixelRGB(((sin(i+Position) * 127 + 128)/255)*R,
-                   ((sin(i+Position) * 127 + 128)/255)*G,
-                   ((sin(i+Position) * 127 + 128)/255)*B,
-                   i,pixels);
-      }
-      writeLED(pixels,NUM_LEDS,DMA_Buffer);
-      delay_ms(WaveDelay);
   }
+}
+
+void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay) {
+    
+    // Compile Time Check for global NUM_LED value 
+    static_assert(NUM_LEDS > 0, "RunningLights - NUM_LEDS needs to be > 0");
+    static_assert(NUM_LEDS <= 255, "RunningLights - NUM_LEDS needs to be <= 255");
+    
+    uint8_t Position = 0;
+    uint16_t j; // j needs to be large enough to hold MAX NUM_LED, 255*2 = 510.
+    for(j=0; j<NUM_LEDS*2; j++){
+        Position++; // = 0; //Position + Rate;
+        for(uint8_t i=0; i<NUM_LEDS; i++) {
+            setPixelRGB(((sin(i+Position) * 127 + 128)/255)*R,
+                    ((sin(i+Position) * 127 + 128)/255)*G,
+                    ((sin(i+Position) * 127 + 128)/255)*B,
+                    i,pixels);
+        }
+        writeLED(pixels,NUM_LEDS,DMA_Buffer);
+        delay_ms(WaveDelay);
+    }
 }
 
 void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause){
