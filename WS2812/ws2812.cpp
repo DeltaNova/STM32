@@ -399,23 +399,27 @@ void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uin
 }
 
 void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay) {
-  /*
-   * SparkleDelay - Delay Time in ms (0-65535)
-   * SpeedDelay   - Delay Time in ms (0-65535)
-   * REQ: NUM_LEDS <= 255
-  */
+    /*
+     * SparkleDelay - Delay Time in ms (0-65535)
+     * SpeedDelay   - Delay Time in ms (0-65535)
+     * REQ: NUM_LEDS <= 255
+     */
     
-  setAllRGB(R,G,B,array);               // Fill LED Array with specified colour.
-  uint8_t Pixel = getRandomNumber(0,NUM_LEDS); // Pick an LED at random
+    // Compile Time Check for global NUM_LED value 
+    static_assert(NUM_LEDS > 0, "SnowSparkle - NUM_LEDS needs to be > 0");
+    static_assert(NUM_LEDS <= 255, "SnowSparkle - NUM_LEDS needs to be <= 255");
+    
+    setAllRGB(R,G,B,array);             // Fill LED Array with specified colour.
+    uint8_t Pixel = getRandomNumber(0,NUM_LEDS);    // Pick an LED at random
   
-  // Change the colour of the selected for a short ammount of time.
-  setPixelRGB(0xff,0xff,0xff, Pixel,array); // Set LED Colour
-  writeLED(array,NUM_LEDS,DMA_Buffer);      // Update ALL LEDs
-  delay_ms(SparkleDelay);                   // Hold ALL LED colours
+    // Change the colour of the selected for a short ammount of time.
+    setPixelRGB(0xff,0xff,0xff, Pixel,array); // Set LED Colour
+    writeLED(array,NUM_LEDS,DMA_Buffer);      // Update ALL LEDs
+    delay_ms(SparkleDelay);                   // Hold ALL LED colours
   
-  setPixelRGB(R,G,B,Pixel,array);           // Set ALL LEDs to initial value
-  writeLED(array,NUM_LEDS,DMA_Buffer);      // Update ALL LEDs.
-  delay_ms(SpeedDelay);                     // Hold ALL LED colours.
+    setPixelRGB(R,G,B,Pixel,array);           // Set ALL LEDs to initial value
+    writeLED(array,NUM_LEDS,DMA_Buffer);      // Update ALL LEDs.
+    delay_ms(SpeedDelay);                     // Hold ALL LED colours.
 }
 
 void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
