@@ -49,6 +49,10 @@ void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay,
 void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
 void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
 
+void theaterChaseRainbow(int SpeedDelay);
+
+uint8_t* Wheel(uint8_t WheelPos);
+
 void setPixelHeatColor (uint8_t Pixel, uint8_t temperature);
 void Fire(int Cooling, int Sparking, int SpeedDelay);
 void ChristmasLightsStart();
@@ -132,7 +136,7 @@ int main(void) {
     // Timer 2 Channel 2 Compare Value
     TIM2->CCR2 = 0x0009;        // 9 (Logic 0)
     //delay_ms(2000);
-    ChristmasLightsStart();
+    //ChristmasLightsStart();
     while(1){
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
@@ -201,10 +205,8 @@ int main(void) {
         //colorWipe(0x00,0x00,0x00, pixels, 50);
         //theaterChase(0xff,0,0,50);
         //Fire(55,120,15);
-        ChristmasLights();
-        
-
-        
+       //ChristmasLights();
+       theaterChaseRainbow(2); 
     }
 }
  void ChristmasLightsStart(){
@@ -442,7 +444,7 @@ void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], u
 }
 // TODO: ADD FadeInOut
 // TODO: ADD rainbow cycle effect
-// TODO: ADD Theatre Chase Rainbow Effect
+
 // TODO@ ADD Bouncing Balls
 // TODO: ADD Multi Colour Bouncing Balls
 // TODO: ADD Meteor Rain Effect
@@ -514,8 +516,46 @@ void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
   }
 }
 
+void theaterChaseRainbow(int SpeedDelay) {
+    // Lower Delay values work best, a value of 1-4 seems best/smoothest
+    // A delay of 0 doesnt seem to work.
+  uint8_t *c;
+  for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
+    for (int q=0; q < 3; q++) {
+        for (int i=0; i < NUM_LEDS; i=i+3) {
+          c = Wheel( (i+j) % 255);
+          setPixelRGB(*c, *(c+1), *(c+2),i+q,pixels);    //turn every third pixel on
+        }
+        writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        delay_ms(SpeedDelay);
 
+        for (int i=0; i < NUM_LEDS; i=i+3) {
+          setPixelRGB( 0,0,0,i+q,pixels);        //turn every third pixel off
+        }
+    }
   }
+}
+
+
+
+uint8_t* Wheel(uint8_t WheelPos) {
+  static uint8_t c[3];
+  if(WheelPos < 85) {
+   c[0]=WheelPos * 3;
+   c[1]=255 - WheelPos * 3;
+   c[2]=0;
+  } else if(WheelPos < 170) {
+   WheelPos -= 85;
+   c[0]=255 - WheelPos * 3;
+   c[1]=0;
+   c[2]=WheelPos * 3;
+  } else {
+   WheelPos -= 170;
+   c[0]=0;
+   c[1]=WheelPos * 3;
+   c[2]=255 - WheelPos * 3;
+  }
+  return c;
 }
 
 void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay) {
