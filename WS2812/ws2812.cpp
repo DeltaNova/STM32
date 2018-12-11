@@ -40,7 +40,7 @@ void RGBLoop(uint8_t (&array)[NUM_LEDS][3]);
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
 void RunningLights(uint8_t R, uint8_t G, uint8_t B,  uint8_t WaveDelay);
 
-void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SparkleDelay, uint8_t SpeedDelay);
+void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);
 
 
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
