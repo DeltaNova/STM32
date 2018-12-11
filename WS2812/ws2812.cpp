@@ -42,12 +42,12 @@ void RunningLights(uint8_t R, uint8_t G, uint8_t B,  uint8_t WaveDelay);
 
 void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);
 
+void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay);                            // Updated
 
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
 void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause);
 void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
 void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
-void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
 void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
 
 void setPixelHeatColor (uint8_t Pixel, uint8_t temperature);
@@ -198,8 +198,8 @@ int main(void) {
         //RunningLights(255,0,0,50); //RED
         //RunningLights(255,255,255,50);//WHITE
         //RunningLights(0,0,255,50); //BLUE
-        //colorWipe(0x00,0xff,0x00, 50);
-        //colorWipe(0x00,0x00,0x00, 50);
+        //colorWipe(0x00,0xff,0x00, pixels, 50);
+        //colorWipe(0x00,0x00,0x00, pixels, 50);
         //theaterChase(0xff,0,0,50);
         //Fire(55,120,15);
         ChristmasLights();
@@ -266,7 +266,7 @@ void ChristmasLights(){
     for (i=0; i < 6; i++){
         CylonBounce(255,255,255,4,10,50);
     }
-    colorWipe(0x10,0x10,0x10,40);
+    colorWipe(0x10,0x10,0x10,pixels,40);
     counter = 30000;
     while(counter){
         SnowSparkle(0x10, 0x10, 0x10, pixels, 20, getRandomNumber(100,1000));
@@ -274,12 +274,12 @@ void ChristmasLights(){
     
     Strobe(255,255,255,10,50,1000); //Fast
     
-    colorWipe(0x32, 0x2d, 0x91,20);
-    colorWipe(0xe6, 0xd1, 0x17,20);
-    colorWipe(0x73, 0x12, 0x1f,20);
-    colorWipe(0x61, 0xa3, 0xe6,20);
-    colorWipe(0xe6, 0x89, 0x10,20);
-    colorWipe(0x65, 0xbf, 0x74,20);
+    colorWipe(0x32, 0x2d, 0x91,pixels,20);
+    colorWipe(0xe6, 0xd1, 0x17,pixels,20);
+    colorWipe(0x73, 0x12, 0x1f,pixels,20);
+    colorWipe(0x61, 0xa3, 0xe6,pixels,20);
+    colorWipe(0xe6, 0x89, 0x10,pixels,20);
+    colorWipe(0x65, 0xbf, 0x74,pixels,20);
     
     CylonBounce(0x25,0x73,0x22,4,10,30);
     
@@ -310,11 +310,11 @@ void ChristmasLights(){
         theaterChase(0x97,0x21,0x9C,10);
     }
     
-    colorWipe(0xff, 0xbd, 0x38,20);
-    colorWipe(0x17, 0xc5, 0x15,20);
-    colorWipe(0x5c, 0x19, 0x1d,20);
-    colorWipe(0x64, 0x37, 0x88,20);
-    colorWipe(0xc4, 0x2d, 0xba,20);
+    colorWipe(0xff, 0xbd, 0x38,pixels,20);
+    colorWipe(0x17, 0xc5, 0x15,pixels,20);
+    colorWipe(0x5c, 0x19, 0x1d,pixels,20);
+    colorWipe(0x64, 0x37, 0x88,pixels,20);
+    colorWipe(0xc4, 0x2d, 0xba,pixels,20);
     
     counter = 30000;
     while(counter){
@@ -422,11 +422,23 @@ void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],
     delay_ms(SpeedDelay);                     // Hold ALL LED colours.
 }
 
-void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
-  for(uint8_t i=0; i<NUM_LEDS; i++) {
-      setPixelRGB(R, G, B, i, pixels);
-      writeLED(pixels,NUM_LEDS,DMA_Buffer);
-      delay_ms(SpeedDelay);
+void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay) {
+    /*
+     * SpeedDelay   - Delay Time in ms (0-65535)
+     * REQ: NUM_LEDS <= 255
+     * 
+     * SpeedDelay controls how long to wait before changing colour of next LED
+     */
+     
+    // Compile Time Check for global NUM_LED value 
+    static_assert(NUM_LEDS > 0, "colorWipe - NUM_LEDS needs to be > 0");
+    static_assert(NUM_LEDS <= 255, "colorWipe - NUM_LEDS needs to be <= 255");
+    
+    uint8_t i;
+    for(i=0; i<NUM_LEDS; i++) {             // For each LED in turn
+      setPixelRGB(R, G, B, i, array);       // Set the new colour of the LED
+      writeLED(array,NUM_LEDS,DMA_Buffer);  // Update ALL LED colours
+      delay_ms(SpeedDelay);                 // Wait before next LED
   }
 }
 // TODO: ADD FadeInOut
