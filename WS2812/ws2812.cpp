@@ -49,8 +49,10 @@ void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay,
 void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
 void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
 
-void theaterChaseRainbow(int SpeedDelay);
+void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay);
+void fadeToBlack(int ledNo, uint8_t fadeValue);
 
+void theaterChaseRainbow(int SpeedDelay);
 uint8_t* Wheel(uint8_t WheelPos);
 
 void setPixelHeatColor (uint8_t Pixel, uint8_t temperature);
@@ -206,7 +208,8 @@ int main(void) {
         //theaterChase(0xff,0,0,50);
         //Fire(55,120,15);
        //ChristmasLights();
-       theaterChaseRainbow(2); 
+       //theaterChaseRainbow(2); 
+       meteorRain(0xad,0x33,0xff,10, 64, true, 30);
     }
 }
  void ChristmasLightsStart(){
@@ -447,7 +450,7 @@ void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], u
 
 // TODO@ ADD Bouncing Balls
 // TODO: ADD Multi Colour Bouncing Balls
-// TODO: ADD Meteor Rain Effect
+
 
 void Fire(int Cooling, int Sparking, int SpeedDelay) {
   static uint8_t heat[NUM_LEDS];
@@ -536,8 +539,6 @@ void theaterChaseRainbow(int SpeedDelay) {
   }
 }
 
-
-
 uint8_t* Wheel(uint8_t WheelPos) {
   static uint8_t c[3];
   if(WheelPos < 85) {
@@ -556,6 +557,42 @@ uint8_t* Wheel(uint8_t WheelPos) {
    c[2]=255 - WheelPos * 3;
   }
   return c;
+}
+
+void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay) {  
+    setAllRGB(0,0,0,pixels);
+    for(int i = 0; i < NUM_LEDS+NUM_LEDS; i++) {
+        // fade brightness all LEDs one step
+        for(int j=0; j<NUM_LEDS; j++) {
+            if( (!meteorRandomDecay) || (getRandomNumber(0,10)>5) ) {
+                fadeToBlack(j, meteorTrailDecay );        
+            }
+        }
+
+        // draw meteor
+        for(int j = 0; j < meteorSize; j++) {
+            if( ( i-j <NUM_LEDS) && (i-j>=0) ) {
+                setPixelRGB(R, G, B, i-j, pixels);
+            } 
+        }
+        writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        delay_ms(SpeedDelay);
+    }
+}
+
+
+void fadeToBlack(int ledNo, uint8_t fadeValue) {
+    // Used by meteorRain()
+    uint8_t r, g, b;
+    r = pixels[ledNo][0];
+    g = pixels[ledNo][2];
+    b = pixels[ledNo][1];
+
+    r=(r<=10)? 0 : (int) r-(r*fadeValue/256);
+    g=(g<=10)? 0 : (int) g-(g*fadeValue/256);
+    b=(b<=10)? 0 : (int) b-(b*fadeValue/256);
+    
+    setPixelRGB(r,g,b,ledNo,pixels);
 }
 
 void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay) {
