@@ -123,52 +123,6 @@ int main(void) {
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
         
-        // Triggers Every 6 Seconds
-        //changeColour(); // Change the colours of the WS2812B LEDS
-        
-        /* Not Working as expected with more than 5 LEDS
-        // Green with single reg strobe. Delay added to slow update rate
-        writeLED(colour3, 5, DMA_Buffer);
-        delay_ms(1000);
-        writeLED(colour4, 5, DMA_Buffer);
-        delay_ms(1000);
-        writeLED(colour5, 5, DMA_Buffer);
-        delay_ms(1000);
-        writeLED(colour6, 5, DMA_Buffer);
-        delay_ms(1000);
-        writeLED(colour7, 5, DMA_Buffer);
-        delay_ms(1000);
-        writeLED(colour8, 5, DMA_Buffer);
-        delay_ms(1000);
-        writeLED(colour9, 5, DMA_Buffer);
-        delay_ms(1000);
-        */
-        
-        
-        //setAllRGB(0,0,0,pixels);
-        
-        //setPixel(RED2,0,pixels);
-        //setPixelRGB(0,0,63,1,pixels);
-        //setPixelRGB(255,20,147,2,pixels);
-        //writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        //delay_ms(1000);
-        /*
-        setAllRGB(138,43,226, pixels);
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(1000);
-        
-        setAllRGB(255,255,255, pixels);
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(1000);
-        
-        setAllRGB(250,20,147, pixels);
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(4000);
-        
-        setAll(RED2, pixels);
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(1000);
-        */
         //RGBLoop(pixels);
         
         //Sparkle(255,255,255,pixels,3); // White Sparkle
@@ -244,7 +198,6 @@ int main(void) {
         }
 }
 
-
 void ChristmasLights(){
     uint8_t i;
     for (i=0; i < 6; i++){
@@ -306,9 +259,6 @@ void ChristmasLights(){
     }
 }
 
-
-
-
 int getRandomNumber(int min, int max){
     // Generate a random number between min and max (inclusive)
     // Assumes std::srand() has already been called
@@ -317,9 +267,6 @@ int getRandomNumber(int min, int max){
     // evenly distribute the random number across our range
     return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
 }
-
-
-
     
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
     // Load a colour into an array. An offset is provided to enable
@@ -593,50 +540,7 @@ void PC13_LED_Setup(){
     GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
     GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
 }
-/*
-void changeColour(){
-    if (colour_change == 0){
-        // Change the colours of the LEDS
-        // Note: Currently the Timer & DMA are stopped after the previous
-        //       transfer. Allowing time to load the data into the array. 
-        //       Need to restart them to allow the colour change to complete.
-        if (colour_rotation == 0){
-            loadColour(RED,pwm_array,0);
-            loadColour(GREEN,pwm_array,24);
-        } 
-        else if (colour_rotation == 1){
-            loadColour(GREEN,pwm_array,0);
-            loadColour(BLUE,pwm_array,24);
-        }
-        else if (colour_rotation == 2){
-            loadColour(BLUE,pwm_array,0);
-            loadColour(WHITE,pwm_array,24);
-        }
-        else{
-            loadColour(OFF,pwm_array,0);
-            loadColour(OFF,pwm_array,24);
-        }
-        
-        // Select next colour rotation, loop around at end.
-        if (colour_rotation > 2){
-            colour_rotation = 0; // Reset Colour Rotation
-        }
-        else{
-            colour_rotation++; 
-        }
-        
-        //DMA1_Channel5->CNDTR = 96;
-        // Enable DMA (Before Timer)
-        DMA1_Channel5->CCR |= 0x00000001;
-        // Enable Timer
-        TIM2->CR1 |= 0x0001;
-        
-        
-        // Reset the Counter
-        colour_change = 6001; // 6 Seconds based on 1ms SysTick
-    }
-}
-*/
+
 void toggleLed(){
     // Toggle the LED attached to PC13
     if (flash == 0){
