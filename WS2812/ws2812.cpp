@@ -50,7 +50,6 @@ void ChristmasLights();
 // Defines
 // -------
 
-
 uint8_t LED_COUNT = NUM_LEDS;      // Number of LEDs in string.
 
 // RGB Colour Definitions - Reduced Brightness (Still very bright)
@@ -65,19 +64,7 @@ uint8_t RED2[] = {63,0,0};
 #define BRIGHTWHITE {255,255,255}
 
 static uint8_t pixels[NUM_LEDS][3]= {0};
-/*
-static uint8_t colour0[][3] = {RED, GREEN, OFF, WHITE, BLUE}; // Length 5
-static uint8_t colour1[][3] = {RED, RED, WHITE, BLUE, BLUE}; // Length 5
-static uint8_t colour2[][3] = {BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE,BRIGHTWHITE}; // Length 5
 
-static uint8_t colour3[][3] = {GREEN, GREEN, GREEN, GREEN, GREEN};
-static uint8_t colour4[][3] = {RED, GREEN, GREEN, GREEN, GREEN};
-static uint8_t colour5[][3] = {GREEN, RED, GREEN, GREEN, GREEN};
-static uint8_t colour6[][3] = {GREEN, GREEN, RED, GREEN, GREEN};
-static uint8_t colour7[][3] = {GREEN, GREEN, GREEN, RED, GREEN};
-static uint8_t colour8[][3] = {GREEN, GREEN, GREEN, GREEN, RED};
-static uint8_t colour9[][3] = {PINK, PINK, PINK, PINK, PINK};
-*/
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t ticks = 0;        // Used for SysTick count down.
