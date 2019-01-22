@@ -1,6 +1,10 @@
 // ledfx.cpp - WS2812 Effects Library
+#include "stm32f103xb.h"        // Need as direct reference to HW
+#include "ledfx.h"            // Library Header
 
-void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay){
+
+
+void WS2812::CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay){
   for(int i = 0; i < NUM_LEDS-EyeSize-2; i++) {
     setAllRGB(0,0,0,pixels);
     setPixelRGB(R/10, G/10, B/10, i,pixels);
@@ -26,7 +30,7 @@ void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, i
 
 }
 
-void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
+void WS2812::RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
   for(int j = 0; j < 3; j++ ) { 
     // Fade IN
     for(int k = 0; k < 256; k++) { 
@@ -54,7 +58,7 @@ void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
 }
 
 
-void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay) {
+void WS2812::Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay) {
 
   uint8_t Pixel = getRandomNumber(0,NUM_LEDS);
   setPixelRGB(R,G,B,Pixel,array);
@@ -63,7 +67,7 @@ void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uin
   setPixelRGB(0,0,0,Pixel,array);
 }
 
-void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay) {
+void WS2812::SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay) {
     /*
      * SparkleDelay - Delay Time in ms (0-65535)
      * SpeedDelay   - Delay Time in ms (0-65535)
@@ -87,7 +91,7 @@ void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],
     delay_ms(SpeedDelay);                     // Hold ALL LED colours.
 }
 
-void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay) {
+void WS2812::colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay) {
     /*
      * SpeedDelay   - Delay Time in ms (0-65535)
      * REQ: NUM_LEDS <= 255
@@ -113,7 +117,7 @@ void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], u
 // TODO: ADD Multi Colour Bouncing Balls
 
 
-void Fire(int Cooling, int Sparking, int SpeedDelay) {
+void WS2812::Fire(int Cooling, int Sparking, int SpeedDelay) {
   static uint8_t heat[NUM_LEDS];
   int cooldown;
   // Step 1.  Cool down every cell a little
@@ -147,7 +151,7 @@ void Fire(int Cooling, int Sparking, int SpeedDelay) {
   delay_ms(SpeedDelay);
 }
 
-void setPixelHeatColor (uint8_t Pixel, uint8_t temperature) {
+void WS2812::setPixelHeatColor (uint8_t Pixel, uint8_t temperature) {
   // Scale 'heat' down from 0-255 to 0-191
   uint8_t t192 = round((temperature/255.0)*191);
   // calculate ramp up from
@@ -165,7 +169,7 @@ void setPixelHeatColor (uint8_t Pixel, uint8_t temperature) {
 }
 
 
-void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
+void WS2812::theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
   for (int j=0; j<10; j++) {  //do 10 cycles of chasing
     for (int q=0; q < 3; q++) {
       for (int i=0; i < NUM_LEDS; i=i+3) {
@@ -180,7 +184,7 @@ void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay) {
   }
 }
 
-void theaterChaseRainbow(int SpeedDelay) {
+void WS2812::theaterChaseRainbow(int SpeedDelay) {
     // Lower Delay values work best, a value of 1-4 seems best/smoothest
     // A delay of 0 doesnt seem to work.
   uint8_t *c;
@@ -200,7 +204,7 @@ void theaterChaseRainbow(int SpeedDelay) {
   }
 }
 
-uint8_t* Wheel(uint8_t WheelPos) {
+uint8_t* WS2812::Wheel(uint8_t WheelPos) {
   static uint8_t c[3];
   if(WheelPos < 85) {
    c[0]=WheelPos * 3;
@@ -220,7 +224,7 @@ uint8_t* Wheel(uint8_t WheelPos) {
   return c;
 }
 
-void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay) {  
+void WS2812::meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay) {  
     setAllRGB(0,0,0,pixels);
     for(int i = 0; i < NUM_LEDS+NUM_LEDS; i++) {
         // fade brightness all LEDs one step
@@ -241,7 +245,7 @@ void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t met
     }
 }
 
-void fadeToBlack(int ledNo, uint8_t fadeValue) {
+void WS2812::fadeToBlack(int ledNo, uint8_t fadeValue) {
     // Used by meteorRain()
     uint8_t r, g, b;
     r = pixels[ledNo][0];
@@ -255,7 +259,7 @@ void fadeToBlack(int ledNo, uint8_t fadeValue) {
     setPixelRGB(r,g,b,ledNo,pixels);
 }
 
-void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay) {
+void WS2812::RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay) {
     
     // Compile Time Check for global NUM_LED value 
     static_assert(NUM_LEDS > 0, "RunningLights - NUM_LEDS needs to be > 0");
@@ -276,7 +280,7 @@ void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3
     }
 }
 
-void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause){
+void WS2812::Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause){
 
   for(int j = 0; j < StrobeCount; j++) {
 
@@ -290,7 +294,7 @@ void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t Flash
  delay_ms(EndPause);
 }
 
-void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
+void WS2812::Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
   setAllRGB(0,0,0,pixels);
   for (uint8_t i=0; i<Count; i++) {
      setPixelRGB(R,G,B,getRandomNumber(0,NUM_LEDS),pixels);
@@ -303,7 +307,7 @@ void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay,
   delay_ms(SpeedDelay);
 }
 
-void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
+void WS2812::TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
   setAllRGB(0,0,0,pixels);
   for (uint8_t i=0; i<Count; i++) {
      setPixelRGB(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,NUM_LEDS),pixels);
