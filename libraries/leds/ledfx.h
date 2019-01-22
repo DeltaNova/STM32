@@ -19,7 +19,8 @@ class WS2812 {
             // Anything which needs to be executed when class instansiated.
         }
 
-    void RGBLoop(uint8_t (&array)[NUM_LEDS][3]);
+    void RGBLoop();
+    /*
     void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
     void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay);
     void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);   // Updated
@@ -36,7 +37,7 @@ class WS2812 {
 
     uint8_t* Wheel(uint8_t WheelPos);
     void setPixelHeatColor (uint8_t Pixel, uint8_t temperature);
-
+    */
 };
 
 #endif // LEDFX_H

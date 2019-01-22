@@ -4,6 +4,37 @@
 
 
 
+
+
+void WS2812::RGBLoop(){
+  for(int j = 0; j < 3; j++ ) { 
+    // Fade IN
+    for(int k = 0; k < 256; k++) { 
+      switch(j) { 
+        case 0: setAllRGB(k,0,0,pixels); break;
+        case 1: setAllRGB(0,k,0,pixels); break;
+        case 2: setAllRGB(0,0,k,pixels); break;
+      }
+
+      writeLED(pixels,NUM_LEDS,DMA_Buffer);
+      delay_ms(3);
+    }
+
+    // Fade OUT
+    for(int k = 255; k >= 0; k--) { 
+      switch(j) { 
+        case 0: setAllRGB(k,0,0,pixels); break;
+        case 1: setAllRGB(0,k,0,pixels); break;
+        case 2: setAllRGB(0,0,k,pixels); break;
+      }
+      writeLED(pixels,NUM_LEDS,DMA_Buffer);
+      delay_ms(3);
+    }
+  }
+}
+
+/*
+ 
 void WS2812::CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay){
   for(int i = 0; i < NUM_LEDS-EyeSize-2; i++) {
     setAllRGB(0,0,0,pixels);
@@ -29,35 +60,6 @@ void WS2812::CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int Speed
   delay_ms(ReturnDelay);
 
 }
-
-void WS2812::RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
-  for(int j = 0; j < 3; j++ ) { 
-    // Fade IN
-    for(int k = 0; k < 256; k++) { 
-      switch(j) { 
-        case 0: setAllRGB(k,0,0,array); break;
-        case 1: setAllRGB(0,k,0,array); break;
-        case 2: setAllRGB(0,0,k,array); break;
-      }
-
-      writeLED(array,NUM_LEDS,DMA_Buffer);
-      delay_ms(3);
-    }
-
-    // Fade OUT
-    for(int k = 255; k >= 0; k--) { 
-      switch(j) { 
-        case 0: setAllRGB(k,0,0,array); break;
-        case 1: setAllRGB(0,k,0,array); break;
-        case 2: setAllRGB(0,0,k,array); break;
-      }
-      writeLED(array,NUM_LEDS,DMA_Buffer);
-      delay_ms(3);
-    }
-  }
-}
-
-
 void WS2812::Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay) {
 
   uint8_t Pixel = getRandomNumber(0,NUM_LEDS);
@@ -67,12 +69,13 @@ void WS2812::Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS]
   setPixelRGB(0,0,0,Pixel,array);
 }
 
+
 void WS2812::SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay) {
-    /*
-     * SparkleDelay - Delay Time in ms (0-65535)
-     * SpeedDelay   - Delay Time in ms (0-65535)
-     * REQ: NUM_LEDS <= 255
-     */
+    
+    // SparkleDelay - Delay Time in ms (0-65535)
+    //SpeedDelay   - Delay Time in ms (0-65535)
+    //REQ: NUM_LEDS <= 255
+    //
     
     // Compile Time Check for global NUM_LED value 
     static_assert(NUM_LEDS > 0, "SnowSparkle - NUM_LEDS needs to be > 0");
@@ -92,12 +95,12 @@ void WS2812::SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_L
 }
 
 void WS2812::colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay) {
-    /*
-     * SpeedDelay   - Delay Time in ms (0-65535)
-     * REQ: NUM_LEDS <= 255
-     * 
-     * SpeedDelay controls how long to wait before changing colour of next LED
-     */
+    
+    // SpeedDelay   - Delay Time in ms (0-65535)
+    //REQ: NUM_LEDS <= 255
+    //
+    //SpeedDelay controls how long to wait before changing colour of next LED
+    
      
     // Compile Time Check for global NUM_LED value 
     static_assert(NUM_LEDS > 0, "colorWipe - NUM_LEDS needs to be > 0");
@@ -319,3 +322,4 @@ void WS2812::TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
    }
   delay_ms(SpeedDelay);
 }
+*/
