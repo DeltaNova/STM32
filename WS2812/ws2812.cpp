@@ -37,8 +37,8 @@ void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
 void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]);
 int getRandomNumber(int min, int max);
 
-void ChristmasLightsStart();
-void ChristmasLights();
+//void ChristmasLightsStart();
+//void ChristmasLights();
 ////////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
@@ -63,7 +63,7 @@ uint8_t RED2[] = {63,0,0};
 #define OFF     {0,0,0}
 #define BRIGHTWHITE {255,255,255}
 
-static uint8_t pixels[NUM_LEDS][3]= {0};
+//static uint8_t pixels[NUM_LEDS][3]= {0};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
@@ -110,7 +110,7 @@ int main(void) {
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
         
-        //RGBLoop(pixels);
+        RGBLoop();
         
         //Sparkle(255,255,255,pixels,3); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
@@ -130,9 +130,10 @@ int main(void) {
         //Fire(55,120,15);
        //ChristmasLights();
        //theaterChaseRainbow(2); 
-       meteorRain(0xad,0x33,0xff,10, 64, true, 30);
+       //meteorRain(0xad,0x33,0xff,10, 64, true, 30);
     }
 }
+/*
  void ChristmasLightsStart(){
      // My Chrsitmas Light Display
         setAllRGB(0,0,0,pixels);
@@ -245,7 +246,7 @@ void ChristmasLights(){
         Fire(55,120,15);
     }
 }
-
+*/
 int getRandomNumber(int min, int max){
     // Generate a random number between min and max (inclusive)
     // Assumes std::srand() has already been called
