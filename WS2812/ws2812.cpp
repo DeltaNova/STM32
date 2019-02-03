@@ -14,7 +14,7 @@
 
 // LED Definitions
 #define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
-#define NUM_LEDS 60
+#define NUM_LEDS 5
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void SysTick_Handler(void);
@@ -189,7 +189,7 @@ int main(void) {
         writeLED(pixels,NUM_LEDS, DMA_Buffer);
         delay_ms(1000);
         */
-        //RGBLoop(pixels);
+        RGBLoop(pixels);
         
         //Sparkle(255,255,255,pixels,3); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
@@ -209,9 +209,10 @@ int main(void) {
         //Fire(55,120,15);
        //ChristmasLights();
        //theaterChaseRainbow(2); 
-       meteorRain(0xad,0x33,0xff,10, 64, true, 30);
+       //meteorRain(0xad,0x33,0xff,10, 64, true, 30);
     }
 }
+/*
  void ChristmasLightsStart(){
      // My Chrsitmas Light Display
         setAllRGB(0,0,0,pixels);
@@ -325,7 +326,7 @@ void ChristmasLights(){
         Fire(55,120,15);
     }
 }
-
+*/
 
 
 
@@ -451,7 +452,7 @@ void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], u
 // TODO@ ADD Bouncing Balls
 // TODO: ADD Multi Colour Bouncing Balls
 
-
+/*
 void Fire(int Cooling, int Sparking, int SpeedDelay) {
   static uint8_t heat[NUM_LEDS];
   int cooldown;
@@ -655,7 +656,7 @@ void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
    }
   delay_ms(SpeedDelay);
 }
-
+*/
     
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
     // Load a colour into an array. An offset is provided to enable
