@@ -11,55 +11,7 @@
 #include "delay.h"              // Simple Delay Function
 #include "stm32f103xb.h"        // HW Specific Header
 
-
-// LED Definitions
-#define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
-#define NUM_LEDS 5
-////////////////////////////////////////////////////////////////////////////////
-// Function Declarations
-extern "C" void SysTick_Handler(void);
-//extern "C" void TIM2_IRQHandler(void);
-extern "C" void DMA1_Channel5_IRQHandler(void);
-void SysTick_Init(void);
-void delay_ms(uint32_t ms);
-void toggleLed();
-void changeColour();
-void PWM_Setup();      // Timer 2 PWM - Ch1 & Ch2
-void DMA_Setup();
-void Timebase_Setup(); // Timebase from Timer using interrupts
-void PC13_LED_Setup(); // Setup PC13 for output LED
-void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
-void loadReset(uint8_t *array, uint8_t offset);
-void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
-void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
-void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
-void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]);
-int getRandomNumber(int min, int max);
-// Effects
-void RGBLoop(uint8_t (&array)[NUM_LEDS][3]);
-void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
-void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay);
-
-void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);   // Updated
-void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay);                            // Updated
-
-void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
-void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause);
-void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
-void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
-void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
-
-void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay);
-void fadeToBlack(int ledNo, uint8_t fadeValue);
-
-void theaterChaseRainbow(int SpeedDelay);
-uint8_t* Wheel(uint8_t WheelPos);
-
-void setPixelHeatColor (uint8_t Pixel, uint8_t temperature);
-void Fire(int Cooling, int Sparking, int SpeedDelay);
-void ChristmasLightsStart();
-void ChristmasLights();
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
 // Create buffers - Size defined by buffer_class.h or variable for compiler.
@@ -69,7 +21,9 @@ void ChristmasLights();
 ////////////////////////////////////////////////////////////////////////////////
 // Defines
 // -------
-
+// LED Definitions
+#define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
+#define NUM_LEDS 5
 
 uint8_t LED_COUNT = NUM_LEDS;      // Number of LEDs in string.
 
@@ -85,6 +39,7 @@ uint8_t RED2[] = {63,0,0};
 #define BRIGHTWHITE {255,255,255}
 
 static uint8_t pixels[NUM_LEDS][3]= {0};
+static uint8_t pixels2[2][3]={0}; // 2 Pixel Array
 /*
 static uint8_t colour0[][3] = {RED, GREEN, OFF, WHITE, BLUE}; // Length 5
 static uint8_t colour1[][3] = {RED, RED, WHITE, BLUE, BLUE}; // Length 5
@@ -116,8 +71,98 @@ static uint32_t counter; // Holds a ms countdown value
 // for the next LED is send the DMA TC (Transfer Complete) Flag is set. 
 // The DMA transfer is setup for cicular mode and will then wrap around to the
 // start.
-uint8_t DMA_Buffer[2*BYTES_PER_LED] = {};
+const uint8_t DMA_Buffer_Size = 2*BYTES_PER_LED;
+uint8_t DMA_Buffer[DMA_Buffer_Size] = {};
 ////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+// Function Declarations
+extern "C" void SysTick_Handler(void);
+//extern "C" void TIM2_IRQHandler(void);
+extern "C" void DMA1_Channel5_IRQHandler(void);
+void SysTick_Init(void);
+void delay_ms(uint32_t ms);
+void toggleLed();
+void changeColour();
+void PWM_Setup();      // Timer 2 PWM - Ch1 & Ch2
+void DMA_Setup();
+void Timebase_Setup(); // Timebase from Timer using interrupts
+void PC13_LED_Setup(); // Setup PC13 for output LED
+void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
+void loadReset(uint8_t *array, uint8_t offset);
+void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
+void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
+void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
+//void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]);
+int getRandomNumber(int min, int max);
+
+template <uint8_t LEDS>
+void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3]){
+    // R,G,B are individual colour values.
+    // array is the array which holds the data for all the pixels in the string.
+    for (uint8_t i = 0; i < LEDS; i++){
+            array[i][0] = R;
+            array[i][1] = G;
+            array[i][2] = B;   
+    }
+}
+
+template <uint8_t LEDS>
+void RGBLoop(uint8_t (&array)[LEDS][3], uint8_t (&Buffer)[DMA_Buffer_Size]){
+  for(int j = 0; j < 3; j++ ) { 
+    // Fade IN
+    for(int k = 0; k < 256; k++) { 
+      switch(j) { 
+        case 0: setAllRGB(k,0,0,array); break;
+        case 1: setAllRGB(0,k,0,array); break;
+        case 2: setAllRGB(0,0,k,array); break;
+      }
+
+      writeLED(array,LEDS,Buffer);
+      delay_ms(3);
+    }
+
+    // Fade OUT
+    for(int k = 255; k >= 0; k--) { 
+      switch(j) { 
+        case 0: setAllRGB(k,0,0,array); break;
+        case 1: setAllRGB(0,k,0,array); break;
+        case 2: setAllRGB(0,0,k,array); break;
+      }
+      writeLED(array,LEDS,Buffer);
+      delay_ms(3);
+    }
+  }
+}
+
+
+
+/*
+// Effects
+//void RGBLoop(uint8_t (&array)[][3]);
+void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
+void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay);
+
+void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);   // Updated
+void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay);                            // Updated
+
+void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
+void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause);
+void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
+void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
+void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
+
+void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay);
+void fadeToBlack(int ledNo, uint8_t fadeValue);
+
+void theaterChaseRainbow(int SpeedDelay);
+uint8_t* Wheel(uint8_t WheelPos);
+
+void setPixelHeatColor (uint8_t Pixel, uint8_t temperature);
+void Fire(int Cooling, int Sparking, int SpeedDelay);
+void ChristmasLightsStart();
+void ChristmasLights();
+*/
 // Main - Called by the startup code.
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
@@ -189,8 +234,8 @@ int main(void) {
         writeLED(pixels,NUM_LEDS, DMA_Buffer);
         delay_ms(1000);
         */
-        RGBLoop(pixels);
-        
+        RGBLoop(pixels, DMA_Buffer);
+        RGBLoop(pixels2, DMA_Buffer);
         //Sparkle(255,255,255,pixels,3); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
         //CylonBounce(255,0,0,4,10,50);
@@ -367,7 +412,9 @@ void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, i
 }
 */
 
-void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
+
+/*
+void RGBLoop(uint8_t (&array)[][3], uint8_t LEDS){
   for(int j = 0; j < 3; j++ ) { 
     // Fade IN
     for(int k = 0; k < 256; k++) { 
@@ -377,7 +424,7 @@ void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
         case 2: setAllRGB(0,0,k,array); break;
       }
 
-      writeLED(array,NUM_LEDS,DMA_Buffer);
+      writeLED(array,LEDS,DMA_Buffer);
       delay_ms(3);
     }
 
@@ -388,13 +435,12 @@ void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
         case 1: setAllRGB(0,k,0,array); break;
         case 2: setAllRGB(0,0,k,array); break;
       }
-      writeLED(array,NUM_LEDS,DMA_Buffer);
+      writeLED(array,LEDS,DMA_Buffer);
       delay_ms(3);
     }
   }
 }
-
-
+*/
 /*
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay) {
 
@@ -770,6 +816,7 @@ void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]){
     }
 }
 
+/*
 void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]){
     // R,G,B are individual colour values.
     // array is the array which holds the data for all the pixels in the string.
@@ -779,7 +826,7 @@ void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]){
             array[i][2] = B;   
     }
 }
-
+*/
 
 void DMA_Setup(){
     // DMA Setup - DMA1 Channel 5 for use with TIM2 Channel 1
