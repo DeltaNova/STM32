@@ -339,7 +339,7 @@ int getRandomNumber(int min, int max){
     return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
 }
 
-
+/*
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay){
   for(int i = 0; i < NUM_LEDS-EyeSize-2; i++) {
     setAllRGB(0,0,0,pixels);
@@ -365,6 +365,7 @@ void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, i
   delay_ms(ReturnDelay);
 
 }
+*/
 
 void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
   for(int j = 0; j < 3; j++ ) { 
@@ -394,6 +395,7 @@ void RGBLoop(uint8_t (&array)[NUM_LEDS][3]){
 }
 
 
+/*
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay) {
 
   uint8_t Pixel = getRandomNumber(0,NUM_LEDS);
@@ -402,13 +404,14 @@ void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uin
   delay_ms(SpeedDelay);
   setPixelRGB(0,0,0,Pixel,array);
 }
-
+*/
+/*
 void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay) {
-    /*
-     * SparkleDelay - Delay Time in ms (0-65535)
-     * SpeedDelay   - Delay Time in ms (0-65535)
-     * REQ: NUM_LEDS <= 255
-     */
+    
+     // SparkleDelay - Delay Time in ms (0-65535)
+     // SpeedDelay   - Delay Time in ms (0-65535)
+     // REQ: NUM_LEDS <= 255
+     
     
     // Compile Time Check for global NUM_LED value 
     static_assert(NUM_LEDS > 0, "SnowSparkle - NUM_LEDS needs to be > 0");
@@ -428,12 +431,11 @@ void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],
 }
 
 void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay) {
-    /*
-     * SpeedDelay   - Delay Time in ms (0-65535)
-     * REQ: NUM_LEDS <= 255
-     * 
-     * SpeedDelay controls how long to wait before changing colour of next LED
-     */
+     // SpeedDelay   - Delay Time in ms (0-65535)
+     //REQ: NUM_LEDS <= 255
+     //
+     //SpeedDelay controls how long to wait before changing colour of next LED
+     //
      
     // Compile Time Check for global NUM_LED value 
     static_assert(NUM_LEDS > 0, "colorWipe - NUM_LEDS needs to be > 0");
@@ -446,6 +448,7 @@ void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], u
       delay_ms(SpeedDelay);                 // Wait before next LED
   }
 }
+*/
 // TODO: ADD FadeInOut
 // TODO: ADD rainbow cycle effect
 
