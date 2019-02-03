@@ -61,7 +61,7 @@ static uint8_t colour9[][3] = {PINK, PINK, PINK, PINK, PINK};
 // Global Variables
 
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
-volatile uint32_t colour_change = 6001; // Used LED Colour Change Interval
+
 
 uint8_t colour_rotation = 0;         // Used in loading colour sequence.
 
@@ -948,50 +948,7 @@ void PC13_LED_Setup(){
     GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
     GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
 }
-/*
-void changeColour(){
-    if (colour_change == 0){
-        // Change the colours of the LEDS
-        // Note: Currently the Timer & DMA are stopped after the previous
-        //       transfer. Allowing time to load the data into the array. 
-        //       Need to restart them to allow the colour change to complete.
-        if (colour_rotation == 0){
-            loadColour(RED,pwm_array,0);
-            loadColour(GREEN,pwm_array,24);
-        } 
-        else if (colour_rotation == 1){
-            loadColour(GREEN,pwm_array,0);
-            loadColour(BLUE,pwm_array,24);
-        }
-        else if (colour_rotation == 2){
-            loadColour(BLUE,pwm_array,0);
-            loadColour(WHITE,pwm_array,24);
-        }
-        else{
-            loadColour(OFF,pwm_array,0);
-            loadColour(OFF,pwm_array,24);
-        }
-        
-        // Select next colour rotation, loop around at end.
-        if (colour_rotation > 2){
-            colour_rotation = 0; // Reset Colour Rotation
-        }
-        else{
-            colour_rotation++; 
-        }
-        
-        //DMA1_Channel5->CNDTR = 96;
-        // Enable DMA (Before Timer)
-        DMA1_Channel5->CCR |= 0x00000001;
-        // Enable Timer
-        TIM2->CR1 |= 0x0001;
-        
-        
-        // Reset the Counter
-        colour_change = 6001; // 6 Seconds based on 1ms SysTick
-    }
-}
-*/
+
 void toggleLed(){
     // Toggle the LED attached to PC13
     if (flash == 0){
@@ -1023,10 +980,6 @@ void SysTick_Handler(void){
     if (counter !=0){ // Decrement the counter
         --counter;
     }
-    //if (colour_change !=0){ // Decrement the Colour Change Counter
-    //    --colour_change;
-    //}
-}
 
 }
 
