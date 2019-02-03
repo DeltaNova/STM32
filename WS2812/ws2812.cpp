@@ -12,6 +12,10 @@
 #include "stm32f103xb.h"        // HW Specific Header
 #include "systick.h"            // SysTick Configuration
 
+#ifndef BYTES_PER_LED
+// Override the value in ws2812.h (Default: 24)
+#define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
+#endif  // BYTES_PER_LED
 
 #include "ws2812.h"     // WS2812 LED Library
 
@@ -26,7 +30,7 @@
 // Defines
 // -------
 // LED Definitions
-#define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
+
 #define NUM_LEDS 5
 
 uint8_t LED_COUNT = NUM_LEDS;      // Number of LEDs in string.
