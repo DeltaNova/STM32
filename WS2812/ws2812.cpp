@@ -16,9 +16,9 @@
 // Override the value in ws2812.h (Default: 24)
 #define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
 #endif  // BYTES_PER_LED
-
 #include "ws2812.h"     // WS2812 LED Library
 
+extern volatile uint32_t ticks;
 ///////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------

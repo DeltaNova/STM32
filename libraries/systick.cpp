@@ -3,6 +3,8 @@
 #include "stm32f103xb.h"        // HW Specific Header
 #include "systick.h"
 
+// ticks is required to be accessable by the Systick Hander in the main program.
+volatile uint32_t ticks = 0;        // Used for SysTick count down.
 void SysTick_Init(void){
     // SystemCoreClock/1000     =  1ms
     // SystemCoreClock/100000   = 10us
