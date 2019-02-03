@@ -8,7 +8,7 @@
 #include <math.h>               // sin()
 #include "buffer_class.h"       // Circular Buffer Class
 #include "clock.h"              // Setup system and peripheral clocks
-#include "delay.h"              // Simple Delay Function
+//#include "delay.h"              // Simple Delay Function
 #include "stm32f103xb.h"        // HW Specific Header
 #include "systick.h"            // SysTick Configuration
 
@@ -48,19 +48,7 @@ uint8_t RED2[] = {63,0,0};
 
 static uint8_t pixels[NUM_LEDS][3]= {0};
 static uint8_t pixels2[2][3]={0}; // 2 Pixel Array
-/*
-static uint8_t colour0[][3] = {RED, GREEN, OFF, WHITE, BLUE}; // Length 5
-static uint8_t colour1[][3] = {RED, RED, WHITE, BLUE, BLUE}; // Length 5
-static uint8_t colour2[][3] = {BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE, BRIGHTWHITE,BRIGHTWHITE}; // Length 5
 
-static uint8_t colour3[][3] = {GREEN, GREEN, GREEN, GREEN, GREEN};
-static uint8_t colour4[][3] = {RED, GREEN, GREEN, GREEN, GREEN};
-static uint8_t colour5[][3] = {GREEN, RED, GREEN, GREEN, GREEN};
-static uint8_t colour6[][3] = {GREEN, GREEN, RED, GREEN, GREEN};
-static uint8_t colour7[][3] = {GREEN, GREEN, GREEN, RED, GREEN};
-static uint8_t colour8[][3] = {GREEN, GREEN, GREEN, GREEN, RED};
-static uint8_t colour9[][3] = {PINK, PINK, PINK, PINK, PINK};
-*/
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 
