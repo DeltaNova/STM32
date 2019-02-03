@@ -57,10 +57,7 @@ volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 
 uint8_t colour_rotation = 0;         // Used in loading colour sequence.
 
-static uint8_t currentLED = 0;      // Tracks LED write progress
-// Points to the colour sequence being sent. Used to allow DMA_ISR to load
-// data into buffer.
-static uint8_t (*LEDSequence)[3];
+
 static uint32_t counter; // Holds a ms countdown value
 // The DMA Buffer needs to be able to hold the data for 2 LEDs. When the data
 // for one LED is sent the DMA HT (Half Transfer) Flag is set. After the data 
@@ -195,6 +192,7 @@ int main(void) {
         delay_ms(1000);
         */
         RGBLoop(pixels, DMA_Buffer);
+        RGBLoop(pixels2, DMA_Buffer);
         RGBLoop(pixels2, DMA_Buffer);
         //Sparkle(255,255,255,pixels,3); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
@@ -667,45 +665,17 @@ void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
 }
 */
     
-void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
-    // Load a colour into an array. An offset is provided to enable
-    // multiple colours to be loaded into the same array at differnt points.
-    uint8_t i;
-    /*
-    // colour is an RGB Array
-    // colour[0] = RED Component
-    // colour[1] = GREEN Component
-    // colour[2] = BLUE Component
-    // Order for output array is GRB
-    */
-    for(i=0; i<8; i++){ // Load GREEN Component
-        array[i+offset] = ((colour[1]<<i) & 0x80) ? 0x0F:0x09;
-    }
-    for(i=0; i<8; i++){ // Load RED Component (Offset by 8 bits from GREEN)
-        array[i+offset+8] = ((colour[0]<<i) & 0x80) ? 0x0F:0x09;
-    }
-    for(i=0; i<8; i++){ // Load BLUE Component (Offset by 16 bits from GREEN)
-        array[i+offset+16] = ((colour[2]<<i) & 0x80) ? 0x0F:0x09;
-    }
-   
-}
 
-void loadReset(uint8_t *array, uint8_t offset){
-    // Load zeros into buffer to generate PWM reset period.
-    uint8_t i;
-    for (i=0; i<BYTES_PER_LED; i++){
-        array[i+offset] = 0x00;    
-    }    
-}    
 
+/*
 void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
-    /*
+    
     // Setup the transfer of colour information to the LEDS.
     // This function loads the initial information into the array buffer and
     // tracks the progress using the global currentLED variable.
     // The transfer is started. The data that initially isn't within the
     // buffer is loaded later when the DMA HT/TC interrups trigger.
-    */
+    
     
     
     if (length <1){
@@ -747,7 +717,7 @@ void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
     DMA1_Channel5->CCR |= 0x00000001;           // Enable DMA
     TIM2->CR1 |= 0x0001;                        // Enable Timer
 }
-
+*/
 void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]){
     // pixel is the LED position in the string
     // colour is an array of R,G,B values
