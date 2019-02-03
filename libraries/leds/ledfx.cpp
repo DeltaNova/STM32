@@ -6,32 +6,7 @@
 
 
 
-void WS2812::RGBLoop(){
-  for(int j = 0; j < 3; j++ ) { 
-    // Fade IN
-    for(int k = 0; k < 256; k++) { 
-      switch(j) { 
-        case 0: setAllRGB(k,0,0,pixels); break;
-        case 1: setAllRGB(0,k,0,pixels); break;
-        case 2: setAllRGB(0,0,k,pixels); break;
-      }
 
-      writeLED(pixels,NUM_LEDS,DMA_Buffer);
-      delay_ms(3);
-    }
-
-    // Fade OUT
-    for(int k = 255; k >= 0; k--) { 
-      switch(j) { 
-        case 0: setAllRGB(k,0,0,pixels); break;
-        case 1: setAllRGB(0,k,0,pixels); break;
-        case 2: setAllRGB(0,0,k,pixels); break;
-      }
-      writeLED(pixels,NUM_LEDS,DMA_Buffer);
-      delay_ms(3);
-    }
-  }
-}
 
 /*
  

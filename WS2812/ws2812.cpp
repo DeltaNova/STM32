@@ -15,7 +15,7 @@
 
 // LED Definitions
 #define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
-#define NUM_LEDS 60
+#define NUM_LEDS 5
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void SysTick_Handler(void);
@@ -63,7 +63,7 @@ uint8_t RED2[] = {63,0,0};
 #define OFF     {0,0,0}
 #define BRIGHTWHITE {255,255,255}
 
-//static uint8_t pixels[NUM_LEDS][3]= {0};
+static uint8_t pixels[NUM_LEDS][3]= {0};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
@@ -93,6 +93,8 @@ int main(void) {
     DMA_Setup();
     PWM_Setup();
 
+
+    WS2812<5>leds(); // Create instance of WS2812 LED String
     // The counter will count to the reload value where upon it will toggle the
     // output state of each channel back to its reset value. 
     // During the count, before the reload value is reached, the count is 
@@ -110,7 +112,9 @@ int main(void) {
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13)  to indicate loop operational
         
-        RGBLoop();
+        //leds.RGBLoop();
+        leds.setPixelRGB(100,100,100,3); // Light Pixel 3
+        
         
         //Sparkle(255,255,255,pixels,3); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
