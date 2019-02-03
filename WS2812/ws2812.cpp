@@ -96,6 +96,11 @@ void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
 //void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]);
 int getRandomNumber(int min, int max);
 
+
+// Template functions created to allow use with LED strings of different lengths within the same program.
+// Templated functions will cause a slight increase in code size dependant on how many times they are required.
+// DMA Buffer passed as a variable since different strings might use different DMA channels in future.
+
 template <uint8_t LEDS>
 void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3]){
     // R,G,B are individual colour values.
