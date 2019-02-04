@@ -16,7 +16,7 @@
 // Override the value in ws2812.h (Default: 24)
 #define BYTES_PER_LED 24 // Number of bytes holding colour data for each LED.
 #endif  // BYTES_PER_LED
-#include "ws2812.h"     // WS2812 LED Library
+#include "ledfx.h"     // WS2812 LED Library
 
 extern volatile uint32_t ticks;
 ///////////////////////////////////////////////////////////////////////////////
@@ -81,8 +81,8 @@ void DMA_Setup();
 void Timebase_Setup(); // Timebase from Timer using interrupts
 void PC13_LED_Setup(); // Setup PC13 for output LED
 
-void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
-void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
+//void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
+
 void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
 
 int getRandomNumber(int min, int max);
@@ -94,19 +94,14 @@ int getRandomNumber(int min, int max);
 
 /*
 // Effects
-//void RGBLoop(uint8_t (&array)[][3]);
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
 void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay);
-
 void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);   // Updated
-void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay);                            // Updated
-
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
 void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause);
 void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
 void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
 void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
-
 void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay);
 void fadeToBlack(int ledNo, uint8_t fadeValue);
 
@@ -168,30 +163,30 @@ int main(void) {
         //setAllRGB(0,0,0,pixels);
         
         //setPixel(RED2,0,pixels);
-        //setPixelRGB(0,0,63,1,pixels);
-        //setPixelRGB(255,20,147,2,pixels);
-        //writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        //delay_ms(1000);
-        /*
-        setAllRGB(138,43,226, pixels);
+        setPixelRGB(0,0,63,1,pixels);
+        setPixelRGB(255,20,147,2,pixels);
         writeLED(pixels,NUM_LEDS, DMA_Buffer);
         delay_ms(1000);
         
-        setAllRGB(255,255,255, pixels);
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(1000);
+        //setAllRGB(138,43,226, pixels);
+        //writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        //delay_ms(1000);
+        
+        //setAllRGB(255,255,255, pixels);
+        //writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        //delay_ms(1000);
         
         setAllRGB(250,20,147, pixels);
         writeLED(pixels,NUM_LEDS, DMA_Buffer);
         delay_ms(4000);
         
-        setAll(RED2, pixels);
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(1000);
-        */
-        RGBLoop(pixels, DMA_Buffer);
+        //setAll(RED2, pixels);
+        //writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        //delay_ms(1000);
+        
+        //RGBLoop(pixels, DMA_Buffer);
         RGBLoop(pixels2, DMA_Buffer);
-        RGBLoop(pixels2, DMA_Buffer);
+        //RGBLoop(pixels2, DMA_Buffer);
         //Sparkle(255,255,255,pixels,3); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
         //CylonBounce(255,0,0,4,10,50);
@@ -204,8 +199,8 @@ int main(void) {
         //RunningLights(255,0,0,50); //RED
         //RunningLights(255,255,255,pixels,50);//WHITE
         //RunningLights(0,0,255,50); //BLUE
-        //colorWipe(0x00,0xff,0x00, pixels, 50);
-        //colorWipe(0x00,0x00,0x00, pixels, 50);
+        colorWipe(0x00,0xff,0x00, pixels, 50, DMA_Buffer);
+        colorWipe(0x00,0x00,0x00, pixels, 50, DMA_Buffer);
         //theaterChase(0xff,0,0,50);
         //Fire(55,120,15);
        //ChristmasLights();
@@ -405,24 +400,7 @@ void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],
     delay_ms(SpeedDelay);                     // Hold ALL LED colours.
 }
 
-void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SpeedDelay) {
-     // SpeedDelay   - Delay Time in ms (0-65535)
-     //REQ: NUM_LEDS <= 255
-     //
-     //SpeedDelay controls how long to wait before changing colour of next LED
-     //
-     
-    // Compile Time Check for global NUM_LED value 
-    static_assert(NUM_LEDS > 0, "colorWipe - NUM_LEDS needs to be > 0");
-    static_assert(NUM_LEDS <= 255, "colorWipe - NUM_LEDS needs to be <= 255");
-    
-    uint8_t i;
-    for(i=0; i<NUM_LEDS; i++) {             // For each LED in turn
-      setPixelRGB(R, G, B, i, array);       // Set the new colour of the LED
-      writeLED(array,NUM_LEDS,DMA_Buffer);  // Update ALL LED colours
-      delay_ms(SpeedDelay);                 // Wait before next LED
-  }
-}
+
 */
 // TODO: ADD FadeInOut
 // TODO: ADD rainbow cycle effect
@@ -639,33 +617,11 @@ void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
 
 
 
-void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]){
-    // pixel is the LED position in the string
-    // colour is an array of R,G,B values
-    // array is the array which holds the data for all the pixels in the string.
-    array[pixel][0] = colour[0];
-    array[pixel][1] = colour[1];
-    array[pixel][2] = colour[2];
-    }
 
-void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]){
-    // pixel is the LED position in the string
-    // R,G,B are individual colour values.
-    // array is the array which holds the data for all the pixels in the string.
-    array[pixel][0] = R;
-    array[pixel][1] = G;
-    array[pixel][2] = B;
-    }
 
-void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]){
-    // R,G,B are individual colour values.
-    // array is the array which holds the data for all the pixels in the string.
-    for (uint8_t i = 0; i < NUM_LEDS; i++){
-            array[i][0] = colour[0];
-            array[i][1] = colour[1];
-            array[i][2] = colour[2];   
-    }
-}
+
+
+
 
 
 void DMA_Setup(){
