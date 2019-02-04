@@ -110,7 +110,6 @@ void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
     DMA1_Channel5->CCR |= 0x00000001;           // Enable DMA
     TIM2->CR1 |= 0x0001;                        // Enable Timer
 }
-
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset){
     // Load a colour into an array. An offset is provided to enable
     // multiple colours to be loaded into the same array at differnt points.

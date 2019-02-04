@@ -73,20 +73,18 @@ uint8_t DMA_Buffer[2*BYTES_PER_LED] = {};
 extern "C" void SysTick_Handler(void);
 //extern "C" void TIM2_IRQHandler(void);
 extern "C" void DMA1_Channel5_IRQHandler(void);
-void SysTick_Init(void);
-void delay_ms(uint32_t ms);
+
 void toggleLed();
 void changeColour();
 void PWM_Setup();      // Timer 2 PWM - Ch1 & Ch2
 void DMA_Setup();
 void Timebase_Setup(); // Timebase from Timer using interrupts
 void PC13_LED_Setup(); // Setup PC13 for output LED
-void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
-void loadReset(uint8_t *array, uint8_t offset);
+
 void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
-//void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]);
+
 int getRandomNumber(int min, int max);
 
 
@@ -371,34 +369,7 @@ void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, i
 */
 
 
-/*
-void RGBLoop(uint8_t (&array)[][3], uint8_t LEDS){
-  for(int j = 0; j < 3; j++ ) { 
-    // Fade IN
-    for(int k = 0; k < 256; k++) { 
-      switch(j) { 
-        case 0: setAllRGB(k,0,0,array); break;
-        case 1: setAllRGB(0,k,0,array); break;
-        case 2: setAllRGB(0,0,k,array); break;
-      }
 
-      writeLED(array,LEDS,DMA_Buffer);
-      delay_ms(3);
-    }
-
-    // Fade OUT
-    for(int k = 255; k >= 0; k--) { 
-      switch(j) { 
-        case 0: setAllRGB(k,0,0,array); break;
-        case 1: setAllRGB(0,k,0,array); break;
-        case 2: setAllRGB(0,0,k,array); break;
-      }
-      writeLED(array,LEDS,DMA_Buffer);
-      delay_ms(3);
-    }
-  }
-}
-*/
 /*
 void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay) {
 
@@ -667,57 +638,7 @@ void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
     
 
 
-/*
-void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
-    
-    // Setup the transfer of colour information to the LEDS.
-    // This function loads the initial information into the array buffer and
-    // tracks the progress using the global currentLED variable.
-    // The transfer is started. The data that initially isn't within the
-    // buffer is loaded later when the DMA HT/TC interrups trigger.
-    
-    
-    
-    if (length <1){
-        // No data to send. Return without doing anything else.
-        return; 
-    }
-    
-    // Check for exisiting write (Timer and DMA Enabled).
-    // Continue when previous write has finished.
-    while((TIM2->CR1 & 0x0001) && (DMA1_Channel5->CCR & 0x00000001)){
-        // Wait until previous write has finished
-    }
-    
-    // Store the sequence being sent so it can be referenced by the ISR.
-    LEDSequence = colour; 
-    
-    currentLED = 0; // Reset Global variable
-    
-    if (currentLED < length){
-        // Load the colour data into the DMA Buffer (1st Half)
-        loadColour(LEDSequence[currentLED], buffer, 0);
-    }else{
-        loadReset(buffer,0);
-    }
-    
-    currentLED++; // Next LED
-    
-    if (currentLED < length){
-        // Load the colour data into the DMA Buffer (2nd Half)
-        loadColour(LEDSequence[currentLED], buffer, BYTES_PER_LED);
-    }else{
-        loadReset(buffer,BYTES_PER_LED);
-    }
-    
-    currentLED++; // Next LED
-    
-    // CNDTR is size of buffer to transfer NOT the size of the data to transfer.
-    DMA1_Channel5->CNDTR = (2*BYTES_PER_LED);  // Set Buffer Size
-    DMA1_Channel5->CCR |= 0x00000001;           // Enable DMA
-    TIM2->CR1 |= 0x0001;                        // Enable Timer
-}
-*/
+
 void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]){
     // pixel is the LED position in the string
     // colour is an array of R,G,B values
@@ -746,17 +667,6 @@ void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]){
     }
 }
 
-/*
-void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]){
-    // R,G,B are individual colour values.
-    // array is the array which holds the data for all the pixels in the string.
-    for (uint8_t i = 0; i < NUM_LEDS; i++){
-            array[i][0] = R;
-            array[i][1] = G;
-            array[i][2] = B;   
-    }
-}
-*/
 
 void DMA_Setup(){
     // DMA Setup - DMA1 Channel 5 for use with TIM2 Channel 1
