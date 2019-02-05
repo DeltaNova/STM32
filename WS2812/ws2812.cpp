@@ -18,7 +18,7 @@
 #endif  // BYTES_PER_LED
 #include "ledfx.h"     // WS2812 LED Library
 
-extern volatile uint32_t ticks;
+extern volatile uint32_t ticks; // SysTick Library
 ///////////////////////////////////////////////////////////////////////////////
 // Buffers
 // -------
