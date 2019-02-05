@@ -198,8 +198,20 @@ void TwinkleRandom(uint8_t (&array)[LEDS][3], uint8_t Count, uint8_t SpeedDelay,
   delay_ms(SpeedDelay);
 }
 
+template <uint8_t LEDS>
+void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause, uint8_t (&Buffer)[2*BYTES_PER_LED]){
 
+  for(int j = 0; j < StrobeCount; j++) {
 
+    setAllRGB(R,G,B,array);
+    writeLED(array,LEDS, Buffer);
+    delay_ms(FlashDelay);
+    setAllRGB(0,0,0,array);
+    writeLED(array,LEDS, Buffer);
+    delay_ms(FlashDelay);
+  }
+ delay_ms(EndPause);
+}
 
 template <uint8_t LEDS>
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t EyeSize, int SpeedDelay, int ReturnDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]){

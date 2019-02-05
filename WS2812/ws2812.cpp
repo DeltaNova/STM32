@@ -85,10 +85,6 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 // Effects
 
 void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay);
-
-void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause);
-void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
-void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
 void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
 void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay);
 void fadeToBlack(int ledNo, uint8_t fadeValue);
@@ -180,10 +176,10 @@ int main(void) {
         //Sparkle(255,255,255,pixels,3, DMA_Buffer); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3,DMA_Buffer);
         //CylonBounce(255,0,0, pixels, 4,10,50, DMA_Buffer); // Need to test on a large string
-        //Strobe(255,0x77,0,10,100,1000); //Slow
-        //Strobe(255,255,255,10,50,1000); //Fast
-        Twinkle(255,0,0,pixels,10,100,false, DMA_Buffer);
-        TwinkleRandom(pixels, 20,100,false, DMA_Buffer);
+        Strobe(255,0x77,0,pixels,10,100,1000, DMA_Buffer); //Slow
+        Strobe(255,255,255,pixels,10,50,1000, DMA_Buffer); //Fast
+        //Twinkle(255,0,0,pixels,10,100,false, DMA_Buffer);
+        //TwinkleRandom(pixels, 20,100,false, DMA_Buffer);
         //SnowSparkle(0x10, 0x10, 0x10, pixels, 20, getRandomNumber(100,1000), DMA_Buffer);
         //RunningLights(255,255,0, pixels, 50, DMA_Buffer);  //Yellow
         //RunningLights(255,0,0, pixels, 50, DMA_Buffer ); //RED
@@ -313,15 +309,6 @@ void ChristmasLights(){
     }
 }
 */
-
-
-
-
-
-
-
-
-
 
 // TODO: ADD FadeInOut
 // TODO: ADD rainbow cycle effect
@@ -475,19 +462,7 @@ void fadeToBlack(int ledNo, uint8_t fadeValue) {
 
 
 
-void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause){
 
-  for(int j = 0; j < StrobeCount; j++) {
-
-    setAllRGB(R,G,B,pixels);
-    writeLED(pixels,NUM_LEDS, DMA_Buffer);
-    delay_ms(FlashDelay);
-    setAllRGB(0,0,0,pixels);
-    writeLED(pixels,NUM_LEDS, DMA_Buffer);
-    delay_ms(FlashDelay);
-  }
- delay_ms(EndPause);
-}
 
 
 */
