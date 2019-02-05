@@ -19,6 +19,7 @@ static uint8_t (*LEDSequence)[3];
 void loadReset(uint8_t *array, uint8_t offset);
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset);
 void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
+int getRandomNumber(int min, int max);
 
 template <uint8_t LEDS>
 void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[LEDS][3]){
@@ -188,5 +189,12 @@ void loadReset(uint8_t *array, uint8_t offset){
         array[i+offset] = 0x00;    
     }    
 }    
-
+int getRandomNumber(int min, int max){
+    // Generate a random number between min and max (inclusive)
+    // Assumes std::srand() has already been called
+    // Assumes max - min <= RAND_MAX
+    static const double fraction = 1.0 / (RAND_MAX + 1.0);  // static used for efficiency, so we only calculate this value once
+    // evenly distribute the random number across our range
+    return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
+}
 #endif // WS2812_H

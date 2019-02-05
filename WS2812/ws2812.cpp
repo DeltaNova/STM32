@@ -85,7 +85,7 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 
 //void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
 
-int getRandomNumber(int min, int max);
+
 
 
 
@@ -326,14 +326,6 @@ void ChristmasLights(){
 
 
 
-int getRandomNumber(int min, int max){
-    // Generate a random number between min and max (inclusive)
-    // Assumes std::srand() has already been called
-    // Assumes max - min <= RAND_MAX
-    static const double fraction = 1.0 / (RAND_MAX + 1.0);  // static used for efficiency, so we only calculate this value once
-    // evenly distribute the random number across our range
-    return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
-}
 
 /*
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay){
