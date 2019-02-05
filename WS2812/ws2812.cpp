@@ -94,7 +94,7 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 
 /*
 // Effects
-void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay);
+
 void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay);
 void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);   // Updated
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
@@ -189,9 +189,9 @@ int main(void) {
         //RGBLoop(pixels, DMA_Buffer);
         RGBLoop(pixels2, DMA_Buffer);
         //RGBLoop(pixels2, DMA_Buffer);
-        //Sparkle(255,255,255,pixels,3); // White Sparkle
-        //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3);
-        //CylonBounce(255,0,0,4,10,50);
+        //Sparkle(255,255,255,pixels,3, DMA_Buffer); // White Sparkle
+        //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3,DMA_Buffer);
+        CylonBounce(255,0,0, pixels, 4,10,50, DMA_Buffer); // Need to test on a large string
         //Strobe(255,0x77,0,10,100,1000); //Slow
         //Strobe(255,255,255,10,50,1000); //Fast
         //Twinkle(255,0,0,10,100,false);
@@ -201,8 +201,8 @@ int main(void) {
         //RunningLights(255,0,0,50); //RED
         //RunningLights(255,255,255,pixels,50);//WHITE
         //RunningLights(0,0,255,50); //BLUE
-        colorWipe(0x00,0xff,0x00, pixels, 50, DMA_Buffer);
-        colorWipe(0x00,0x00,0x00, pixels, 50, DMA_Buffer);
+        //colorWipe(0x00,0xff,0x00, pixels, 50, DMA_Buffer);
+        //colorWipe(0x00,0x00,0x00, pixels, 50, DMA_Buffer);
         //theaterChase(0xff,0,0,50);
         //Fire(55,120,15);
        //ChristmasLights();
@@ -330,7 +330,9 @@ void ChristmasLights(){
 
 
 
-/*
+
+
+
 
 /*
 void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay) {
