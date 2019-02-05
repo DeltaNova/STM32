@@ -111,6 +111,49 @@ void colorWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint1
   }
 }
 
+
+template <uint8_t LEDS>
+void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t SpeedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]) {
+
+  uint8_t Pixel = getRandomNumber(0,LEDS);
+  setPixelRGB(R,G,B,Pixel,array);
+  writeLED(array,LEDS,Buffer);
+  delay_ms(SpeedDelay);
+  setPixelRGB(0,0,0,Pixel,array);
+}
+
+
+template <uint8_t LEDS>
+void CylonBounce(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t EyeSize, int SpeedDelay, int ReturnDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]){
+  for(uint8_t i = 0; i < LEDS-EyeSize-2; i++) {
+    setAllRGB(0,0,0,array);
+    setPixelRGB(R/10, G/10, B/10, i, array);
+    for(uint8_t j = 1; j <= EyeSize; j++) {
+      setPixelRGB(R, G, B, i+j, array); 
+    }
+    setPixelRGB(R/10, G/10, B/10, i+EyeSize+1, array);
+    writeLED(array,LEDS, Buffer);
+    delay_ms(SpeedDelay);
+  }
+  delay_ms(ReturnDelay);
+  for(uint8_t i = LEDS-EyeSize-2; i > 0; i--) {
+    setAllRGB(0,0,0,array);
+    setPixelRGB(R/10, G/10, B/10,i,array);
+    for(uint8_t j = 1; j <= EyeSize; j++) {
+      setPixelRGB(R, G, B, i+j, array); 
+    }
+    setPixelRGB(R/10, G/10, B/10,i+EyeSize+1, array);
+    writeLED(array,LEDS, Buffer);
+    delay_ms(SpeedDelay);
+  }
+  delay_ms(ReturnDelay);
+
+}
+
+
+
+
+
 void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
     /*
     // Setup the transfer of colour information to the LEDS.

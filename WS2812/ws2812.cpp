@@ -329,46 +329,9 @@ void ChristmasLights(){
 
 
 
-/*
-void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay){
-  for(int i = 0; i < NUM_LEDS-EyeSize-2; i++) {
-    setAllRGB(0,0,0,pixels);
-    setPixelRGB(R/10, G/10, B/10, i,pixels);
-    for(int j = 1; j <= EyeSize; j++) {
-      setPixelRGB(R, G, B, i+j, pixels); 
-    }
-    setPixelRGB(R/10, G/10, B/10, i+EyeSize+1, pixels);
-    writeLED(pixels,NUM_LEDS, DMA_Buffer);
-    delay_ms(SpeedDelay);
-  }
-  delay_ms(ReturnDelay);
-  for(int i = NUM_LEDS-EyeSize-2; i > 0; i--) {
-    setAllRGB(0,0,0,pixels);
-    setPixelRGB(R/10, G/10, B/10,i,pixels);
-    for(int j = 1; j <= EyeSize; j++) {
-      setPixelRGB(R, G, B, i+j, pixels); 
-    }
-    setPixelRGB(R/10, G/10, B/10,i+EyeSize+1, pixels);
-    writeLED(pixels,NUM_LEDS, DMA_Buffer);
-    delay_ms(SpeedDelay);
-  }
-  delay_ms(ReturnDelay);
-
-}
-*/
-
-
 
 /*
-void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint8_t SpeedDelay) {
 
-  uint8_t Pixel = getRandomNumber(0,NUM_LEDS);
-  setPixelRGB(R,G,B,Pixel,array);
-  writeLED(array,NUM_LEDS,DMA_Buffer);
-  delay_ms(SpeedDelay);
-  setPixelRGB(0,0,0,Pixel,array);
-}
-*/
 /*
 void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay) {
     
