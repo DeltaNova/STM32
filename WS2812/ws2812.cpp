@@ -87,7 +87,7 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay);
 void theaterChase(uint8_t R, uint8_t G, uint8_t B, uint8_t SpeedDelay);
 void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay);
-void fadeToBlack(int ledNo, uint8_t fadeValue);
+
 
 void theaterChaseRainbow(int SpeedDelay);
 uint8_t* Wheel(uint8_t WheelPos);
@@ -176,8 +176,8 @@ int main(void) {
         //Sparkle(255,255,255,pixels,3, DMA_Buffer); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3,DMA_Buffer);
         //CylonBounce(255,0,0, pixels, 4,10,50, DMA_Buffer); // Need to test on a large string
-        Strobe(255,0x77,0,pixels,10,100,1000, DMA_Buffer); //Slow
-        Strobe(255,255,255,pixels,10,50,1000, DMA_Buffer); //Fast
+        //Strobe(255,0x77,0,pixels,10,100,1000, DMA_Buffer); //Slow
+        //Strobe(255,255,255,pixels,10,50,1000, DMA_Buffer); //Fast
         //Twinkle(255,0,0,pixels,10,100,false, DMA_Buffer);
         //TwinkleRandom(pixels, 20,100,false, DMA_Buffer);
         //SnowSparkle(0x10, 0x10, 0x10, pixels, 20, getRandomNumber(100,1000), DMA_Buffer);
@@ -191,7 +191,7 @@ int main(void) {
         //Fire(55,120,15);
        //ChristmasLights();
        //theaterChaseRainbow(2); 
-       //meteorRain(0xad,0x33,0xff,10, 64, true, 30);
+       meteorRain(0xad,0x33,0xff,pixels,10, 64, true, 30, DMA_Buffer);
     }
 }
 /*
@@ -424,58 +424,9 @@ uint8_t* Wheel(uint8_t WheelPos) {
   return c;
 }
 
-void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay) {  
-    setAllRGB(0,0,0,pixels);
-    for(int i = 0; i < NUM_LEDS+NUM_LEDS; i++) {
-        // fade brightness all LEDs one step
-        for(int j=0; j<NUM_LEDS; j++) {
-            if( (!meteorRandomDecay) || (getRandomNumber(0,10)>5) ) {
-                fadeToBlack(j, meteorTrailDecay );        
-            }
-        }
-
-        // draw meteor
-        for(int j = 0; j < meteorSize; j++) {
-            if( ( i-j <NUM_LEDS) && (i-j>=0) ) {
-                setPixelRGB(R, G, B, i-j, pixels);
-            } 
-        }
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(SpeedDelay);
-    }
-}
-
-
-void fadeToBlack(int ledNo, uint8_t fadeValue) {
-    // Used by meteorRain()
-    uint8_t r, g, b;
-    r = pixels[ledNo][0];
-    g = pixels[ledNo][2];
-    b = pixels[ledNo][1];
-
-    r=(r<=10)? 0 : (int) r-(r*fadeValue/256);
-    g=(g<=10)? 0 : (int) g-(g*fadeValue/256);
-    b=(b<=10)? 0 : (int) b-(b*fadeValue/256);
-    
-    setPixelRGB(r,g,b,ledNo,pixels);
-}
-
-
-
-
 
 
 */
-    
-
-
-
-
-
-
-
-
-
 
 void DMA_Setup(){
     // DMA Setup - DMA1 Channel 5 for use with TIM2 Channel 1
@@ -629,7 +580,6 @@ void PC13_LED_Setup(){
     GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
     GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
 }
-
 void toggleLed(){
     // Toggle the LED attached to PC13
     if (flash == 0){
@@ -642,9 +592,6 @@ void toggleLed(){
         flash = 1001;
     }
 }
-
-
-
 void SysTick_Handler(void){
     if (ticks != 0){
         // Pre-decrement ticks. This avoids making a copy of the variable to 
@@ -663,4 +610,3 @@ void SysTick_Handler(void){
     }
 
 }
-

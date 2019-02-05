@@ -21,6 +21,7 @@ void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset);
 void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer);
 int getRandomNumber(int min, int max);
 
+
 template <uint8_t LEDS>
 void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[LEDS][3]){
     // pixel is the LED position in the string
@@ -238,6 +239,43 @@ void CylonBounce(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uin
   }
   delay_ms(ReturnDelay);
 
+}
+
+template <uint8_t LEDS>
+void fadeToBlack(uint8_t (&array)[LEDS][3], int ledNo, uint8_t fadeValue) {
+    // Used by meteorRain()
+    uint8_t r, g, b;
+    r = array[ledNo][0];
+    g = array[ledNo][2];
+    b = array[ledNo][1];
+
+    r=(r<=10)? 0 : (int) r-(r*fadeValue/256);
+    g=(g<=10)? 0 : (int) g-(g*fadeValue/256);
+    b=(b<=10)? 0 : (int) b-(b*fadeValue/256);
+    
+    setPixelRGB(r,g,b,ledNo,array);
+}
+
+template <uint8_t LEDS>
+void meteorRain(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t meteorSize, uint8_t meteorTrailDecay, bool meteorRandomDecay, int SpeedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]) {  
+    setAllRGB(0,0,0,array);
+    for(int i = 0; i < LEDS+LEDS; i++) {
+        // fade brightness all LEDs one step
+        for(int j=0; j<LEDS; j++) {
+            if( (!meteorRandomDecay) || (getRandomNumber(0,10)>5) ) {
+                fadeToBlack(array,j, meteorTrailDecay );        
+            }
+        }
+
+        // draw meteor
+        for(int j = 0; j < meteorSize; j++) {
+            if( ( i-j <LEDS) && (i-j>=0) ) {
+                setPixelRGB(R, G, B, i-j, array);
+            } 
+        }
+        writeLED(array,LEDS, Buffer);
+        delay_ms(SpeedDelay);
+    }
 }
 
 
