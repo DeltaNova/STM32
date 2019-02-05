@@ -75,7 +75,7 @@ extern "C" void SysTick_Handler(void);
 extern "C" void DMA1_Channel5_IRQHandler(void);
 
 void toggleLed();
-void changeColour();
+//void changeColour();
 void PWM_Setup();      // Timer 2 PWM - Ch1 & Ch2
 void DMA_Setup();
 void Timebase_Setup(); // Timebase from Timer using interrupts
@@ -83,7 +83,7 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 
 //void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 
-void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
+//void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
 
 int getRandomNumber(int min, int max);
 
