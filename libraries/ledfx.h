@@ -171,6 +171,37 @@ void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3],  
 }
 
 template <uint8_t LEDS>
+void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t Count, uint8_t SpeedDelay, bool OnlyOne, uint8_t (&Buffer)[2*BYTES_PER_LED]) {
+  setAllRGB(0,0,0,array);
+  for (uint8_t i=0; i<Count; i++) {
+     setPixelRGB(R,G,B,getRandomNumber(0,LEDS),array);
+     writeLED(array,LEDS, Buffer);
+     delay_ms(SpeedDelay);
+     if(OnlyOne) { 
+       setAllRGB(0,0,0,array); 
+     }
+   }
+  delay_ms(SpeedDelay);
+}
+
+template <uint8_t LEDS>
+void TwinkleRandom(uint8_t (&array)[LEDS][3], uint8_t Count, uint8_t SpeedDelay, bool OnlyOne, uint8_t (&Buffer)[2*BYTES_PER_LED]) {
+  setAllRGB(0,0,0,array);
+  for (uint8_t i=0; i<Count; i++) {
+     setPixelRGB(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,LEDS),array);
+     writeLED(array,LEDS, Buffer);
+     delay_ms(SpeedDelay);
+     if(OnlyOne) { 
+       setAllRGB(0,0,0,array); 
+     }
+   }
+  delay_ms(SpeedDelay);
+}
+
+
+
+
+template <uint8_t LEDS>
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t EyeSize, int SpeedDelay, int ReturnDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]){
   for(uint8_t i = 0; i < LEDS-EyeSize-2; i++) {
     setAllRGB(0,0,0,array);

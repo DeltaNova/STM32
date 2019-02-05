@@ -182,12 +182,12 @@ int main(void) {
         //CylonBounce(255,0,0, pixels, 4,10,50, DMA_Buffer); // Need to test on a large string
         //Strobe(255,0x77,0,10,100,1000); //Slow
         //Strobe(255,255,255,10,50,1000); //Fast
-        //Twinkle(255,0,0,10,100,false);
-        //TwinkleRandom(20,100,false);
+        Twinkle(255,0,0,pixels,10,100,false, DMA_Buffer);
+        TwinkleRandom(pixels, 20,100,false, DMA_Buffer);
         //SnowSparkle(0x10, 0x10, 0x10, pixels, 20, getRandomNumber(100,1000), DMA_Buffer);
-        RunningLights(255,255,0, pixels, 50, DMA_Buffer);  //Yellow
-        RunningLights(255,0,0, pixels, 50, DMA_Buffer ); //RED
-        RunningLights(255,255,255,pixels,50, DMA_Buffer);//WHITE
+        //RunningLights(255,255,0, pixels, 50, DMA_Buffer);  //Yellow
+        //RunningLights(255,0,0, pixels, 50, DMA_Buffer ); //RED
+        //RunningLights(255,255,255,pixels,50, DMA_Buffer);//WHITE
         //RunningLights(0,0,255,50); //BLUE
         //colorWipe(0x00,0xff,0x00, pixels, 50, DMA_Buffer);
         //colorWipe(0x00,0x00,0x00, pixels, 50, DMA_Buffer);
@@ -489,31 +489,7 @@ void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t Flash
  delay_ms(EndPause);
 }
 
-void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
-  setAllRGB(0,0,0,pixels);
-  for (uint8_t i=0; i<Count; i++) {
-     setPixelRGB(R,G,B,getRandomNumber(0,NUM_LEDS),pixels);
-     writeLED(pixels,NUM_LEDS, DMA_Buffer);
-     delay_ms(SpeedDelay);
-     if(OnlyOne) { 
-       setAllRGB(0,0,0,pixels); 
-     }
-   }
-  delay_ms(SpeedDelay);
-}
 
-void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne) {
-  setAllRGB(0,0,0,pixels);
-  for (uint8_t i=0; i<Count; i++) {
-     setPixelRGB(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,NUM_LEDS),pixels);
-     writeLED(pixels,NUM_LEDS, DMA_Buffer);
-     delay_ms(SpeedDelay);
-     if(OnlyOne) { 
-       setAllRGB(0,0,0,pixels); 
-     }
-   }
-  delay_ms(SpeedDelay);
-}
 */
     
 
