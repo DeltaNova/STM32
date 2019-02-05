@@ -81,23 +81,11 @@ void DMA_Setup();
 void Timebase_Setup(); // Timebase from Timer using interrupts
 void PC13_LED_Setup(); // Setup PC13 for output LED
 
-//void setPixel(uint8_t colour[3], uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
-
-//void setAll(uint8_t colour[3], uint8_t (&array)[NUM_LEDS][3]);
-
-
-
-
-
-
-
-
 /*
 // Effects
 
 void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay);
-void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay);   // Updated
-void CylonBounce(uint8_t R, uint8_t G, uint8_t B, int EyeSize, int SpeedDelay, int ReturnDelay);
+
 void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause);
 void Twinkle(uint8_t R, uint8_t G, uint8_t B, uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
 void TwinkleRandom(uint8_t Count, uint8_t SpeedDelay, bool OnlyOne);
@@ -196,7 +184,7 @@ int main(void) {
         //Strobe(255,255,255,10,50,1000); //Fast
         //Twinkle(255,0,0,10,100,false);
         //TwinkleRandom(20,100,false);
-        //SnowSparkle(0x10, 0x10, 0x10, 20, getRandomNumber(100,1000));
+        SnowSparkle(0x10, 0x10, 0x10,pixels, 20, getRandomNumber(100,1000), DMA_Buffer);
         //RunningLights(255,255,0,50);  //Yellow
         //RunningLights(255,0,0,50); //RED
         //RunningLights(255,255,255,pixels,50);//WHITE
@@ -334,33 +322,7 @@ void ChristmasLights(){
 
 
 
-/*
-void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay) {
-    
-     // SparkleDelay - Delay Time in ms (0-65535)
-     // SpeedDelay   - Delay Time in ms (0-65535)
-     // REQ: NUM_LEDS <= 255
-     
-    
-    // Compile Time Check for global NUM_LED value 
-    static_assert(NUM_LEDS > 0, "SnowSparkle - NUM_LEDS needs to be > 0");
-    static_assert(NUM_LEDS <= 255, "SnowSparkle - NUM_LEDS needs to be <= 255");
-    
-    setAllRGB(R,G,B,array);             // Fill LED Array with specified colour.
-    uint8_t Pixel = getRandomNumber(0,NUM_LEDS);    // Pick an LED at random
-  
-    // Change the colour of the selected for a short ammount of time.
-    setPixelRGB(0xff,0xff,0xff, Pixel,array); // Set LED Colour
-    writeLED(array,NUM_LEDS,DMA_Buffer);      // Update ALL LEDs
-    delay_ms(SparkleDelay);                   // Hold ALL LED colours
-  
-    setPixelRGB(R,G,B,Pixel,array);           // Set ALL LEDs to initial value
-    writeLED(array,NUM_LEDS,DMA_Buffer);      // Update ALL LEDs.
-    delay_ms(SpeedDelay);                     // Hold ALL LED colours.
-}
 
-
-*/
 // TODO: ADD FadeInOut
 // TODO: ADD rainbow cycle effect
 

@@ -124,6 +124,32 @@ void Sparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t
 
 
 template <uint8_t LEDS>
+void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint16_t SparkleDelay, uint16_t SpeedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]) {
+    
+     // SparkleDelay - Delay Time in ms (0-65535)
+     // SpeedDelay   - Delay Time in ms (0-65535)
+     // REQ: NUM_LEDS <= 255
+     
+    
+    // Compile Time Check for global NUM_LED value 
+    static_assert(LEDS > 0, "SnowSparkle - LEDS needs to be > 0");
+    static_assert(LEDS <= 255, "SnowSparkle - LEDS needs to be <= 255");
+    
+    setAllRGB(R,G,B,array);             // Fill LED Array with specified colour.
+    uint8_t Pixel = getRandomNumber(0,LEDS);    // Pick an LED at random
+  
+    // Change the colour of the selected for a short ammount of time.
+    setPixelRGB(0xff,0xff,0xff, Pixel,array); // Set LED Colour
+    writeLED(array,LEDS,Buffer);      // Update ALL LEDs
+    delay_ms(SparkleDelay);                   // Hold ALL LED colours
+  
+    setPixelRGB(R,G,B,Pixel,array);           // Set ALL LEDs to initial value
+    writeLED(array,LEDS,Buffer);      // Update ALL LEDs.
+    delay_ms(SpeedDelay);                     // Hold ALL LED colours.
+}
+
+
+template <uint8_t LEDS>
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t EyeSize, int SpeedDelay, int ReturnDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]){
   for(uint8_t i = 0; i < LEDS-EyeSize-2; i++) {
     setAllRGB(0,0,0,array);
@@ -231,7 +257,8 @@ void loadReset(uint8_t *array, uint8_t offset){
     for (i=0; i<BYTES_PER_LED; i++){
         array[i+offset] = 0x00;    
     }    
-}    
+}
+    
 int getRandomNumber(int min, int max){
     // Generate a random number between min and max (inclusive)
     // Assumes std::srand() has already been called
@@ -240,4 +267,5 @@ int getRandomNumber(int min, int max){
     // evenly distribute the random number across our range
     return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
 }
+
 #endif // WS2812_H
