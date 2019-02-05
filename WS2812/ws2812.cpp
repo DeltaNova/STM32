@@ -163,10 +163,12 @@ int main(void) {
         //setAllRGB(0,0,0,pixels);
         
         //setPixel(RED2,0,pixels);
-        setPixelRGB(0,0,63,1,pixels);
-        setPixelRGB(255,20,147,2,pixels);
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(1000);
+        
+        
+        //setPixelRGB(0,0,63,1,pixels);
+        //setPixelRGB(255,20,147,2,pixels);
+        //writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        //delay_ms(1000);
         
         //setAllRGB(138,43,226, pixels);
         //writeLED(pixels,NUM_LEDS, DMA_Buffer);
@@ -176,9 +178,9 @@ int main(void) {
         //writeLED(pixels,NUM_LEDS, DMA_Buffer);
         //delay_ms(1000);
         
-        setAllRGB(250,20,147, pixels);
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
-        delay_ms(4000);
+        //setAllRGB(250,20,147, pixels);
+        //writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        //delay_ms(4000);
         
         //setAll(RED2, pixels);
         //writeLED(pixels,NUM_LEDS, DMA_Buffer);
