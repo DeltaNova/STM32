@@ -179,15 +179,15 @@ int main(void) {
         //RGBLoop(pixels2, DMA_Buffer);
         //Sparkle(255,255,255,pixels,3, DMA_Buffer); // White Sparkle
         //Sparkle(getRandomNumber(0,255),getRandomNumber(0,255),getRandomNumber(0,255),pixels,3,DMA_Buffer);
-        CylonBounce(255,0,0, pixels, 4,10,50, DMA_Buffer); // Need to test on a large string
+        //CylonBounce(255,0,0, pixels, 4,10,50, DMA_Buffer); // Need to test on a large string
         //Strobe(255,0x77,0,10,100,1000); //Slow
         //Strobe(255,255,255,10,50,1000); //Fast
         //Twinkle(255,0,0,10,100,false);
         //TwinkleRandom(20,100,false);
-        SnowSparkle(0x10, 0x10, 0x10,pixels, 20, getRandomNumber(100,1000), DMA_Buffer);
-        //RunningLights(255,255,0,50);  //Yellow
-        //RunningLights(255,0,0,50); //RED
-        //RunningLights(255,255,255,pixels,50);//WHITE
+        //SnowSparkle(0x10, 0x10, 0x10, pixels, 20, getRandomNumber(100,1000), DMA_Buffer);
+        RunningLights(255,255,0, pixels, 50, DMA_Buffer);  //Yellow
+        RunningLights(255,0,0, pixels, 50, DMA_Buffer ); //RED
+        RunningLights(255,255,255,pixels,50, DMA_Buffer);//WHITE
         //RunningLights(0,0,255,50); //BLUE
         //colorWipe(0x00,0xff,0x00, pixels, 50, DMA_Buffer);
         //colorWipe(0x00,0x00,0x00, pixels, 50, DMA_Buffer);
@@ -473,26 +473,7 @@ void fadeToBlack(int ledNo, uint8_t fadeValue) {
     setPixelRGB(r,g,b,ledNo,pixels);
 }
 
-void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3],  uint16_t WaveDelay) {
-    
-    // Compile Time Check for global NUM_LED value 
-    static_assert(NUM_LEDS > 0, "RunningLights - NUM_LEDS needs to be > 0");
-    static_assert(NUM_LEDS <= 255, "RunningLights - NUM_LEDS needs to be <= 255");
-    
-    uint8_t Position = 0;
-    uint16_t j; // j needs to be large enough to hold MAX NUM_LED, 255*2 = 510.
-    for(j=0; j<NUM_LEDS*2; j++){
-        Position++; // = 0; //Position + Rate;
-        for(uint8_t i=0; i<NUM_LEDS; i++) {
-            setPixelRGB(((sin(i+Position) * 127 + 128)/255)*R,
-                    ((sin(i+Position) * 127 + 128)/255)*G,
-                    ((sin(i+Position) * 127 + 128)/255)*B,
-                    i,pixels);
-        }
-        writeLED(pixels,NUM_LEDS,DMA_Buffer);
-        delay_ms(WaveDelay);
-    }
-}
+
 
 void Strobe(uint8_t R, uint8_t G, uint8_t B, uint8_t StrobeCount, uint16_t FlashDelay, uint16_t EndPause){
 

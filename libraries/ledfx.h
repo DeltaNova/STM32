@@ -148,6 +148,27 @@ void SnowSparkle(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uin
     delay_ms(SpeedDelay);                     // Hold ALL LED colours.
 }
 
+template <uint8_t LEDS>
+void RunningLights(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3],  uint16_t WaveDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]) {
+    
+    // Compile Time Check for global NUM_LED value 
+    static_assert(LEDS > 0, "RunningLights - LEDS needs to be > 0");
+    static_assert(LEDS <= 255, "RunningLights - LEDS needs to be <= 255");
+    
+    uint8_t Position = 0;
+    uint16_t j; // j needs to be large enough to hold MAX NUM_LED, 255*2 = 510.
+    for(j=0; j<LEDS*2; j++){
+        Position++; // = 0; //Position + Rate;
+        for(uint8_t i=0; i<LEDS; i++) {
+            setPixelRGB(((sin(i+Position) * 127 + 128)/255)*R,
+                    ((sin(i+Position) * 127 + 128)/255)*G,
+                    ((sin(i+Position) * 127 + 128)/255)*B,
+                    i,array);
+        }
+        writeLED(array,LEDS,Buffer);
+        delay_ms(WaveDelay);
+    }
+}
 
 template <uint8_t LEDS>
 void CylonBounce(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[LEDS][3], uint8_t EyeSize, int SpeedDelay, int ReturnDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]){
