@@ -424,8 +424,6 @@ uint8_t* Wheel(uint8_t WheelPos) {
   return c;
 }
 
-
-
 */
 
 void DMA_Setup(){
