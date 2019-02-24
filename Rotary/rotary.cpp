@@ -20,12 +20,12 @@ extern "C" void SysTick_Handler(void);
 extern "C" void TIM3_IRQHandler(void);
 void toggleLed();
 void PC13_LED_Setup(); // Setup PC13 for output LED
-//void EncoderSetup();
+void EncoderSetup();
 
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
 Buffer serial_rx; // USART1 RX Buffer (16 bytes)
 
-volatile uint8_t flag = 0x00; // Flag used to control serial writes
+volatile uint8_t flag = 0; // Flag used to control serial writes
 
 // Main - Called by the startup code.
 int main(void) {
@@ -36,31 +36,35 @@ int main(void) {
     serial.setup();     // Enable Serial Support - Currently USART1 Specific
 
     
-    //PC13_LED_Setup();   // Setup PC13 for output LED
-    //EncoderSetup();     // Setup Rotary Encoder
+    PC13_LED_Setup();   // Setup PC13 for output LED
+    EncoderSetup();     // Setup Rotary Encoder
     
     // Strings & Initial Values
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
-    //char char_buffer[6];
+    char char_buffer[6];
     // Send a message to the terminal to indicate program is running.
     serial.write_array(test_message,10);
     serial.write_buffer();
 
-    
+    volatile uint16_t count = 0;
     
     while(1){
         // Triggers Every Second
-        //toggleLed();    // Toggle LED (PC13) to indicate loop operational
-        /*
-        uint16_t count = TIM3->CNT; // Read current count.
+        toggleLed();    // Toggle LED (PC13) to indicate loop operational
         
-        if (flag == 0x0F){
-            // Convert Count to string and load in transmit buffer
-            snprintf(char_buffer, 6, "%05u", count); 
+        count = (uint16_t)TIM3->CNT; // Read current count.
+        snprintf(char_buffer, 6, "%05u", count); 
             for(uint8_t i=0;i<5; i++){
                 serial.write(char_buffer[i]);
             }
-            flag = 0x00; // Reset Flag
+        /*
+        if (flag == 1){
+            // Convert Count to string and load in transmit buffer
+            snprintf(char_buffer, 6, "%05u", TIM3->CNT); 
+            for(uint8_t i=0;i<5; i++){
+                serial.write(char_buffer[i]);
+            }
+            flag = 0; // Reset Flag
         }
         */
     }
@@ -110,12 +114,15 @@ void EncoderSetup(){
     TIM3->CCMR1 |= 0x0909;
     
     // Set Polarity and Enable Capture/Compare
-    // CC1P = 0, CC2P = 0
+    // CC1P = 0, CC2P = 1
     // CC1E = 1, CC2E = 1
-    TIM3->CCER |= 0x0033;
+    TIM3->CCER |= 0x0031;
     
     // Set Max Count Value (Count up between 0 and ARR, count down ARR to 0)
     TIM3->ARR = 0xFFFF; // 65535
+    
+    //Enable Update Generation
+    TIM3->EGR |= 0x0001; // Reinitialise Counter & Update Registers
     
     // Enable Timer 3
     TIM3->CR1 |= 0x00001;    
@@ -123,11 +130,12 @@ void EncoderSetup(){
 
 void TIM3_IRQHandler(void){
     // Set Flag
-    flag = 0x0F;
+    flag = 1;
+
 }
 
-void USART1_IRQHandler(void){
-}
+//void USART1_IRQHandler(void){
+//}
 
 void PC13_LED_Setup(){
     // PortC GPIO Setup
