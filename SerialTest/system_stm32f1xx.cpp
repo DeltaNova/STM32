@@ -1,5 +1,5 @@
 /*******************************************************************************
-  * system_stm32f1xx.c
+  * system_stm32f1xx.cpp
   *  - SystemInit(): Setups the system clock (System clock source,
   *                  PLL Multiplier factors, AHB/APBx prescalers and Flash
   *                  settings).
@@ -20,6 +20,15 @@
 /*******************************************************************************
 *  Clock Definitions
 *******************************************************************************/
+/* SystemCoreClock is used by SysTick for timing, value will need updating if 
+ * the clock values change. Currently the clocks are setup by ClockSetup() 
+ * function for a 72MHZ Clock.
+ * 
+ * An option exists to furthur divide the SystemCoreClock by 8 before it is used
+ * by SysTick. This would need to be factored in to the value passed to 
+ * SysTick_Config().                                                          */
+uint32_t SystemCoreClock = 72000000U;
+
 void SystemInit (void)                   /* Initialise System Following Reset */
 {
   /* Ref: RM0008 - STM32F1xxxx Ref. Manual. RCC_CR, RCC_CFGR, RCC_CIR         */
@@ -61,5 +70,8 @@ void SystemInit (void)                   /* Initialise System Following Reset */
      bootloader. Until there is a reason to move it leave it where it is      */
   /* Ref: PM0056 - STM32F10xxx CM3 Prog.Man. SCB_VTOR Register                */
   SCB->VTOR = FLASH_BASE | VECTOR_TABLE_OFFSET;
+}
+void SystemCoreClockUpdate(void){
+    /* Not yet implemented */
 }
 /******************************************************************************/

@@ -2,7 +2,7 @@
 ################################################################################
 $(info Set Project Definitions)
 # Define the Project Path
-PATH_PROJECT_DIR = $(wildcard ~)/Git/STM32/SerialTest/
+PATH_PROJECT_DIR = $(wildcard ~)/Git/Public/STM32/SerialTest/
 # Define the Target Name
 TARGET = serial_test
 # Include the Master Makefile
