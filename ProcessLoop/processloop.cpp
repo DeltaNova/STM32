@@ -6,6 +6,7 @@
 #include <stdio.h>              // Newlib-nano
 #include "buffer_class.h"       // Circular Buffer Class
 #include "clock.h"              // Setup system and peripheral clocks
+#include "systick.h"            // SysTick Configuration
 #include "serial.h"             // USART1 Setup & Functions
 #include "delay.h"              // Simple Delay Function
 #include "i2c.h"                // I2C Setup and control functions
@@ -24,6 +25,7 @@
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
 extern "C" void SysTick_Handler(void);
+extern volatile uint32_t ticks; // SysTick Library
 void SysTick_Init(void);
 void delay_ms(uint32_t ms);
 void OLEDSetup(I2C& i2c);
@@ -46,7 +48,7 @@ Buffer serial_tx;
 Buffer rx_buffer;
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
-volatile uint32_t ticks = 0;        // Used for SysTick count down.
+//volatile uint32_t ticks = 0;        // Used for SysTick count down.
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 volatile uint32_t makestep = 0;      // Used to run stepper motor
 ////////////////////////////////////////////////////////////////////////////////
@@ -364,7 +366,7 @@ void draw_progress_fine(uint8_t progress, uint8_t steps, SSD1306& oled){
 }
 
 
-
+/*
 void SysTick_Init(void){
     // SystemCoreClock/1000     =  1ms
     // SystemCoreClock/100000   = 10us
@@ -382,7 +384,7 @@ void SysTick_Init(void){
         // This means the interrupt SysTick_Handler() will run every 1ms. 
     }
 }
-
+*/
 void SysTick_Handler(void){
     if (ticks != 0){
         // Pre-decrement ticks. This avoids making a copy of the variable to 
@@ -401,6 +403,7 @@ void SysTick_Handler(void){
     }
 }
 
+/*
 void delay_ms(uint32_t ms){
     
     if (ms != 0xFFFFFFFF){
@@ -416,3 +419,4 @@ void delay_ms(uint32_t ms){
     while(ticks);
     
 }
+*/
