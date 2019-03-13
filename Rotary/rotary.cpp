@@ -49,27 +49,28 @@ int main(void) {
     serial.write_buffer();
 
     volatile uint16_t count = 0;
+    // Create an initial difference in counter values to try and force a start
+    // value to be output on the serial port.
+    uint16_t last_count = 1; 
     
     while(1){
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
-   
+        
         count = (uint16_t)TIM3->CNT; // Read current count.
-        delay_ms(1000);
-        snprintf(char_buffer, 8, "%05u", count); 
-            for(uint8_t i=0;i<5; i++){
-                serial.write(char_buffer[i]);
-            }
-        /*
-        if (flag == 1){
-            // Convert Count to string and load in transmit buffer
-            snprintf(char_buffer, 6, "%05u", count); 
-            for(uint8_t i=0;i<5; i++){
-                serial.write(char_buffer[i]);
-            }
-            flag = 0; // Reset Flag
+        
+        if (count != last_count) {  // If count has changed
+            // Write new count to serial port.
+            snprintf(char_buffer, 8, "%05u", count); 
+                for(uint8_t i=0;i<5; i++){
+                    serial.write(char_buffer[i]);
+                }
+            serial.write(0x0A); // LF
+            serial.write(0x0D); // CR
+        
+        last_count = count; // Update Last Count
         }
-        */
+    
     }
 }
 
@@ -85,23 +86,16 @@ void EncoderSetup(){
     // Enable Clocks (TIM3)
     RCC->APB1ENR |= 0x00000002;
     
-   
-
-    
-    // Configure PB4 & PB5 (Alternate Function, Push/Pull, 50MHx)
-    //GPIOB->CRL |= 0x00BB0000; <<<<---- Doesnt Work
-    
-    
-    //GPIOB->CRL = 0x4444 // Reset State <<<--- Works
-    // PB4 & PB5 Set as floating input, input mode.
-    
-    //TIM3->DIER |= 0x0047;
     
     // Setup TIM3 Interrupts                    Not Required
     //NVIC_SetPriority(TIM3_IRQn, 0, 1);
     //NVIC_ClearPendingIRQ(TIM3_IRQn);
     //NVIC_EnableIRQ(TIM3_IRQn);
     
+    // Configure PB4 & PB5 (Floating Input, Input Mode)
+    GPIOB->CRL &= 0xFF00FFFF;   // Clear PB4/PB5 Bits
+    GPIOB->CRL |= 0x00440000;   // Set ports as inputs   
+        
     // Setup Timer 3
     // CKD = 00 (Div/1)
     // ARPE = 0 (Not Bufffered)
@@ -112,21 +106,18 @@ void EncoderSetup(){
     // UEV = 0 (Update Events Enabled)
     // CEM = 0 (Counter Disabled) <- Gets Enabled Later
     TIM3->CR1 = 0x0000;
-    //TIM3->CR1 |= 0x0060; Centre Aligned Mode 3
     
     // Set SMS Bits for Encoder Mode 3
     TIM3->SMCR |= 0x0003;
     
     // Ensure CC1E = 0 , CC2E = 0 to allow setting of capture/compare bits.
     TIM3->CCER &= 0xFFEE;
-    
-    
+        
     // Set Capture/Compare Mode
     // CC1S = 01, CC2S = 01 (IC1 is mapped on TI1, IC2 is mapped on TI2)
     // IC1F = 0000, IC2F = 0000 (No filtering)
     // IC1PSC = 10, IC2PSC = 10 (Capture Every 4 Events)
     TIM3->CCMR1 |= 0x0909;
-    //TIM3->CCMR1 = 0xC1C1;
     
     // Set Polarity and Enable Capture/Compare
     // CC1P = 0, CC2P = 1
