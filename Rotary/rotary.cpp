@@ -61,7 +61,7 @@ int main(void) {
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         
-        count = (uint16_t)TIM3->CNT; // Read current count.
+        //count = (uint16_t)TIM3->CNT; // Read current count.
         
         if (count != last_count) {  // If count has changed
             // Write new count to serial port.
@@ -69,6 +69,20 @@ int main(void) {
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
+            
+            serial.write(0x20); // SPACE
+            
+            // This second count (count/4) changes based on the detents.
+            // This new count smooths out the clock pulses between detents
+            // while also incrementing in single digits.
+            
+            snprintf(char_buffer, 8, "%05u", count/4); // Count/4
+                for(uint8_t i=0;i<5; i++){
+                    serial.write(char_buffer[i]);
+                }
+                
+            serial.write(0x20); // SPACE
+            
             /*
             // This third count (IRQ flag) changes based on TIM3 IRQ.
             // Its purpose is to confirm that the IRQ triggers and is handled.
@@ -83,7 +97,7 @@ int main(void) {
             serial.write(0x0D); // CR
             
         
-        last_count = count; // Update Last Count
+        //last_count = count; // Update Last Count
         }
     
     }
@@ -159,6 +173,12 @@ void EncoderSetup(){
     // Enable Timer 3
     TIM3->CR1 |= 0x00001;    
 }
+void update_counts(){
+    // Run periodically to update the count and last_count values.
+    last_count = count;          // Store previous count as last_count
+    count = (uint16_t)TIM3->CNT; // Read HW counter value
+}
+
 /*
 void TIM3_IRQHandler(void){
     //if ((TIM3->SR && 0x00001)){ // If UIF SET
@@ -215,4 +235,5 @@ void SysTick_Handler(void){
         --flash;
     }
     
+    update_counts(); // Update counter values
 }
