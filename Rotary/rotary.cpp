@@ -28,6 +28,12 @@ Buffer serial_rx; // USART1 RX Buffer (16 bytes)
 
 //volatile uint8_t flag = 0; // Flag used by TIM3 IRQ
 
+volatile uint16_t count = 0;
+// Create an initial difference in counter values to try and force a start
+// value to be output on the serial port.
+volatile uint16_t last_count = 1; 
+
+
 // Main - Called by the startup code.
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
@@ -49,10 +55,7 @@ int main(void) {
     serial.write_array(test_message,10);
     serial.write_buffer();
 
-    volatile uint16_t count = 0;
-    // Create an initial difference in counter values to try and force a start
-    // value to be output on the serial port.
-    uint16_t last_count = 1; 
+
     
     while(1){
         // Triggers Every Second
