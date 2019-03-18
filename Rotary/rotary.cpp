@@ -18,6 +18,7 @@ volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 extern "C" void USART1_IRQHandler(void);
 extern "C" void SysTick_Handler(void);
 //extern "C" void TIM3_IRQHandler(void);
+
 void toggleLed();
 void PC13_LED_Setup(); // Setup PC13 for output LED
 void EncoderSetup();
@@ -25,7 +26,7 @@ void EncoderSetup();
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
 Buffer serial_rx; // USART1 RX Buffer (16 bytes)
 
-volatile uint8_t flag = 0; // Flag used to control serial writes
+//volatile uint8_t flag = 0; // Flag used by TIM3 IRQ
 
 // Main - Called by the startup code.
 int main(void) {
@@ -65,8 +66,19 @@ int main(void) {
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
+            /*
+            // This third count (IRQ flag) changes based on TIM3 IRQ.
+            // Its purpose is to confirm that the IRQ triggers and is handled.
+            
+            snprintf(char_buffer, 8, "%05u", flag);
+                for(uint8_t i=0;i<5; i++){
+                    serial.write(char_buffer[i]);
+                }
+                    
+            */    
             serial.write(0x0A); // LF
             serial.write(0x0D); // CR
+            
         
         last_count = count; // Update Last Count
         }
@@ -86,11 +98,11 @@ void EncoderSetup(){
     // Enable Clocks (TIM3)
     RCC->APB1ENR |= 0x00000002;
     
-    
-    // Setup TIM3 Interrupts                    Not Required
-    //NVIC_SetPriority(TIM3_IRQn, 0, 1);
-    //NVIC_ClearPendingIRQ(TIM3_IRQn);
-    //NVIC_EnableIRQ(TIM3_IRQn);
+    /*
+    // Setup TIM3 Interrupts
+    //TIM3->DIER |= 0x0001; // UIE (Update Interupt Enabled)
+    TIM3->DIER |= 0x0040; // TIE (Trigger Interupt Enabled)
+    */
     
     // Configure PB4 & PB5 (Floating Input, Input Mode)
     GPIOB->CRL &= 0xFF00FFFF;   // Clear PB4/PB5 Bits
@@ -106,6 +118,11 @@ void EncoderSetup(){
     // UEV = 0 (Update Events Enabled)
     // CEM = 0 (Counter Disabled) <- Gets Enabled Later
     TIM3->CR1 = 0x0000;
+    
+    /*
+    //TIM3->SMCR |= 0x0050; // Trigger Selection for interrupt, TI1FP1
+    TIM3->SMCR |= 0x0060; // Trigger Selection for interrupt, TI1F_ED
+    */
     
     // Set SMS Bits for Encoder Mode 3
     TIM3->SMCR |= 0x0003;
@@ -127,6 +144,12 @@ void EncoderSetup(){
     // Set Max Count Value (Count up between 0 and ARR, count down ARR to 0)
     TIM3->ARR = 0xFFFF; // 65535
     
+    /*
+    //NVIC_SetPriority(TIM3_IRQn, 0, 1);
+    NVIC_ClearPendingIRQ(TIM3_IRQn);
+    NVIC_EnableIRQ(TIM3_IRQn);
+    */
+    
     //Enable Update Generation
     TIM3->EGR |= 0x0001; // Reinitialise Counter & Update Registers
     
@@ -135,13 +158,21 @@ void EncoderSetup(){
 }
 /*
 void TIM3_IRQHandler(void){
-    // Set Flag
-    flag = 1;
-
+    //if ((TIM3->SR && 0x00001)){ // If UIF SET
+    //    ++flag; // Increment Flag
+    //    TIM3->SR &= ~0x0001; // Clear UIF
+    //}
+    
+    if ((TIM3->SR && 0x0040)){ // If TIF SET
+        if ((TIM3->CR1 && 0x0010)) { //If DIR Set (Down Count)
+            --flag; // Decrement Flag
+        }else{
+            ++flag; // Increment Flag
+        }
+        TIM3->SR &= ~0x0040; // Clear TIF
+    }
 }
 */
-//void USART1_IRQHandler(void){
-//}
 
 void PC13_LED_Setup(){
     // PortC GPIO Setup
