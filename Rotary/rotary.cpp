@@ -173,6 +173,19 @@ void EncoderSetup(){
     // Enable Timer 3
     TIM3->CR1 |= 0x00001;    
 }
+
+uint16_t get_count_delta(uint16_t count, uint16_t last_count){
+    // Function to return the difference between two count values
+    
+    if (count < last_count){
+        // Counter has rolled over (at least once, but multiples not handled).
+        // +1 to handle zero position.
+        return(0xFFFF - last_count) + 1 + count;   
+    }else{
+        return(count - last_count);
+    }
+}
+
 void update_counts(){
     // Run periodically to update the count and last_count values.
     last_count = count;          // Store previous count as last_count
