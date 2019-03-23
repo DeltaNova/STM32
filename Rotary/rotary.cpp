@@ -13,7 +13,7 @@ extern volatile uint32_t ticks; // SysTick Library
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
-volatile uint32_t count_update = 500;  // Used to time execution of update_counts() 
+volatile uint32_t count_update = 0;  // Used to time execution of update_counts() 
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
@@ -245,7 +245,9 @@ void update_counts(){
     if (count_update == 0){
         last_count = count;          // Store previous count as last_count
         count = (uint16_t)TIM3->CNT; // Read HW counter value
-        count_update = 500;
+        count_update = 0;  // DEBUG Changed to zero to make count value update faster. 
+        // It might be better to remove this update function all together. 
+        // However being able to slow things down might help debugging.
     }
 }
 
