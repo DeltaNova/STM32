@@ -200,6 +200,10 @@ void EncoderSetup(){
 }
 
 uint16_t get_diff(uint16_t count, uint16_t last_count){
+    // This function assumes a count range of 0x0000 to 0xFFFF with roll over
+    // and roll under. 
+    // It will not work correctly if the count is scaled before use.
+    // i.e. count/4 (since 4 clocks per detent) will produce unexpected results.
     uint16_t diff;
     if (count > last_count){
         if (count < 0x8000){
@@ -248,6 +252,9 @@ void update_counts(){
         count_update = 0;  // DEBUG Changed to zero to make count value update faster. 
         // It might be better to remove this update function all together. 
         // However being able to slow things down might help debugging.
+        // DEV NOTE: Experimenting with the count update value it is safer to 
+        // leave it at zero. A value of 10 makes no abvious difference but 
+        // values of 50+ allow multiple loop executions.
     }
 }
 
