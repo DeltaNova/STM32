@@ -66,7 +66,12 @@ int main(void) {
         // Dev Note: The fact that the counts are only updated periodically allows the following print block to execute multiple times. 
         //           This is due to the "count != last_count" statement remaing true until the next time the counts update. 
         
-        if (count != last_count) {  // If count has changed
+        if ((count/4) != (last_count/4)) {  // If count has changed
+            // count & last_count values are divided by 4 before use.
+            // This is to reflect the 4 clock pulses per detent.
+            // The result is the following code executes every detent.
+            
+            
             // Write new count to serial port.
             snprintf(char_buffer, 8, "%05u", count); 
                 for(uint8_t i=0;i<5; i++){
@@ -89,7 +94,7 @@ int main(void) {
             
             // This third value is the count delta, used for debugging
             uint16_t delta = get_diff(count,last_count);
-            snprintf(char_buffer, 8, "%05u", delta/4);
+            snprintf(char_buffer, 8, "%05u", delta);
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
