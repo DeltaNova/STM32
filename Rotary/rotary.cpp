@@ -129,13 +129,13 @@ void updateValue(uint16_t dir, uint16_t delta){
     // Apply the delta to current value.
     uint16_t i = 0;
     if (dir){   // If TRUE then count DOWN
-        for (i; i < delta; i++){
+        for (i=0; i < delta; i++){
             if (value > valueMin){
                 value--;
             }
         }
     }else{      // If FALSE then count UP
-        for (i; i < delta; i++){
+        for (i=0; i < delta; i++){
             if (value < valueMax){
                 value++;    
             }
