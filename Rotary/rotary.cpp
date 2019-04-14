@@ -33,6 +33,15 @@ Buffer serial_rx; // USART1 RX Buffer (16 bytes)
 volatile uint16_t count = 0;
 volatile uint16_t last_count = 0; 
 
+// Systick Counter
+volatile uint32_t counter = 0;
+
+// Variables for rotary encoder button
+volatile uint16_t buttonPressStart = 0;
+volatile uint16_t buttonPressStop = 0;
+volatile uint8_t buttonPressed = 0;
+
+
 // Test Value with upper and lower limts.
 uint8_t value = 0;
 uint8_t valueMin = 0;
@@ -148,6 +157,67 @@ void updateValue(uint16_t dir, uint16_t delta){
         
         
     }
+}
+
+uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count){
+    // Returns the difference between two count values.
+    
+    // DEV NOTE: Count values need to be be from an upcounting only counter.
+    //           Decrementing counts can result in large deltas where only a
+    //           small delta exits in reality.
+    
+    if (stop_count < start_count){
+        // Counter has rolled over (at least once, multi rollover not handled)
+        return ((0xFFFFFFFF - start_count) + 1 + stop_count);
+    }else{
+        return (stop_count - start_count);
+    }
+}
+void EncoderButtonSetup(){
+    // Button will be using PB6 and is wired in with a pullup resistor
+    
+    // Enable Port B Clock
+    RCC->APB2ENR |= 0x00000008;
+    // Setup PB6 as an input
+    GPIOB->CRL |= 0x08000000;
+    // Set PB6 to use Pullup
+    GPIOB->ODR |= 0x00000040;
+    
+    // Configure Interrupts to detect button press
+    // Unmask Line 6 Interrupt
+    EXTI->IMR |= 0x00000040;
+    // Enable Rising Edge Tribber Line 6
+    EXTI->RTSR |= 0x00000040;
+    //Enable Falling Ednge Trigger Line 6
+    EXTI->FTSR |= 0x00000040;
+    
+}
+
+void EXTI9_5_IRQHandler(void){
+    // Shared handler for interrupts 5 to 9
+    
+    // Check for triggering interrupt by looking at pending register
+    if (EXTI->PR & 0x00000040){
+        // Pending Line 6 Interrupt
+        
+        // DEVNOTE: Generally advisable to clear pending flag as soon as
+        //          possible before performing any furthur actions.
+        
+        // Clear interrupt bit by writing '1' to the EXTI->PR register
+        // Ref: Datasheet RM00008 Notes on register
+        EXTI->PR |= 0x00000040;
+        
+        
+        // Check if PB6 Set in Input Data Register
+        if (GPIOB->IDR & 0x00000040){
+            // If low store timer value as start time
+            buttonPressStart = counter;
+        }else{
+            // If high store timer value as stop time, set pressed flag
+            buttonPressStop = counter;
+            buttonPressed = 1; // Set flag
+        }
+    } 
 }
 
 void EncoderSetup(){
