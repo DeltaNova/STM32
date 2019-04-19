@@ -41,6 +41,7 @@ volatile uint16_t buttonPressStart = 0;
 volatile uint16_t buttonPressStop = 0;
 volatile uint8_t buttonPressed = 0;
 
+uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
 
 // Test Value with upper and lower limts.
 uint8_t value = 0;
@@ -62,7 +63,8 @@ int main(void) {
     
     // Strings & Initial Values
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
-    char char_buffer[10];
+
+    char char_buffer[16];
     // Send a message to the terminal to indicate program is running.
     serial.write_array(test_message,10);
     serial.write_buffer();
