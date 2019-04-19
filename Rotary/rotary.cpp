@@ -21,6 +21,7 @@ extern "C" void SysTick_Handler(void);
 void toggleLed();
 void PC13_LED_Setup(); // Setup PC13 for output LED
 void EncoderSetup();
+void EncoderButtonSetup();
 uint16_t get_count_delta(uint16_t count, uint16_t last_count);
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_counts();
@@ -40,7 +41,7 @@ volatile uint32_t counter = 0;
 volatile uint16_t buttonPressStart = 0;
 volatile uint16_t buttonPressStop = 0;
 volatile uint8_t buttonPressed = 0;
-
+void buttonAction(Serial& serial);
 uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
 
 // Test Value with upper and lower limts.
@@ -60,6 +61,8 @@ int main(void) {
 
     PC13_LED_Setup();   // Setup PC13 for output LED
     EncoderSetup();     // Setup Rotary Encoder
+    EncoderButtonSetup(); // Setup the Rotary Encoder Button
+    __enable_irq();
     
     // Strings & Initial Values
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
@@ -73,7 +76,7 @@ int main(void) {
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         update_counts();
-        
+        buttonAction(serial);
         // Dev Note: The fact that the counts are only updated periodically allows the following print block to execute multiple times. 
         //           This is due to the "count != last_count" statement remaing true until the next time the counts update. 
         
@@ -140,6 +143,16 @@ int main(void) {
     
     }
 }
+void buttonAction(Serial& serial){
+    // Checks for button activation and then triggers action.
+    if (buttonPressed){     // buttonPressed true when triggered
+        // Semd Serial Message
+        
+        serial.write_array(buttonMessage,16);
+        serial.write_buffer();
+        buttonPressed = 0;
+    }
+}
 
 void updateValue(uint16_t dir, uint16_t delta){
     // Apply the delta to current value.
@@ -186,12 +199,20 @@ void EncoderButtonSetup(){
     GPIOB->ODR |= 0x00000040;
     
     // Configure Interrupts to detect button press
-    // Unmask Line 6 Interrupt
-    EXTI->IMR |= 0x00000040;
+    
+    AFIO->EXTICR[2] |= 0x00000100; // Link Line 6 Interrupt to Port B
+
     // Enable Rising Edge Tribber Line 6
     EXTI->RTSR |= 0x00000040;
     //Enable Falling Ednge Trigger Line 6
     EXTI->FTSR |= 0x00000040;
+    
+    // Unmask Line 6 Interrupt
+    EXTI->IMR |= 0x00000040;
+    
+    // Enable Interrupt
+    //NVIC_SetPriority(EXTI9_5_IRQn,1);
+    NVIC_EnableIRQ(EXTI9_5_IRQn);
     
 }
 
