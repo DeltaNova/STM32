@@ -62,7 +62,6 @@ int main(void) {
     PC13_LED_Setup();   // Setup PC13 for output LED
     EncoderSetup();     // Setup Rotary Encoder
     EncoderButtonSetup(); // Setup the Rotary Encoder Button
-    __enable_irq();
     
     // Strings & Initial Values
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
@@ -212,7 +211,7 @@ void EncoderButtonSetup(){
     EXTI->IMR |= 0x00000040;
     
     // Enable Interrupt
-    //NVIC_SetPriority(EXTI9_5_IRQn,1);
+    NVIC_SetPriority(EXTI9_5_IRQn,1);
     NVIC_EnableIRQ(EXTI9_5_IRQn);
     
 }
