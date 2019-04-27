@@ -17,6 +17,7 @@ volatile uint32_t count_update = 0;  // Used to time execution of update_counts(
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
+extern "C" void EXTI9_5_IRQHandler(void);
 extern "C" void SysTick_Handler(void);
 void toggleLed();
 void PC13_LED_Setup(); // Setup PC13 for output LED
