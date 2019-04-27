@@ -191,8 +191,8 @@ uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count){
 void EncoderButtonSetup(){
     // Button will be using PB6 and is wired in with a pullup resistor
     
-    // Enable Port B Clock
-    RCC->APB2ENR |= 0x00000008;
+    // Enable Clocks (AFIO, Port B)
+    RCC->APB2ENR |= 0x00000009;
     // Setup PB6 as an input
     // Clear PB6 Bits Before Setting as register does not zero on reset.
     GPIOB->CRL &= 0xF0FFFFFF;
