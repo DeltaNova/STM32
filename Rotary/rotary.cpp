@@ -194,6 +194,8 @@ void EncoderButtonSetup(){
     // Enable Port B Clock
     RCC->APB2ENR |= 0x00000008;
     // Setup PB6 as an input
+    // Clear PB6 Bits Before Setting as register does not zero on reset.
+    GPIOB->CRL &= 0xF0FFFFFF;
     GPIOB->CRL |= 0x08000000;
     // Set PB6 to use Pullup
     GPIOB->ODR |= 0x00000040;
