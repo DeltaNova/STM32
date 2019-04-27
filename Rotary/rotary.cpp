@@ -23,6 +23,7 @@ void toggleLed();
 void PC13_LED_Setup(); // Setup PC13 for output LED
 void EncoderSetup();
 void EncoderButtonSetup();
+uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count);
 uint16_t get_count_delta(uint16_t count, uint16_t last_count);
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_counts();
@@ -30,7 +31,6 @@ void updateValue(uint16_t dir, uint16_t delta);
 
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
 Buffer serial_rx; // USART1 RX Buffer (16 bytes)
-
 
 volatile uint16_t count = 0;
 volatile uint16_t last_count = 0; 
@@ -43,13 +43,18 @@ volatile uint16_t buttonPressStart = 0;
 volatile uint16_t buttonPressStop = 0;
 volatile uint8_t buttonPressed = 0;
 void buttonAction(Serial& serial);
+
 uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
+uint8_t buttonMessage2[]= "Short Press\n\r"; //Size 13
+uint8_t buttonMessage3[]= "Long Press\n\r"; //Size 12
+uint8_t buttonMessage4[]= "Very Long Press\n\r"; //Size 17
 
 // Test Value with upper and lower limts.
 uint8_t value = 0;
 uint8_t valueMin = 0;
 uint8_t valueMax = 255;
 
+char char_buffer2[16]; // DEBUG
 // Main - Called by the startup code.
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
@@ -146,10 +151,33 @@ int main(void) {
 void buttonAction(Serial& serial){
     // Checks for button activation and then triggers action.
     if (buttonPressed){     // buttonPressed true when triggered
-        // Semd Serial Message
-        
+        // Send Serial Message
+        uint32_t buttondelta = get_upcounting_delta(buttonPressStart, buttonPressStop);
+        buttonPressStart = 0;
+        buttonPressStop = 0;
         serial.write_array(buttonMessage,16);
         serial.write_buffer();
+        
+        if (buttondelta < 500){
+            // Short Press
+            serial.write_array(buttonMessage2,13);
+        }else if (buttondelta <5000){
+            // Long Press
+            serial.write_array(buttonMessage3,12);
+        }else{
+            // Very Long Press
+            serial.write_array(buttonMessage4,17);
+        }
+        serial.write_buffer();
+        
+        // Debug Code to Print Length of button press
+        snprintf(char_buffer2, 12, "%010u", buttondelta);
+        for(uint8_t i=0;i<10; i++){
+            serial.write(char_buffer2[i]);
+        }
+        serial.write(0x0A); // LF
+        serial.write(0x0D); // CR
+        
         buttonPressed = 0;
     }
 }
@@ -219,12 +247,11 @@ void EncoderButtonSetup(){
 
 void EXTI9_5_IRQHandler(void){
     // Shared handler for interrupts 5 to 9
-    if (EXTI->PR & 0x00000040){ 
-        EXTI->PR |= 0x00000040;
-        buttonPressed =1;
-    }
+    //if (EXTI->PR & 0x00000040){ 
+    //    EXTI->PR |= 0x00000040;
+    //    buttonPressed =1;
+    //}
 
-    /*
     // Check for triggering interrupt by looking at pending register
     if (EXTI->PR & 0x00000040){
         // Pending Line 6 Interrupt
@@ -236,20 +263,25 @@ void EXTI9_5_IRQHandler(void){
         // Ref: Datasheet RM00008 Notes on register
         EXTI->PR |= 0x00000040;
         
-        buttonPressed = 1; // DEBUG
+        //buttonPressed = 1; // DEBUG
         
         // Check if PB6 Set in Input Data Register
+        // PB6 uses Pull-Up
+        //  1 = Not Pressed
+        //  0 = Pressed
         if (GPIOB->IDR & 0x00000040){
-            // If low store timer value as start time
-            buttonPressStart = counter;
-        }else{
             // If high store timer value as stop time, set pressed flag
+            //buttonPressStop = counter;
             buttonPressStop = counter;
             buttonPressed = 1; // Set flag
+            
+        }else{
+            // If low store timer value as start time
+            buttonPressStart = counter;
         }
         
     }
-    */ 
+     
 }
 
 void EncoderSetup(){
@@ -391,6 +423,7 @@ void toggleLed(){
     }
 }
 void SysTick_Handler(void){
+    counter++;
     if (ticks != 0){
         // Pre-decrement ticks. This avoids making a copy of the variable to 
         // decrement. This should be faster which is ideal for an interrupt
