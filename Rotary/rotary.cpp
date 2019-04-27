@@ -219,7 +219,19 @@ void EncoderButtonSetup(){
 
 void EXTI9_5_IRQHandler(void){
     // Shared handler for interrupts 5 to 9
-    
+    if (EXTI->PR & 0x00000040){ 
+        EXTI->PR |= 0x00000040;
+    }
+
+    //NVIC_ClearPendingIRQ(EXTI9_5_IRQn);
+    //if ((EXTI->IMR & 0x00000040)&&(EXTI->PR & 0x00000040))
+    //{
+        //EXTI->PR |= 0x00000040;
+    //    buttonPressed =1;
+    //    NVIC_ClearPendingIRQ(EXTI9_5_IRQn);
+    //}
+    //uint32_t temp = EXTI->PR;
+    /*
     // Check for triggering interrupt by looking at pending register
     if (EXTI->PR & 0x00000040){
         // Pending Line 6 Interrupt
@@ -231,6 +243,7 @@ void EXTI9_5_IRQHandler(void){
         // Ref: Datasheet RM00008 Notes on register
         EXTI->PR |= 0x00000040;
         
+        buttonPressed = 1; // DEBUG
         
         // Check if PB6 Set in Input Data Register
         if (GPIOB->IDR & 0x00000040){
@@ -241,7 +254,9 @@ void EXTI9_5_IRQHandler(void){
             buttonPressStop = counter;
             buttonPressed = 1; // Set flag
         }
-    } 
+        
+    }
+    */ 
 }
 
 void EncoderSetup(){
