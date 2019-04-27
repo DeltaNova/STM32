@@ -201,9 +201,8 @@ void EncoderButtonSetup(){
     GPIOB->ODR |= 0x00000040;
     
     // Configure Interrupts to detect button press
-    
-    AFIO->EXTICR[2] |= 0x00000100; // Link Line 6 Interrupt to Port B
-
+    // DEVNOTE: Index in EXTICR starts from 0, EXTICR2 register maps to EXTICR[1] REF: https://www.marianm.net/STM32F10_Interupts.php
+    AFIO->EXTICR[1] |= 0x00000100; // Link Line 6 Interrupt to Port B
     // Enable Rising Edge Tribber Line 6
     EXTI->RTSR |= 0x00000040;
     //Enable Falling Ednge Trigger Line 6
