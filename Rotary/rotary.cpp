@@ -221,16 +221,9 @@ void EXTI9_5_IRQHandler(void){
     // Shared handler for interrupts 5 to 9
     if (EXTI->PR & 0x00000040){ 
         EXTI->PR |= 0x00000040;
+        buttonPressed =1;
     }
 
-    //NVIC_ClearPendingIRQ(EXTI9_5_IRQn);
-    //if ((EXTI->IMR & 0x00000040)&&(EXTI->PR & 0x00000040))
-    //{
-        //EXTI->PR |= 0x00000040;
-    //    buttonPressed =1;
-    //    NVIC_ClearPendingIRQ(EXTI9_5_IRQn);
-    //}
-    //uint32_t temp = EXTI->PR;
     /*
     // Check for triggering interrupt by looking at pending register
     if (EXTI->PR & 0x00000040){
