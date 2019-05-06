@@ -43,11 +43,13 @@ volatile uint16_t buttonPressStart = 0;
 volatile uint16_t buttonPressStop = 0;
 volatile uint8_t buttonPressed = 0;
 void buttonAction(Serial& serial);
+void buttonAction2(Serial& serial);
 
 uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
 uint8_t buttonMessage2[]= "Short Press\n\r"; //Size 13
 uint8_t buttonMessage3[]= "Long Press\n\r"; //Size 12
 uint8_t buttonMessage4[]= "Very Long Press\n\r"; //Size 17
+uint8_t buttonMessage5[]= "Button Released\n\r"; //Size 17
 
 // Test Value with upper and lower limts.
 uint8_t value = 0;
@@ -55,6 +57,16 @@ uint8_t valueMin = 0;
 uint8_t valueMax = 255;
 
 char char_buffer2[16]; // DEBUG
+
+// Button Debounce
+void update_button(uint32_t *button_history);
+
+// BUTTON_MASK - Assuming 1ms history update allows for 16ms of switch bounce.
+#define BUTTON_MASK 0b11111111000000000000000011111111
+
+// History of button state.
+uint32_t button_history = 0; 
+////////////////////////////////////////////////////////////////////////////////
 // Main - Called by the startup code.
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
@@ -77,11 +89,14 @@ int main(void) {
     serial.write_array(test_message,10);
     serial.write_buffer();
     
+
+    
     while(1){
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         update_counts();
-        buttonAction(serial);
+        //buttonAction(serial);
+        buttonAction2(serial);
         // Dev Note: The fact that the counts are only updated periodically 
         //           allows the following print block to execute multiple times. 
         //           This is due to the "count != last_count" statement remaing 
@@ -150,7 +165,72 @@ int main(void) {
     
     }
 }
+
+uint32_t read_button(void){
+    // Read the button state - Return 1 for pressed, 0 for released.
+    
+    uint32_t button_state;
+    if (GPIOB->IDR & 0x00000040){   // PB6 High (Not Pressed)
+        button_state = 0;
+    }else{                          //PB6 Low (Pressed)
+        button_state = 1;
+    }
+    return button_state;
+
+}
+
+void update_button(uint32_t *button_history){   // Called by Systick every 1ms
+    // Bit shift button history to make room for new reading.
+    *button_history = *button_history << 1;
+    // Read current button state into history.
+    *button_history |= read_button();
+}
+
+uint8_t is_button_up(uint32_t *button_history){
+    // Returns true of button up
+    return(*button_history == 0x00000000); 
+}
+
+uint8_t is_button_down(uint32_t *button_history){
+    // Returns true if button down
+    return(*button_history == 0xFFFFFFFF);
+}
+
+uint8_t is_button_pressed(uint32_t *button_history){
+    // Returns true if pressed
+    uint32_t pressed = 0;
+    if ((*button_history & BUTTON_MASK) == 0b00000000000000000000000011111111){
+        pressed = 1;
+        *button_history = 0xFFFFFFFF; // Set Histtory to prevent retriggering from same press
+    }
+    return pressed;
+}
+
+uint8_t is_button_released(uint32_t *button_history){
+    // Returns true if released
+    uint32_t released = 0;
+    if ((*button_history & BUTTON_MASK) == 0b11111111000000000000000000000000){
+        released = 1;
+        *button_history = 0x00000000; // Clear Histtory to prevent retriggering from same release
+    }
+    return released;
+}
+
+void buttonAction2(Serial& serial){
+    // Button Action from Polling
+    if (is_button_pressed(&button_history)){
+        serial.write_array(buttonMessage,16);
+        serial.write_buffer();
+    }
+    if (is_button_released(&button_history)){
+        serial.write_array(buttonMessage5,17);
+        serial.write_buffer();
+    }
+    
+}
+
 void buttonAction(Serial& serial){
+    // Button Action from Interrupt
     // Checks for button activation and then triggers action.
     if (buttonPressed){     // buttonPressed true when triggered
         // Send Serial Message
@@ -231,19 +311,20 @@ void EncoderButtonSetup(){
     GPIOB->ODR |= 0x00000040;
     
     // Configure Interrupts to detect button press
-    // DEVNOTE: Index in EXTICR starts from 0, EXTICR2 register maps to EXTICR[1] REF: https://www.marianm.net/STM32F10_Interupts.php
-    AFIO->EXTICR[1] |= 0x00000100; // Link Line 6 Interrupt to Port B
+    // DEVNOTE: Index in EXTICR starts from 0, EXTICR2 register maps to EXTICR[1] 
+    //          REF: https://www.marianm.net/STM32F10_Interupts.php
+    //AFIO->EXTICR[1] |= 0x00000100; // Link Line 6 Interrupt to Port B
     // Enable Rising Edge Tribber Line 6
-    EXTI->RTSR |= 0x00000040;
+    //EXTI->RTSR |= 0x00000040;
     //Enable Falling Ednge Trigger Line 6
-    EXTI->FTSR |= 0x00000040;
+    //EXTI->FTSR |= 0x00000040;
     
     // Unmask Line 6 Interrupt
-    EXTI->IMR |= 0x00000040;
+    //EXTI->IMR |= 0x00000040;
     
     // Enable Interrupt
-    NVIC_SetPriority(EXTI9_5_IRQn,1);
-    NVIC_EnableIRQ(EXTI9_5_IRQn);
+    //NVIC_SetPriority(EXTI9_5_IRQn,1);
+    //NVIC_EnableIRQ(EXTI9_5_IRQn);
     
 }
 
@@ -426,6 +507,7 @@ void toggleLed(){
 }
 void SysTick_Handler(void){
     counter++;
+    update_button(&button_history);
     if (ticks != 0){
         // Pre-decrement ticks. This avoids making a copy of the variable to 
         // decrement. This should be faster which is ideal for an interrupt
