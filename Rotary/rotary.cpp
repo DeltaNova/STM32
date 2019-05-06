@@ -219,12 +219,40 @@ uint8_t is_button_released(uint32_t *button_history){
 void buttonAction2(Serial& serial){
     // Button Action from Polling
     if (is_button_pressed(&button_history)){
+        // Reset Press Duration Counters to current counter value
+        buttonPressStart = counter;
+        buttonPressStop = counter;
+        // Send Pressed Message
         serial.write_array(buttonMessage,16);
         serial.write_buffer();
     }
     if (is_button_released(&button_history)){
+        buttonPressStop = counter;
+        uint32_t buttondelta = get_upcounting_delta(buttonPressStart, buttonPressStop);
+        // Send Released Message
         serial.write_array(buttonMessage5,17);
         serial.write_buffer();
+        
+        if (buttondelta < 1000){
+            // Short Press
+            serial.write_array(buttonMessage2,13);
+        }else if (buttondelta <5000){
+            // Long Press
+            serial.write_array(buttonMessage3,12);
+        }else{
+            // Very Long Press
+            serial.write_array(buttonMessage4,17);
+        }
+        serial.write_buffer();
+        
+        // Debug Code to Print Length of button press
+        snprintf(char_buffer2, 12, "%010lu", buttondelta);
+        for(uint8_t i=0;i<10; i++){
+            serial.write(char_buffer2[i]);
+        }
+        serial.write(0x0A); // LF
+        serial.write(0x0D); // CR
+        
     }
     
 }
@@ -253,7 +281,7 @@ void buttonAction(Serial& serial){
         serial.write_buffer();
         
         // Debug Code to Print Length of button press
-        snprintf(char_buffer2, 12, "%010u", buttondelta);
+        snprintf(char_buffer2, 12, "%010lu", buttondelta);
         for(uint8_t i=0;i<10; i++){
             serial.write(char_buffer2[i]);
         }
