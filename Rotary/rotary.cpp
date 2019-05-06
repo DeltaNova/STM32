@@ -13,7 +13,7 @@ extern volatile uint32_t ticks; // SysTick Library
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
-volatile uint32_t count_update = 0;  // Used to time execution of update_counts() 
+volatile uint32_t count_update = 0;  // For timing execution of update_counts() 
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
@@ -82,8 +82,10 @@ int main(void) {
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         update_counts();
         buttonAction(serial);
-        // Dev Note: The fact that the counts are only updated periodically allows the following print block to execute multiple times. 
-        //           This is due to the "count != last_count" statement remaing true until the next time the counts update. 
+        // Dev Note: The fact that the counts are only updated periodically 
+        //           allows the following print block to execute multiple times. 
+        //           This is due to the "count != last_count" statement remaing 
+        //           true until the next time the counts update. 
         
         if ((count/4) != (last_count/4)) {  // If count has changed
             // count & last_count values are divided by 4 before use.
