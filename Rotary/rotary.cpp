@@ -24,7 +24,14 @@ void EncoderButtonSetup();
 uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count);
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_encoder_counts();
-void updateValue(uint16_t dir, uint16_t delta);
+
+// Struct to hold a value with range limits
+struct Value {
+    uint8_t value = 0;
+    uint8_t valueMin = 0;
+    uint8_t valueMax = 255;
+};
+void updateValue(Value &value, uint16_t dir, uint16_t delta);
 
 // USART1
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
@@ -51,9 +58,11 @@ uint8_t buttonMessage5[]= "Button Released\n\r"; //Size 17
 
 // TODO: Convert to struct
 // Test Value with upper and lower limts.
-uint8_t value = 0;
-uint8_t valueMin = 0;
-uint8_t valueMax = 255;
+//uint8_t value = 0;
+//uint8_t valueMin = 0;
+//uint8_t valueMax = 255;
+
+
 
 // TODO: Used by buttonAction(), rewrite to remove
 char char_buffer2[16]; // DEBUG
@@ -88,6 +97,8 @@ int main(void) {
     // Send a message to the terminal to indicate program is running.
     serial.write_array(test_message,10);
     serial.write_buffer();
+    
+    Value TestValue;    // Create instance of Value Struct
     
     while(1){
                         // Triggers Every Second
@@ -146,11 +157,11 @@ int main(void) {
             
             serial.write(0x20); // SPACE
             
-            updateValue(dir, delta);    
+            updateValue(TestValue,dir, delta);    
             // This fifth value is the test value to be adjusted.
             // ValueMin = 0, ValueMax=255
             
-            snprintf(char_buffer, 8, "%05u", value);
+            snprintf(char_buffer, 8, "%05u", TestValue.value);
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
@@ -246,20 +257,20 @@ void buttonAction(Serial& serial){
         serial.write(0x0D); // CR
     }
 }
-void updateValue(uint16_t dir, uint16_t delta){
+void updateValue(Value &value, uint16_t dir, uint16_t delta){
     // TODO: Rewrite to take value as a variable and return new value
     // Apply the delta to current value.
     uint16_t i = 0;
     if (dir){   // If TRUE then count DOWN
         for (i=0; i < delta; i++){
-            if (value > valueMin){
-                value--;
+            if (value.value > value.valueMin){
+                value.value--;
             }
         }
     }else{      // If FALSE then count UP
         for (i=0; i < delta; i++){
-            if (value < valueMax){
-                value++;    
+            if (value.value < value.valueMax){
+                value.value++;    
             }
         }
     }
