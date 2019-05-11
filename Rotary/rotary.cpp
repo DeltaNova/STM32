@@ -258,7 +258,7 @@ void buttonAction2(Serial& serial){
     }
     
 }
-
+/*
 void buttonAction(Serial& serial){
     // Button Action from Interrupt
     // Checks for button activation and then triggers action.
@@ -293,7 +293,7 @@ void buttonAction(Serial& serial){
         buttonPressed = 0;
     }
 }
-
+*/
 void updateValue(uint16_t dir, uint16_t delta){
     // Apply the delta to current value.
     uint16_t i = 0;
@@ -358,6 +358,7 @@ void EncoderButtonSetup(){
     
 }
 
+/*
 void EXTI9_5_IRQHandler(void){
     // Shared handler for interrupts 5 to 9
     //if (EXTI->PR & 0x00000040){ 
@@ -396,7 +397,7 @@ void EXTI9_5_IRQHandler(void){
     }
      
 }
-
+*/
 void EncoderSetup(){
     // Setup For Rotary Encoder
     // Using Timer3 with partial remap for use of PB4 & PB5
