@@ -87,10 +87,13 @@ int main(void) {
     serial.write_buffer();
     
     while(1){
-        // Triggers Every Second
+                        // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
-        update_counts();
+        
+        // Assess what the button is doing and trigger appropritate action.
         buttonAction(serial);
+        
+        update_counts();
         // Dev Note: The fact that the counts are only updated periodically 
         //           allows the following print block to execute multiple times. 
         //           This is due to the "count != last_count" statement remaing 
@@ -243,7 +246,6 @@ void buttonAction(Serial& serial){
         serial.write(0x0D); // CR
     }
 }
-
 void updateValue(uint16_t dir, uint16_t delta){
     // Apply the delta to current value.
     uint16_t i = 0;
@@ -259,8 +261,6 @@ void updateValue(uint16_t dir, uint16_t delta){
                 value++;    
             }
         }
-        
-        
     }
 }
 
@@ -408,7 +408,7 @@ void toggleLed(){
 }
 void SysTick_Handler(void){
     counter++;
-    update_button(&button_history);
+    update_button(&button_history); // Log button state to debounce history
     if (ticks != 0){
         // Pre-decrement ticks. This avoids making a copy of the variable to 
         // decrement. This should be faster which is ideal for an interrupt
