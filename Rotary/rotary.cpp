@@ -87,8 +87,6 @@ int main(void) {
     serial.write_array(test_message,10);
     serial.write_buffer();
     
-
-    
     while(1){
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
@@ -165,34 +163,28 @@ int main(void) {
 
 uint32_t read_button(void){
     // Read the button state - Return 1 for pressed, 0 for released.
-    
     uint32_t button_state;
     if (GPIOB->IDR & 0x00000040){   // PB6 High (Not Pressed)
         button_state = 0;
-    }else{                          //PB6 Low (Pressed)
+    }else{                          // PB6 Low (Pressed)
         button_state = 1;
     }
     return button_state;
-
 }
-
 void update_button(uint32_t *button_history){   // Called by Systick every 1ms
     // Bit shift button history to make room for new reading.
     *button_history = *button_history << 1;
     // Read current button state into history.
     *button_history |= read_button();
 }
-
 uint8_t is_button_up(uint32_t *button_history){
     // Returns true if button up
     return(*button_history == 0x00000000); 
 }
-
 uint8_t is_button_down(uint32_t *button_history){
     // Returns true if button down
     return(*button_history == 0xFFFFFFFF);
 }
-
 uint8_t is_button_pressed(uint32_t *button_history){
     // Returns true if pressed
     uint8_t pressed = 0;
@@ -203,7 +195,6 @@ uint8_t is_button_pressed(uint32_t *button_history){
     }
     return pressed;
 }
-
 uint8_t is_button_released(uint32_t *button_history){
     // Returns true if released
     uint8_t released = 0;
@@ -251,9 +242,7 @@ void buttonAction(Serial& serial){
         }
         serial.write(0x0A); // LF
         serial.write(0x0D); // CR
-        
     }
-    
 }
 
 void updateValue(uint16_t dir, uint16_t delta){
@@ -292,28 +281,18 @@ uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count){
 }
 void EncoderButtonSetup(){
     // Button will be using PB6 and is wired in with a pullup resistor
-    
-    // Enable Clocks (AFIO, Port B)
-    RCC->APB2ENR |= 0x00000009;
-    // Setup PB6 as an input
+    RCC->APB2ENR |= 0x00000009;     // Enable Clocks (AFIO, Port B)
     // Clear PB6 Bits Before Setting as register does not zero on reset.
     GPIOB->CRL &= 0xF0FFFFFF;
-    GPIOB->CRL |= 0x08000000;
-    // Set PB6 to use Pullup
-    GPIOB->ODR |= 0x00000040;
+    GPIOB->CRL |= 0x08000000;       // Setup PB6 as an input
+    GPIOB->ODR |= 0x00000040;       // Set PB6 to use Pullup
 }
-
 void EncoderSetup(){
     // Setup For Rotary Encoder
     // Using Timer3 with partial remap for use of PB4 & PB5
-    
-    // Enable Clocks (AFIO, Port B)
-    RCC->APB2ENR |= 0x00000009;
-    
-    // Partial Remap of Timer 3 Ports
-    AFIO->MAPR |= 0x00000800;
-    // Enable Clocks (TIM3)
-    RCC->APB1ENR |= 0x00000002;
+    RCC->APB2ENR |= 0x00000009;     // Enable Clocks (AFIO, Port B)
+    AFIO->MAPR |= 0x00000800;       // Partial Remap of Timer 3 Ports
+    RCC->APB1ENR |= 0x00000002;     // Enable Clocks (TIM3)
     
     // Configure PB4 & PB5 (Floating Input, Input Mode)
     GPIOB->CRL &= 0xFF00FFFF;   // Clear PB4/PB5 Bits
@@ -330,8 +309,7 @@ void EncoderSetup(){
     // CEM = 0 (Counter Disabled) <- Gets Enabled Later
     TIM3->CR1 = 0x0000;
     
-    // Set SMS Bits for Encoder Mode 3
-    TIM3->SMCR |= 0x0003;
+    TIM3->SMCR |= 0x0003; // Set SMS Bits for Encoder Mode 3
     
     // Ensure CC1E = 0 , CC2E = 0 to allow setting of capture/compare bits.
     TIM3->CCER &= 0xFFEE;
@@ -352,16 +330,19 @@ void EncoderSetup(){
     
     //Enable Update Generation
     TIM3->EGR |= 0x0001; // Reinitialise Counter & Update Registers
-    
-    // Enable Timer 3
-    TIM3->CR1 |= 0x00001;    
+    TIM3->CR1 |= 0x00001;    // Enable Timer 3
 }
 
 uint16_t get_diff(uint16_t count, uint16_t last_count){
     // This function assumes a count range of 0x0000 to 0xFFFF with roll over
-    // and roll under. 
-    // It will not work correctly if the count is scaled before use.
+    // and roll under.
+    
+    // Note: It will not work correctly if the count is scaled before use.
     // i.e. count/4 (since 4 clocks per detent) will produce unexpected results.
+    
+    // A window is used to assess the difference between the count and 
+    // last_count values. Values inside or outside of the window determine how 
+    // the diff is calculated. Multiple rollover not handled.
     uint16_t diff;
     if (count > last_count){
         if (count < 0x8000){
@@ -415,19 +396,13 @@ void update_counts(){
         // values of 50+ allow multiple loop executions.
     }
 }
-
 void PC13_LED_Setup(){
-    // PortC GPIO Setup
-    // Enable I/O Clock for PortC
-    RCC->APB2ENR |= 0x00000010;
-
-    // Configure PC13
-    // - LED Indicator
+    // Configure PC13 LED Indicator
     // - General Purpose Output Push-Pull
     // - Max Speed 50MHz
-    
-    GPIOC->CRH &= 0xFF0FFFFF; // Zero Settings for PC13, preserve the rest
-    GPIOC->CRH |= 0x00300000; // Apply Config to PC13 (50MHz)
+    RCC->APB2ENR |= 0x00000010;     // Enable I/O Clock for PortC
+    GPIOC->CRH &= 0xFF0FFFFF;       // Zero Settings for PC13, preserve the rest
+    GPIOC->CRH |= 0x00300000;       // Apply Config to PC13 (50MHz)
 }
 void toggleLed(){
     // Toggle the LED attached to PC13
