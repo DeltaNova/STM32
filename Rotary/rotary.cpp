@@ -13,7 +13,6 @@ extern volatile uint32_t ticks; // SysTick Library
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
-//volatile uint32_t count_update = 0;  // For timing execution of update_counts() 
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
@@ -24,7 +23,7 @@ void EncoderSetup();
 void EncoderButtonSetup();
 uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count);
 uint16_t get_diff(uint16_t count, uint16_t last_count);
-void update_counts();
+void update_encoder_counts();
 void updateValue(uint16_t dir, uint16_t delta);
 
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
@@ -93,11 +92,7 @@ int main(void) {
         // Assess what the button is doing and trigger appropritate action.
         buttonAction(serial);
         
-        update_counts();
-        // Dev Note: The fact that the counts are only updated periodically 
-        //           allows the following print block to execute multiple times. 
-        //           This is due to the "count != last_count" statement remaing 
-        //           true until the next time the counts update. 
+        update_encoder_counts();
         
         if ((count/4) != (last_count/4)) {  // If count has changed
             // count & last_count values are divided by 4 before use.
@@ -369,22 +364,10 @@ uint16_t get_diff(uint16_t count, uint16_t last_count){
         }
     }
 }
-void update_counts(){
-    // Run periodically to update the count and last_count values.
+void update_encoder_counts(){
+    // Read the counter connected to the rotary encoder.
     last_count = count;          // Store previous count as last_count
     count = (uint16_t)TIM3->CNT; // Read HW counter value
-    /*
-    if (count_update == 0){
-        last_count = count;          // Store previous count as last_count
-        count = (uint16_t)TIM3->CNT; // Read HW counter value
-        count_update = 0;  // DEBUG Changed to zero to make count value update faster. 
-        // It might be better to remove this update function all together. 
-        // However being able to slow things down might help debugging.
-        // DEV NOTE: Experimenting with the count update value it is safer to 
-        // leave it at zero. A value of 10 makes no abvious difference but 
-        // values of 50+ allow multiple loop executions.
-    }
-    */
 }
 void PC13_LED_Setup(){
     // Configure PC13 LED Indicator
@@ -420,10 +403,4 @@ void SysTick_Handler(void){
     if (flash !=0){ // Decrement the LED Toggle Counter
         --flash;
     }
-    
-    /*
-    if (count_update !=0){ // Decrement count_update counter
-        --count_update;
-    }
-    */
 }
