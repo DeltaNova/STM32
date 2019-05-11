@@ -13,7 +13,7 @@ extern volatile uint32_t ticks; // SysTick Library
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
-volatile uint32_t count_update = 0;  // For timing execution of update_counts() 
+//volatile uint32_t count_update = 0;  // For timing execution of update_counts() 
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
@@ -371,6 +371,9 @@ uint16_t get_diff(uint16_t count, uint16_t last_count){
 }
 void update_counts(){
     // Run periodically to update the count and last_count values.
+    last_count = count;          // Store previous count as last_count
+    count = (uint16_t)TIM3->CNT; // Read HW counter value
+    /*
     if (count_update == 0){
         last_count = count;          // Store previous count as last_count
         count = (uint16_t)TIM3->CNT; // Read HW counter value
@@ -381,6 +384,7 @@ void update_counts(){
         // leave it at zero. A value of 10 makes no abvious difference but 
         // values of 50+ allow multiple loop executions.
     }
+    */
 }
 void PC13_LED_Setup(){
     // Configure PC13 LED Indicator
@@ -417,7 +421,9 @@ void SysTick_Handler(void){
         --flash;
     }
     
+    /*
     if (count_update !=0){ // Decrement count_update counter
         --count_update;
     }
+    */
 }
