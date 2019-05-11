@@ -29,13 +29,12 @@ void updateValue(uint16_t dir, uint16_t delta);
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
 Buffer serial_rx; // USART1 RX Buffer (16 bytes)
 
-volatile uint16_t count = 0;
-volatile uint16_t last_count = 0; 
-
 // Systick Counter
 volatile uint32_t counter = 0;
 
-// Variables for rotary encoder button
+// Rotary Encoder
+volatile uint16_t encoder_count = 0;
+volatile uint16_t last_encoder_count = 0; 
 volatile uint16_t buttonPressStart = 0;
 volatile uint16_t buttonPressStop = 0;
 volatile uint8_t buttonPressed = 0;
@@ -94,25 +93,25 @@ int main(void) {
         
         update_encoder_counts();
         
-        if ((count/4) != (last_count/4)) {  // If count has changed
-            // count & last_count values are divided by 4 before use.
+        if ((encoder_count/4) != (last_encoder_count/4)) {  // If encoder_count has changed
+            // encoder_count & last_encoder_count values are divided by 4 before use.
             // This is to reflect the 4 clock pulses per detent.
             // The result is the following code executes every detent.
             
             
-            // Write new count to serial port.
-            snprintf(char_buffer, 8, "%05u", count); 
+            // Write new encoder_count to serial port.
+            snprintf(char_buffer, 8, "%05u", encoder_count); 
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
             
             serial.write(0x20); // SPACE
             
-            // This second count (count/4) changes based on the detents.
+            // This second count (encoder_count/4) changes based on the detents.
             // This new count smooths out the clock pulses between detents
             // while also incrementing in single digits.
             
-            snprintf(char_buffer, 8, "%05u", count/4); // Count/4
+            snprintf(char_buffer, 8, "%05u", encoder_count/4); // Count/4
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
@@ -121,7 +120,7 @@ int main(void) {
             
             
             // This third value is the count delta, used for debugging
-            uint16_t delta = get_diff(count,last_count);
+            uint16_t delta = get_diff(encoder_count,last_encoder_count);
             snprintf(char_buffer, 8, "%05u", delta);
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
@@ -365,9 +364,9 @@ uint16_t get_diff(uint16_t count, uint16_t last_count){
     }
 }
 void update_encoder_counts(){
-    // Read the counter connected to the rotary encoder.
-    last_count = count;          // Store previous count as last_count
-    count = (uint16_t)TIM3->CNT; // Read HW counter value
+    // Read the hardware counter connected to the rotary encoder.
+    last_encoder_count = encoder_count;     // Store previous encoder_count 
+    encoder_count = (uint16_t)TIM3->CNT;    // Read latest HW counter value
 }
 void PC13_LED_Setup(){
     // Configure PC13 LED Indicator
