@@ -48,7 +48,7 @@ volatile uint16_t last_encoder_count = 0;
 volatile uint16_t buttonPressStart = 0;
 volatile uint16_t buttonPressStop = 0;
 volatile uint8_t buttonPressed = 0;
-void buttonAction(Serial& serial);
+void buttonAction(Serial& serial, char *char_buffer);
 
 uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
 uint8_t buttonMessage2[]= "Short Press\n\r"; //Size 13
@@ -57,7 +57,7 @@ uint8_t buttonMessage4[]= "Very Long Press\n\r"; //Size 17
 uint8_t buttonMessage5[]= "Button Released\n\r"; //Size 17
 
 // TODO: Used by buttonAction(), rewrite to remove
-char char_buffer2[16]; // DEBUG
+//char char_buffer2[16]; // DEBUG
 
 // Button Debounce 
 void update_button(uint32_t *button_history);
@@ -97,7 +97,7 @@ int main(void) {
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         
         // Assess what the button is doing and trigger appropritate action.
-        buttonAction(serial);
+        buttonAction(serial, char_buffer);
         
         update_encoder_counts();
         
@@ -211,7 +211,7 @@ uint8_t is_button_released(uint32_t *button_history){
 }
 
 // TODO: Rewrite to accept char buffer as a variable
-void buttonAction(Serial& serial){ 
+void buttonAction(Serial& serial, char *char_buffer){ 
     // Button Action from Polling
     if (is_button_pressed(&button_history)){
         // Reset Press Duration Counters to current counter value
@@ -241,9 +241,9 @@ void buttonAction(Serial& serial){
         serial.write_buffer();
         
         // Debug Code to Print Length of button press
-        snprintf(char_buffer2, 12, "%010lu", buttondelta);
+        snprintf(char_buffer, 12, "%010lu", buttondelta);
         for(uint8_t i=0;i<10; i++){
-            serial.write(char_buffer2[i]);
+            serial.write(char_buffer[i]);
         }
         serial.write(0x0A); // LF
         serial.write(0x0D); // CR
