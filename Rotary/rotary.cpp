@@ -23,7 +23,6 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 void EncoderSetup();
 void EncoderButtonSetup();
 uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count);
-//uint16_t get_count_delta(uint16_t count, uint16_t last_count);
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_counts();
 void updateValue(uint16_t dir, uint16_t delta);
@@ -370,19 +369,6 @@ uint16_t get_diff(uint16_t count, uint16_t last_count){
         }
     }
 }
-/*
-uint16_t get_count_delta(uint16_t count, uint16_t last_count){
-    // Function to return the difference between two count values
-    
-    if (count < last_count){
-        // Counter has rolled over (at least once, but multiples not handled).
-        // +1 to handle zero position.
-        return(0xFFFF - last_count) + 1 + count;   
-    }else{
-        return(count - last_count);
-    }
-}
-*/
 void update_counts(){
     // Run periodically to update the count and last_count values.
     if (count_update == 0){
