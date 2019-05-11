@@ -26,6 +26,7 @@ uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_encoder_counts();
 void updateValue(uint16_t dir, uint16_t delta);
 
+// USART1
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
 Buffer serial_rx; // USART1 RX Buffer (16 bytes)
 
@@ -35,6 +36,8 @@ volatile uint32_t counter = 0;
 // Rotary Encoder
 volatile uint16_t encoder_count = 0;
 volatile uint16_t last_encoder_count = 0; 
+
+// Rotary Encoder Button
 volatile uint16_t buttonPressStart = 0;
 volatile uint16_t buttonPressStop = 0;
 volatile uint8_t buttonPressed = 0;
@@ -46,14 +49,16 @@ uint8_t buttonMessage3[]= "Long Press\n\r"; //Size 12
 uint8_t buttonMessage4[]= "Very Long Press\n\r"; //Size 17
 uint8_t buttonMessage5[]= "Button Released\n\r"; //Size 17
 
+// TODO: Convert to struct
 // Test Value with upper and lower limts.
 uint8_t value = 0;
 uint8_t valueMin = 0;
 uint8_t valueMax = 255;
 
+// TODO: Used by buttonAction(), rewrite to remove
 char char_buffer2[16]; // DEBUG
 
-// Button Debounce
+// Button Debounce 
 void update_button(uint32_t *button_history);
 
 // BUTTON_MASK - Assuming 1ms history update allows for 16ms of switch bounce.
@@ -202,7 +207,8 @@ uint8_t is_button_released(uint32_t *button_history){
     return released;
 }
 
-void buttonAction(Serial& serial){
+// TODO: Rewrite to accept char buffer as a variable
+void buttonAction(Serial& serial){ 
     // Button Action from Polling
     if (is_button_pressed(&button_history)){
         // Reset Press Duration Counters to current counter value
@@ -241,6 +247,7 @@ void buttonAction(Serial& serial){
     }
 }
 void updateValue(uint16_t dir, uint16_t delta){
+    // TODO: Rewrite to take value as a variable and return new value
     // Apply the delta to current value.
     uint16_t i = 0;
     if (dir){   // If TRUE then count DOWN
@@ -288,8 +295,8 @@ void EncoderSetup(){
     RCC->APB1ENR |= 0x00000002;     // Enable Clocks (TIM3)
     
     // Configure PB4 & PB5 (Floating Input, Input Mode)
-    GPIOB->CRL &= 0xFF00FFFF;   // Clear PB4/PB5 Bits
-    GPIOB->CRL |= 0x00440000;   // Set ports as inputs   
+    GPIOB->CRL &= 0xFF00FFFF;       // Clear PB4/PB5 Bits
+    GPIOB->CRL |= 0x00440000;       // Set ports as inputs   
         
     // Setup Timer 3
     // CKD = 00 (Div/1)
@@ -302,7 +309,7 @@ void EncoderSetup(){
     // CEM = 0 (Counter Disabled) <- Gets Enabled Later
     TIM3->CR1 = 0x0000;
     
-    TIM3->SMCR |= 0x0003; // Set SMS Bits for Encoder Mode 3
+    TIM3->SMCR |= 0x0003;           // Set SMS Bits for Encoder Mode 3
     
     // Ensure CC1E = 0 , CC2E = 0 to allow setting of capture/compare bits.
     TIM3->CCER &= 0xFFEE;
@@ -319,19 +326,17 @@ void EncoderSetup(){
     TIM3->CCER |= 0x0031;
     
     // Set Max Count Value (Count up between 0 and ARR, count down ARR to 0)
-    TIM3->ARR = 0xFFFF; // 65535
+    TIM3->ARR = 0xFFFF;             // 65535
     
     //Enable Update Generation
-    TIM3->EGR |= 0x0001; // Reinitialise Counter & Update Registers
-    TIM3->CR1 |= 0x00001;    // Enable Timer 3
+    TIM3->EGR |= 0x0001;            // Reinitialise Counter & Update Registers
+    TIM3->CR1 |= 0x00001;           // Enable Timer 3
 }
-
 uint16_t get_diff(uint16_t count, uint16_t last_count){
     // This function assumes a count range of 0x0000 to 0xFFFF with roll over
     // and roll under.
     
     // Note: It will not work correctly if the count is scaled before use.
-    // i.e. count/4 (since 4 clocks per detent) will produce unexpected results.
     
     // A window is used to assess the difference between the count and 
     // last_count values. Values inside or outside of the window determine how 
