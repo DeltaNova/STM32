@@ -56,9 +56,6 @@ uint8_t buttonMessage3[]= "Long Press\n\r"; //Size 12
 uint8_t buttonMessage4[]= "Very Long Press\n\r"; //Size 17
 uint8_t buttonMessage5[]= "Button Released\n\r"; //Size 17
 
-// TODO: Used by buttonAction(), rewrite to remove
-//char char_buffer2[16]; // DEBUG
-
 // Button Debounce 
 void update_button(uint32_t *button_history);
 
@@ -72,10 +69,10 @@ uint32_t button_history = 0;
 int main(void) {
     ClockSetup();       // Setup System & Peripheral Clocks
     SysTick_Init();     // Enable SysTick
+    
     // Create instance of Serial class (USART1) 
     Serial serial(serial_rx, serial_tx);     
     serial.setup();     // Enable Serial Support - Currently USART1 Specific
-
     // NOTE: Tie USART RX Pin low as I suspect interrupt causing problems.
 
     PC13_LED_Setup();   // Setup PC13 for output LED
@@ -84,7 +81,7 @@ int main(void) {
     
     // Strings & Initial Values
     uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
-
+    // NOTE: char_buffer needs to be sized to be able to hold the longest message.
     char char_buffer[16];
     // Send a message to the terminal to indicate program is running.
     serial.write_array(test_message,10);
@@ -100,30 +97,25 @@ int main(void) {
         buttonAction(serial, char_buffer);
         
         update_encoder_counts();
-        
         if ((encoder_count/4) != (last_encoder_count/4)) {  // If encoder_count changed
             // encoder_count & last_encoder_count values are divided by 4 before use.
             // This is to reflect the 4 clock pulses per detent.
             // The result is the following code executes every detent.
-            
             
             // Write new encoder_count to serial port.
             snprintf(char_buffer, 8, "%05u", encoder_count); 
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
-            
             serial.write(0x20); // SPACE
             
             // This second count (encoder_count/4) changes based on the detents.
             // This new count smooths out the clock pulses between detents
             // while also incrementing in single digits.
-            
             snprintf(char_buffer, 8, "%05u", encoder_count/4); // Count/4
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
-                
             serial.write(0x20); // SPACE
             
             
@@ -133,38 +125,30 @@ int main(void) {
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
-            
             serial.write(0x20); // SPACE
-            
             
             // This fourth value is the Timer Direction Bit, used for debugging
             // Prints: (Due to BIN to DEC conversion)
-            // 00000 for UP
-            // 00016 for DOWN 
+            // 00000 for UP, 00016 for DOWN 
             uint16_t dir = (TIM3->CR1 & 0x0010);
             snprintf(char_buffer, 8, "%05u", dir);
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
-            
             serial.write(0x20); // SPACE
             
-            updateValue(TestValue,dir, delta);    
             // This fifth value is the test value to be adjusted.
             // ValueMin = 0, ValueMax=255
-            
+            updateValue(TestValue,dir, delta);
             snprintf(char_buffer, 8, "%05u", TestValue.value);
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
-                              
             serial.write(0x0A); // LF
             serial.write(0x0D); // CR
         }
-    
     }
 }
-
 uint32_t read_button(void){
     // Read the button state - Return 1 for pressed, 0 for released.
     uint32_t button_state;
@@ -209,10 +193,9 @@ uint8_t is_button_released(uint32_t *button_history){
     }
     return released;
 }
-
-// TODO: Rewrite to accept char buffer as a variable
 void buttonAction(Serial& serial, char *char_buffer){ 
     // Button Action from Polling
+    // Parameters: Reference to USART instance, Pointer to char_buffer array
     if (is_button_pressed(&button_history)){
         // Reset Press Duration Counters to current counter value
         buttonPressStart = counter;
@@ -228,17 +211,16 @@ void buttonAction(Serial& serial, char *char_buffer){
         serial.write_array(buttonMessage5,17);
         serial.write_buffer();
         
-        if (buttondelta < 1000){
-            // Short Press
+        // Check press time and select the message to load into the buffer.
+        if (buttondelta < 1000){                        // Short Press
             serial.write_array(buttonMessage2,13);
-        }else if (buttondelta <5000){
-            // Long Press
-            serial.write_array(buttonMessage3,12);
-        }else{
-            // Very Long Press
+        }else if (buttondelta <5000){                   // Long Press
+            serial.write_array(buttonMessage3,12); 
+        }else{                                          // Very Long Press
             serial.write_array(buttonMessage4,17);
         }
-        serial.write_buffer();
+        // Write the buffer containing the message to USART.
+        serial.write_buffer();  
         
         // Debug Code to Print Length of button press
         snprintf(char_buffer, 12, "%010lu", buttondelta);
