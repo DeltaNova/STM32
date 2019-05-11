@@ -56,14 +56,6 @@ uint8_t buttonMessage3[]= "Long Press\n\r"; //Size 12
 uint8_t buttonMessage4[]= "Very Long Press\n\r"; //Size 17
 uint8_t buttonMessage5[]= "Button Released\n\r"; //Size 17
 
-// TODO: Convert to struct
-// Test Value with upper and lower limts.
-//uint8_t value = 0;
-//uint8_t valueMin = 0;
-//uint8_t valueMax = 255;
-
-
-
 // TODO: Used by buttonAction(), rewrite to remove
 char char_buffer2[16]; // DEBUG
 
@@ -258,7 +250,6 @@ void buttonAction(Serial& serial){
     }
 }
 void updateValue(Value &value, uint16_t dir, uint16_t delta){
-    // TODO: Rewrite to take value as a variable and return new value
     // Apply the delta to current value.
     uint16_t i = 0;
     if (dir){   // If TRUE then count DOWN
@@ -275,7 +266,6 @@ void updateValue(Value &value, uint16_t dir, uint16_t delta){
         }
     }
 }
-
 uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count){
     // Returns the difference between two count values.
     
