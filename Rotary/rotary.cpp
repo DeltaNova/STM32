@@ -17,7 +17,6 @@ volatile uint32_t count_update = 0;  // For timing execution of update_counts()
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
-extern "C" void EXTI9_5_IRQHandler(void);
 extern "C" void SysTick_Handler(void);
 void toggleLed();
 void PC13_LED_Setup(); // Setup PC13 for output LED
@@ -302,65 +301,8 @@ void EncoderButtonSetup(){
     GPIOB->CRL |= 0x08000000;
     // Set PB6 to use Pullup
     GPIOB->ODR |= 0x00000040;
-    
-    // Configure Interrupts to detect button press
-    // DEVNOTE: Index in EXTICR starts from 0, EXTICR2 register maps to EXTICR[1] 
-    //          REF: https://www.marianm.net/STM32F10_Interupts.php
-    //AFIO->EXTICR[1] |= 0x00000100; // Link Line 6 Interrupt to Port B
-    // Enable Rising Edge Tribber Line 6
-    //EXTI->RTSR |= 0x00000040;
-    //Enable Falling Ednge Trigger Line 6
-    //EXTI->FTSR |= 0x00000040;
-    
-    // Unmask Line 6 Interrupt
-    //EXTI->IMR |= 0x00000040;
-    
-    // Enable Interrupt
-    //NVIC_SetPriority(EXTI9_5_IRQn,1);
-    //NVIC_EnableIRQ(EXTI9_5_IRQn);
-    
 }
 
-/*
-void EXTI9_5_IRQHandler(void){
-    // Shared handler for interrupts 5 to 9
-    //if (EXTI->PR & 0x00000040){ 
-    //    EXTI->PR |= 0x00000040;
-    //    buttonPressed =1;
-    //}
-
-    // Check for triggering interrupt by looking at pending register
-    if (EXTI->PR & 0x00000040){
-        // Pending Line 6 Interrupt
-        
-        // DEVNOTE: Generally advisable to clear pending flag as soon as
-        //          possible before performing any furthur actions.
-        
-        // Clear interrupt bit by writing '1' to the EXTI->PR register
-        // Ref: Datasheet RM00008 Notes on register
-        EXTI->PR |= 0x00000040;
-        
-        //buttonPressed = 1; // DEBUG
-        
-        // Check if PB6 Set in Input Data Register
-        // PB6 uses Pull-Up
-        //  1 = Not Pressed
-        //  0 = Pressed
-        if (GPIOB->IDR & 0x00000040){
-            // If high store timer value as stop time, set pressed flag
-            //buttonPressStop = counter;
-            buttonPressStop = counter;
-            buttonPressed = 1; // Set flag
-            
-        }else{
-            // If low store timer value as start time
-            buttonPressStart = counter;
-        }
-        
-    }
-     
-}
-*/
 void EncoderSetup(){
     // Setup For Rotary Encoder
     // Using Timer3 with partial remap for use of PB4 & PB5
