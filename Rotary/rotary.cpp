@@ -43,7 +43,6 @@ volatile uint16_t buttonPressStart = 0;
 volatile uint16_t buttonPressStop = 0;
 volatile uint8_t buttonPressed = 0;
 void buttonAction(Serial& serial);
-void buttonAction2(Serial& serial);
 
 uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
 uint8_t buttonMessage2[]= "Short Press\n\r"; //Size 13
@@ -95,8 +94,7 @@ int main(void) {
         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         update_counts();
-        //buttonAction(serial);
-        buttonAction2(serial);
+        buttonAction(serial);
         // Dev Note: The fact that the counts are only updated periodically 
         //           allows the following print block to execute multiple times. 
         //           This is due to the "count != last_count" statement remaing 
@@ -218,7 +216,7 @@ uint8_t is_button_released(uint32_t *button_history){
     return released;
 }
 
-void buttonAction2(Serial& serial){
+void buttonAction(Serial& serial){
     // Button Action from Polling
     if (is_button_pressed(&button_history)){
         // Reset Press Duration Counters to current counter value
@@ -258,42 +256,7 @@ void buttonAction2(Serial& serial){
     }
     
 }
-/*
-void buttonAction(Serial& serial){
-    // Button Action from Interrupt
-    // Checks for button activation and then triggers action.
-    if (buttonPressed){     // buttonPressed true when triggered
-        // Send Serial Message
-        uint32_t buttondelta = get_upcounting_delta(buttonPressStart, buttonPressStop);
-        buttonPressStart = 0;
-        buttonPressStop = 0;
-        serial.write_array(buttonMessage,16);
-        serial.write_buffer();
-        
-        if (buttondelta < 500){
-            // Short Press
-            serial.write_array(buttonMessage2,13);
-        }else if (buttondelta <5000){
-            // Long Press
-            serial.write_array(buttonMessage3,12);
-        }else{
-            // Very Long Press
-            serial.write_array(buttonMessage4,17);
-        }
-        serial.write_buffer();
-        
-        // Debug Code to Print Length of button press
-        snprintf(char_buffer2, 12, "%010lu", buttondelta);
-        for(uint8_t i=0;i<10; i++){
-            serial.write(char_buffer2[i]);
-        }
-        serial.write(0x0A); // LF
-        serial.write(0x0D); // CR
-        
-        buttonPressed = 0;
-    }
-}
-*/
+
 void updateValue(uint16_t dir, uint16_t delta){
     // Apply the delta to current value.
     uint16_t i = 0;
