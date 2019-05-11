@@ -98,7 +98,7 @@ int main(void) {
         
         update_encoder_counts();
         
-        if ((encoder_count/4) != (last_encoder_count/4)) {  // If encoder_count has changed
+        if ((encoder_count/4) != (last_encoder_count/4)) {  // If encoder_count changed
             // encoder_count & last_encoder_count values are divided by 4 before use.
             // This is to reflect the 4 clock pulses per detent.
             // The result is the following code executes every detent.
