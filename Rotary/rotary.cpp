@@ -96,12 +96,19 @@ int main(void) {
         // Assess what the button is doing and trigger appropritate action.
         buttonAction(serial, char_buffer);
         
+        // Update Encoder Counts then check for any movement of the encoder.
         update_encoder_counts();
-        if ((encoder_count/4) != (last_encoder_count/4)) {  // If encoder_count changed
-            // encoder_count & last_encoder_count values are divided by 4 before use.
-            // This is to reflect the 4 clock pulses per detent.
+        if ((encoder_count/4) != (last_encoder_count/4)) {  
+            // encoder_count & last_encoder_count values are divided by 4 
+            // before use. This is to reflect the 4 clock pulses per detent.
             // The result is the following code executes every detent.
             
+            // Direction Encoder Moved
+            uint16_t dir = (TIM3->CR1 & 0x0010); 
+            // Ammount Encoder Moved
+            uint16_t delta = get_diff(encoder_count,last_encoder_count);
+            
+            /*
             // Write new encoder_count to serial port.
             snprintf(char_buffer, 8, "%05u", encoder_count); 
                 for(uint8_t i=0;i<5; i++){
@@ -136,7 +143,7 @@ int main(void) {
                     serial.write(char_buffer[i]);
                 }
             serial.write(0x20); // SPACE
-            
+            */
             // This fifth value is the test value to be adjusted.
             // ValueMin = 0, ValueMax=255
             updateValue(TestValue,dir, delta);
