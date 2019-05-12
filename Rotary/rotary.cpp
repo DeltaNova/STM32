@@ -146,13 +146,19 @@ int main(void) {
             */
             // This fifth value is the test value to be adjusted.
             // ValueMin = 0, ValueMax=255
+
+            // Output Backspaces to clear previous value before overwriting.
+            for (uint8_t i=0;i<5; i++){
+                serial.write(0x08);
+            }    
             updateValue(TestValue,dir, delta);
+            // Output Updated Value
             snprintf(char_buffer, 8, "%05u", TestValue.value);
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
-            serial.write(0x0A); // LF
-            serial.write(0x0D); // CR
+            //serial.write(0x0A); // LF
+            //serial.write(0x0D); // CR
         }
     }
 }
