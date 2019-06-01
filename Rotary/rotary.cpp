@@ -87,7 +87,15 @@ int main(void) {
     serial.write_array(test_message,10);
     serial.write_buffer();
     
-    Value TestValue;    // Create instance of Value Struct
+    Value TestValue;        // Create instance of Value Struct
+    Value MenuSelection;    // Holds the current and range of menu selections.
+    MenuSelection.valueMax = 4; 
+    // Menu Options:
+    // 0 Exit
+    // 1 Red
+    // 2 Green
+    // 3 Blue
+    // 4 Set
     
     while(1){
                         // Triggers Every Second
