@@ -25,6 +25,7 @@ uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count);
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_encoder_counts();
 uint8_t is_button_up(uint32_t *button_history);
+uint8_t is_button_pressed(uint32_t *button_history);
 
 // Struct to hold a value with range limits
 struct Value {
@@ -67,6 +68,14 @@ void update_button(uint32_t *button_history);
 uint16_t idle = TIMEOUT;
 // History of button state.
 uint32_t button_history = 0; 
+
+enum class State{
+    IDLE, 
+    MENU, 
+    R, 
+    G, 
+    B,
+};
 ////////////////////////////////////////////////////////////////////////////////
 // Main - Called by the startup code.
 int main(void) {
@@ -85,6 +94,7 @@ int main(void) {
     // Strings & Initial Values (Escape Chars 1 byte each_
     uint8_t test_message[] = "Waiting!\n\r";    //Size 10
     uint8_t idle_message[] = "\n\rIdle\n\r";        // Size 8
+    uint8_t menu_message[] = "\n\rMenu\n\r";        // Size 8
     // NOTE: char_buffer needs to be sized to be able to hold the longest message.
     char char_buffer[16];
     // Send a message to the terminal to indicate program is running.
@@ -102,18 +112,27 @@ int main(void) {
     // 2 Green
     // 3 Blue
     // 4 Set
+       
+    State state = State::IDLE;  // Holds current program state
     
     while(1){
                         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         
-        if (idle == 0x01){ // About to endter IDLE state
+        if (idle == 0x01){ // About to enter IDLE state
             // Print Idle Message Here
             serial.write_array(idle_message,8);                                 
             serial.write_buffer();
-            // Count decremented to zero by the next instruction. 
-            // Generating the message here to prevent constant 
+            // Count decremented to zero by the next Systick. 
+            // Generating the message before getting to zero to prevent constant 
             // retriggering whilst in the idle state.
+            state = State::IDLE;
+        }
+        
+        if ((state == State::IDLE) && is_button_pressed(&button_history)){      
+            serial.write_array(menu_message,8);
+            serial.write_buffer();
+            state = State::MENU;
         }
         
         // Assess what the button is doing and trigger appropritate action.
