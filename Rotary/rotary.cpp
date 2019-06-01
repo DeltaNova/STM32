@@ -25,7 +25,9 @@ uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count);
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_encoder_counts();
 uint8_t is_button_up(uint32_t *button_history);
+uint8_t is_button_down(uint32_t *button_history);
 uint8_t is_button_pressed(uint32_t *button_history);
+uint8_t is_button_released(uint32_t *button_history);
 
 // Struct to hold a value with range limits
 struct Value {
@@ -129,7 +131,7 @@ int main(void) {
             state = State::IDLE;
         }
         
-        if ((state == State::IDLE) && is_button_pressed(&button_history)){      
+        if ((state == State::IDLE) && is_button_down(&button_history)){      
             serial.write_array(menu_message,8);
             serial.write_buffer();
             state = State::MENU;
