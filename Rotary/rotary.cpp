@@ -24,6 +24,7 @@ void EncoderButtonSetup();
 uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count);
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_encoder_counts();
+uint8_t is_button_up(uint32_t *button_history);
 
 // Struct to hold a value with range limits
 struct Value {
@@ -61,7 +62,9 @@ void update_button(uint32_t *button_history);
 
 // BUTTON_MASK - Assuming 1ms history update allows for 16ms of switch bounce.
 #define BUTTON_MASK 0b11111111000000000000000011111111
-
+// Timeout Reset Value (ms)for Idle state
+#define TIMEOUT 5000
+uint16_t idle = TIMEOUT;
 // History of button state.
 uint32_t button_history = 0; 
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,13 +82,16 @@ int main(void) {
     EncoderSetup();     // Setup Rotary Encoder
     EncoderButtonSetup(); // Setup the Rotary Encoder Button
     
-    // Strings & Initial Values
-    uint8_t test_message[] = "Waiting!\n\r"; //Size 10, escape chars 1 byte each
+    // Strings & Initial Values (Escape Chars 1 byte each_
+    uint8_t test_message[] = "Waiting!\n\r";    //Size 10
+    uint8_t idle_message[] = "\n\rIdle\n\r";        // Size 8
     // NOTE: char_buffer needs to be sized to be able to hold the longest message.
     char char_buffer[16];
     // Send a message to the terminal to indicate program is running.
     serial.write_array(test_message,10);
     serial.write_buffer();
+    
+    
     
     Value TestValue;        // Create instance of Value Struct
     Value MenuSelection;    // Holds the current and range of menu selections.
@@ -101,6 +107,15 @@ int main(void) {
                         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         
+        if (idle == 0x01){ // About to endter IDLE state
+            // Print Idle Message Here
+            serial.write_array(idle_message,8);                                 
+            serial.write_buffer();
+            // Count decremented to zero by the next instruction. 
+            // Generating the message here to prevent constant 
+            // retriggering whilst in the idle state.
+        }
+        
         // Assess what the button is doing and trigger appropritate action.
         buttonAction(serial, char_buffer);
         
@@ -110,6 +125,8 @@ int main(void) {
             // encoder_count & last_encoder_count values are divided by 4 
             // before use. This is to reflect the 4 clock pulses per detent.
             // The result is the following code executes every detent.
+            
+            idle = TIMEOUT; // Reset idle timeout due to user interraction
             
             // Direction Encoder Moved
             uint16_t dir = (TIM3->CR1 & 0x0010); 
@@ -167,6 +184,15 @@ int main(void) {
                 }
             //serial.write(0x0A); // LF
             //serial.write(0x0D); // CR
+        }else{  // No change in encoder count
+            if (is_button_up(&button_history)){
+                // Button Up - No user interraction
+                
+            }else{
+                // Button down - User interraction detected
+                idle = TIMEOUT;
+            }
+            
         }
     }
 }
@@ -410,5 +436,9 @@ void SysTick_Handler(void){
     }
     if (flash !=0){ // Decrement the LED Toggle Counter
         --flash;
+    }
+    
+    if (idle != 0){
+        idle--; // Decrement Idle Counter
     }
 }
