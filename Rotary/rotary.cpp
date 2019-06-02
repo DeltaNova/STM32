@@ -139,11 +139,11 @@ int main(void) {
             state = State::IDLE;
         }
         
-        if ((state == State::IDLE) && is_button_down(&button_history)){      
-            serial.write_array(menu_message,8);
-            serial.write_buffer();
-            state = State::MENU;
-        }
+        //if ((state == State::IDLE) && is_button_down(&button_history)){      
+        //    serial.write_array(menu_message,8);
+        //    serial.write_buffer();
+        //    state = State::MENU;
+        //}
         
         // Assess what the button is doing and trigger appropritate action.
         buttonAction(serial, char_buffer);
@@ -211,6 +211,28 @@ int main(void) {
         }
     }
 }
+
+void pressShort(Serial& serial, char *char_buffer){
+    // Short Button Press Event
+    switch(state){
+        case State::IDLE:
+            serial.write_array(menu_message,8);
+            serial.write_buffer();
+            state = State::MENU;
+            break;
+        default:
+            break;
+    }
+    
+}
+void pressLong(Serial& serial, char *char_buffer){
+    // Long Button Press Event
+    pressShort(serial, char_buffer); // Default to pressShort()
+}
+void pressVlong(Serial& serial, char *char_buffer){
+    // Very Long Button Press Event
+    pressShort(serial, char_buffer); // Default to pressShort()
+}
 uint32_t read_button(void){
     // Read the button state - Return 1 for pressed, 0 for released.
     uint32_t button_state;
@@ -276,10 +298,13 @@ void buttonAction(Serial& serial, char *char_buffer){
         // Check press time and select the message to load into the buffer.
         if (buttondelta < 1000){                        // Short Press
             serial.write_array(buttonMessage2,13);
+            pressShort(serial,char_buffer);
         }else if (buttondelta <5000){                   // Long Press
-            serial.write_array(buttonMessage3,12); 
+            serial.write_array(buttonMessage3,12);
+            pressLong(serial, char_buffer);
         }else{                                          // Very Long Press
             serial.write_array(buttonMessage4,17);
+            pressVlong(serial, char_buffer);
         }
         // Write the buffer containing the message to USART.
         serial.write_buffer();  
