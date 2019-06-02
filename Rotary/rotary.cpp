@@ -105,7 +105,7 @@ int main(void) {
     
     
     
-    Value TestValue;        // Create instance of Value Struct
+    Value NullValue;        // Create instance of Value Struct
     Value MenuSelection;    // Holds the current and range of menu selections.
     MenuSelection.valueMax = 4; 
     // Menu Options:
@@ -162,9 +162,9 @@ int main(void) {
             for (uint8_t i=0;i<5; i++){
                 serial.write(0x08);
             }    
-            updateValue(TestValue,dir, delta);
+            updateValue(NullValue,dir, delta);
             // Output Updated Value
-            snprintf(char_buffer, 8, "%05u", TestValue.value);
+            snprintf(char_buffer, 8, "%05u", NullValue.value);
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
