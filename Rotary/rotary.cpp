@@ -37,7 +37,7 @@ struct Value {
 };
 void updateValue(Value &value, uint16_t dir, uint16_t delta);
 void ValueShow(Value& value, Serial& serial, char *char_buffer);
-
+void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection);
 // USART1
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
 Buffer serial_rx; // USART1 RX Buffer (16 bytes)
@@ -53,7 +53,7 @@ volatile uint16_t last_encoder_count = 0;
 volatile uint16_t buttonPressStart = 0;
 volatile uint16_t buttonPressStop = 0;
 volatile uint8_t buttonPressed = 0;
-void buttonAction(Serial& serial, char *char_buffer);
+void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection);
 
 uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
 uint8_t buttonMessage2[]= "Short Press\n\r"; //Size 13
@@ -138,15 +138,9 @@ int main(void) {
             // retriggering whilst in the idle state.
             state = State::IDLE;
         }
-        
-        //if ((state == State::IDLE) && is_button_down(&button_history)){      
-        //    serial.write_array(menu_message,8);
-        //    serial.write_buffer();
-        //    state = State::MENU;
-        //}
-        
+               
         // Assess what the button is doing and trigger appropritate action.
-        buttonAction(serial, char_buffer);
+        buttonAction(serial, char_buffer,MenuSelection);
         
         // Update Encoder Counts then check for any movement of the encoder.
         update_encoder_counts();
@@ -200,19 +194,15 @@ int main(void) {
             ValueShow(V, serial, char_buffer);
 
         }else{  // No change in encoder count
-            if (is_button_up(&button_history)){
-                // Button Up - No user interraction
-                
-            }else{
-                // Button down - User interraction detected
-                idle = TIMEOUT;
-            }
-            
+            if (is_button_down(&button_history)){
+                // Button Down - User interraction
+                idle = TIMEOUT;             
+            }   // Else No user Interraction
         }
     }
 }
 
-void pressShort(Serial& serial, char *char_buffer){
+void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection){
     // Short Button Press Event
     switch(state){
         case State::IDLE:
@@ -220,18 +210,71 @@ void pressShort(Serial& serial, char *char_buffer){
             serial.write_buffer();
             state = State::MENU;
             break;
+        case State::MENU:
+            // Button Press to Process Menu Selection
+            processMenuSelection(serial, char_buffer, MenuSelection);
+            break;
+        case State::RED:
+            state = State::MENU;
+            break;
+        case State::GREEN:
+            state = State::MENU;
+            break;
+        case State::BLUE:
+            state = State::MENU;
+            break;
         default:
             break;
     }
     
 }
-void pressLong(Serial& serial, char *char_buffer){
-    // Long Button Press Event
-    pressShort(serial, char_buffer); // Default to pressShort()
+
+void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection){
+    // Change program flow based on selected menu option.
+    switch(MenuSelection.value){
+        case 0:     // Exit
+            state = State::IDLE;
+            break;
+        case 1:     // Red
+            state = State::RED;
+            serial.write(0x52);  // R
+            serial.write(0x0A);  // Line Feed
+            serial.write(0x0D);  // Carriage Return
+            break;
+        case 2:     // Green
+            state = State::GREEN;
+            serial.write(0x47);  // G
+            serial.write(0x0A);  // Line Feed
+            serial.write(0x0D);  // Carriage Return
+            break;
+        case 3:     // Blue
+            state = State::BLUE;
+            serial.write(0x42);  // B
+            serial.write(0x0A);  // Line Feed
+            serial.write(0x0D);  // Carriage Return
+            break;
+        case 4:     // Set                                                      // TODO: Add in Set Action
+            state = State::IDLE; // Return to IDLE after Set Action
+            serial.write(0x49);  // I
+            serial.write(0x0A);  // Line Feed
+            serial.write(0x0D);  // Carriage Return
+            break;
+        default:    // Default to Exit
+            state = State::IDLE;
+            serial.write(0x49);  // I
+            serial.write(0x0A);  // Line Feed
+            serial.write(0x0D);  // Carriage Return
+            break;
+    }
 }
-void pressVlong(Serial& serial, char *char_buffer){
+
+void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection){
+    // Long Button Press Event
+    pressShort(serial, char_buffer,MenuSelection); // Default to pressShort()
+}
+void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection){
     // Very Long Button Press Event
-    pressShort(serial, char_buffer); // Default to pressShort()
+    pressShort(serial, char_buffer,MenuSelection); // Default to pressShort()
 }
 uint32_t read_button(void){
     // Read the button state - Return 1 for pressed, 0 for released.
@@ -277,7 +320,7 @@ uint8_t is_button_released(uint32_t *button_history){
     }
     return released;
 }
-void buttonAction(Serial& serial, char *char_buffer){ 
+void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection){ 
     // Button Action from Polling
     // Parameters: Reference to USART instance, Pointer to char_buffer array
     if (is_button_pressed(&button_history)){
@@ -298,13 +341,13 @@ void buttonAction(Serial& serial, char *char_buffer){
         // Check press time and select the message to load into the buffer.
         if (buttondelta < 1000){                        // Short Press
             serial.write_array(buttonMessage2,13);
-            pressShort(serial,char_buffer);
+            pressShort(serial,char_buffer, MenuSelection);
         }else if (buttondelta <5000){                   // Long Press
             serial.write_array(buttonMessage3,12);
-            pressLong(serial, char_buffer);
+            pressLong(serial, char_buffer, MenuSelection);
         }else{                                          // Very Long Press
             serial.write_array(buttonMessage4,17);
-            pressVlong(serial, char_buffer);
+            pressVlong(serial, char_buffer, MenuSelection);
         }
         // Write the buffer containing the message to USART.
         serial.write_buffer();  
