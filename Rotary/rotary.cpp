@@ -72,6 +72,11 @@ uint16_t idle = TIMEOUT;
 // History of button state.
 uint32_t button_history = 0; 
 
+// Strings & Initial Values (Escape Chars 1 byte each_
+uint8_t test_message[] = "Waiting!\n\r";        //Size 10
+uint8_t idle_message[] = "\n\rIdle\n\r";        // Size 8
+uint8_t menu_message[] = "\n\rMenu\n\r";        // Size 8
+
 enum class State{
     IDLE, 
     MENU, 
@@ -79,6 +84,7 @@ enum class State{
     GREEN, 
     BLUE,
 };
+    State state = State::IDLE;  // Holds current program state
 ////////////////////////////////////////////////////////////////////////////////
 // Main - Called by the startup code.
 int main(void) {
@@ -94,10 +100,6 @@ int main(void) {
     EncoderSetup();     // Setup Rotary Encoder
     EncoderButtonSetup(); // Setup the Rotary Encoder Button
     
-    // Strings & Initial Values (Escape Chars 1 byte each_
-    uint8_t test_message[] = "Waiting!\n\r";    //Size 10
-    uint8_t idle_message[] = "\n\rIdle\n\r";        // Size 8
-    uint8_t menu_message[] = "\n\rMenu\n\r";        // Size 8
     // NOTE: char_buffer needs to be sized to be able to hold the longest message.
     char char_buffer[16];
     // Send a message to the terminal to indicate program is running.
@@ -121,7 +123,7 @@ int main(void) {
     Value Green;
     Value Blue;
        
-    State state = State::IDLE;  // Holds current program state
+
     
     while(1){
                         // Triggers Every Second
