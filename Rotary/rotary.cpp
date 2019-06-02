@@ -36,6 +36,7 @@ struct Value {
     uint8_t valueMax = 255;
 };
 void updateValue(Value &value, uint16_t dir, uint16_t delta);
+void ValueShow(Value& value, Serial& serial, char *char_buffer);
 
 // USART1
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
@@ -74,9 +75,9 @@ uint32_t button_history = 0;
 enum class State{
     IDLE, 
     MENU, 
-    R, 
-    G, 
-    B,
+    RED, 
+    GREEN, 
+    BLUE,
 };
 ////////////////////////////////////////////////////////////////////////////////
 // Main - Called by the startup code.
@@ -104,7 +105,7 @@ int main(void) {
     serial.write_buffer();
     
     
-    
+    Value V;                // Used to simply output of selected value.
     Value NullValue;        // Create instance of Value Struct
     Value MenuSelection;    // Holds the current and range of menu selections.
     MenuSelection.valueMax = 4; 
@@ -114,6 +115,11 @@ int main(void) {
     // 2 Green
     // 3 Blue
     // 4 Set
+    
+    // Values of RGB colour settings
+    Value Red;
+    Value Green;
+    Value Blue;
        
     State state = State::IDLE;  // Holds current program state
     
@@ -161,27 +167,35 @@ int main(void) {
             }  
 
             // Select the value to be adjusted based on the program state.
-            
-            if (state == State::MENU){
-                updateValue(MenuSelection,dir, delta);
-                snprintf(char_buffer, 8, "%05u", MenuSelection.value);
-                for(uint8_t i=0;i<5; i++){
-                    serial.write(char_buffer[i]);
-                }
-                
-            }else{
-                updateValue(NullValue,dir, delta);
-                snprintf(char_buffer, 8, "%05u", NullValue.value);
-                for(uint8_t i=0;i<5; i++){
-                    serial.write(char_buffer[i]);
-                }
+            switch(state){
+                case State::MENU:
+                    updateValue(MenuSelection,dir, delta);
+                    V = MenuSelection;
+                    break;
+                    
+                case State::RED:
+                    updateValue(Red,dir,delta);
+                    V = Red;
+                    break;
+                    
+                case State::GREEN:
+                    updateValue(Green,dir,delta);
+                    V = Green;
+                    break;
+                    
+                case State::BLUE:
+                    updateValue(Blue,dir,delta);
+                    V = Blue;
+                    break;
+                    
+                default:
+                    updateValue(NullValue,dir, delta);
+                    V = NullValue;
+                    break;
             }
 
             // Output Updated Value
-            //snprintf(char_buffer, 8, "%05u", V.value);
-            //    for(uint8_t i=0;i<5; i++){
-            //        serial.write(char_buffer[i]);
-            //    }
+            ValueShow(V, serial, char_buffer);
 
         }else{  // No change in encoder count
             if (is_button_up(&button_history)){
@@ -294,6 +308,14 @@ void updateValue(Value &value, uint16_t dir, uint16_t delta){
         }
     }
 }
+void ValueShow(Value& value, Serial& serial, char *char_buffer){
+    // Output Value
+    snprintf(char_buffer, 8, "%05u", value.value);
+    for(uint8_t i=0;i<5; i++){
+        serial.write(char_buffer[i]);
+    }
+}
+
 uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count){
     // Returns the difference between two count values.
     
