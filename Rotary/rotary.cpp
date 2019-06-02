@@ -154,43 +154,8 @@ int main(void) {
             // Ammount Encoder Moved
             uint16_t delta = get_diff(encoder_count,last_encoder_count);
             
-            /*
-            // Write new encoder_count to serial port.
-            snprintf(char_buffer, 8, "%05u", encoder_count); 
-                for(uint8_t i=0;i<5; i++){
-                    serial.write(char_buffer[i]);
-                }
-            serial.write(0x20); // SPACE
-            
-            // This second count (encoder_count/4) changes based on the detents.
-            // This new count smooths out the clock pulses between detents
-            // while also incrementing in single digits.
-            snprintf(char_buffer, 8, "%05u", encoder_count/4); // Count/4
-                for(uint8_t i=0;i<5; i++){
-                    serial.write(char_buffer[i]);
-                }
-            serial.write(0x20); // SPACE
-            
-            
-            // This third value is the count delta, used for debugging
-            uint16_t delta = get_diff(encoder_count,last_encoder_count);
-            snprintf(char_buffer, 8, "%05u", delta);
-                for(uint8_t i=0;i<5; i++){
-                    serial.write(char_buffer[i]);
-                }
-            serial.write(0x20); // SPACE
-            
-            // This fourth value is the Timer Direction Bit, used for debugging
-            // Prints: (Due to BIN to DEC conversion)
-            // 00000 for UP, 00016 for DOWN 
-            uint16_t dir = (TIM3->CR1 & 0x0010);
-            snprintf(char_buffer, 8, "%05u", dir);
-                for(uint8_t i=0;i<5; i++){
-                    serial.write(char_buffer[i]);
-                }
-            serial.write(0x20); // SPACE
-            */
-            // This fifth value is the test value to be adjusted.
+
+            // This value is the test value to be adjusted.
             // ValueMin = 0, ValueMax=255
 
             // Output Backspaces to clear previous value before overwriting.
