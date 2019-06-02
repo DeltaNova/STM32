@@ -253,7 +253,7 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
             serial.write(0x0A);  // Line Feed
             serial.write(0x0D);  // Carriage Return
             break;
-        case 4:     // Set                                                      // TODO: Add in Set Action
+        case 4:     // Set                            // TODO: Add in Set Action
             state = State::IDLE; // Return to IDLE after Set Action
             serial.write(0x49);  // I
             serial.write(0x0A);  // Line Feed
