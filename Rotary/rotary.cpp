@@ -155,21 +155,34 @@ int main(void) {
             uint16_t delta = get_diff(encoder_count,last_encoder_count);
             
 
-            // This value is the test value to be adjusted.
-            // ValueMin = 0, ValueMax=255
-
             // Output Backspaces to clear previous value before overwriting.
             for (uint8_t i=0;i<5; i++){
                 serial.write(0x08);
-            }    
-            updateValue(NullValue,dir, delta);
-            // Output Updated Value
-            snprintf(char_buffer, 8, "%05u", NullValue.value);
+            }  
+
+            // Select the value to be adjusted based on the program state.
+            
+            if (state == State::MENU){
+                updateValue(MenuSelection,dir, delta);
+                snprintf(char_buffer, 8, "%05u", MenuSelection.value);
                 for(uint8_t i=0;i<5; i++){
                     serial.write(char_buffer[i]);
                 }
-            //serial.write(0x0A); // LF
-            //serial.write(0x0D); // CR
+                
+            }else{
+                updateValue(NullValue,dir, delta);
+                snprintf(char_buffer, 8, "%05u", NullValue.value);
+                for(uint8_t i=0;i<5; i++){
+                    serial.write(char_buffer[i]);
+                }
+            }
+
+            // Output Updated Value
+            //snprintf(char_buffer, 8, "%05u", V.value);
+            //    for(uint8_t i=0;i<5; i++){
+            //        serial.write(char_buffer[i]);
+            //    }
+
         }else{  // No change in encoder count
             if (is_button_up(&button_history)){
                 // Button Up - No user interraction
