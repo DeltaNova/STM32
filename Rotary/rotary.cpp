@@ -50,10 +50,12 @@ static uint16_t encoder_count = 0;
 static uint16_t last_encoder_count = 0; 
 
 // Rotary Encoder Button
-void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection);
 static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
 static uint8_t buttonPressed = 0;
+void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
+void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
+void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 
 static uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
 static uint8_t buttonMessage2[]= "Short Press\n\r"; //Size 13
@@ -140,7 +142,7 @@ int main(void) {
         }
                
         // Assess what the button is doing and trigger appropritate action.
-        buttonAction(serial, char_buffer,MenuSelection);
+        buttonAction(serial, char_buffer,MenuSelection,Red,Green,Blue);
         
         // Update Encoder Counts then check for any movement of the encoder.
         update_encoder_counts();
@@ -268,13 +270,59 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
     }
 }
 
-void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection){
+void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Long Button Press Event
-    pressShort(serial, char_buffer,MenuSelection); // Default to pressShort()
+    switch(state){
+        case State::IDLE:
+            // No alternative action, default to short press
+            pressShort(serial, char_buffer,MenuSelection);
+            break;
+        case State::MENU:
+            // No alternative action, default to short press
+            pressShort(serial, char_buffer,MenuSelection);
+            break;
+        case State::RED:
+            // Zero Red Value, but remain in R
+            Red.value = Red.valueMin; 
+            serial.write(0x5A);  // Z
+            serial.write(0x0A);  // Line Feed
+            serial.write(0x0D);  // Carriage Return
+            state = State::RED;
+            break;
+        case State::GREEN:
+            // Zero Green Value, but remain in G
+            Green.value = Green.valueMin; 
+            serial.write(0x5A);  // Z
+            serial.write(0x0A);  // Line Feed
+            serial.write(0x0D);  // Carriage Return
+            state = State::GREEN;
+            break;
+        case State::BLUE:
+            // Zero Blue Value, but remain in B
+            Blue.value = Blue.valueMin; 
+            serial.write(0x5A);  // Z
+            serial.write(0x0A);  // Line Feed
+            serial.write(0x0D);  // Carriage Return
+            state = State::BLUE;
+            break;
+        default:
+            pressShort(serial, char_buffer,MenuSelection); // Default to pressShort()
+            break;
+    }
+    
 }
-void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection){
+    
+    
+
+void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Very Long Button Press Event
-    pressShort(serial, char_buffer,MenuSelection); // Default to pressShort()
+    // Zero All Colour Values and return to Idle state.
+    Red.value = Red.valueMin;
+    Green.value = Green.valueMin;
+    Blue.value = Blue.valueMin;
+    state = State::IDLE;
+    
+    //TODO: I plan to use a SET state to turn LED's on, UNSET here to turn off.
 }
 uint32_t read_button(void){
     // Read the button state - Return 1 for pressed, 0 for released.
@@ -320,7 +368,7 @@ uint8_t is_button_released(uint32_t *button_history){
     }
     return released;
 }
-void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection){ 
+void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){ 
     // Button Action from Polling
     // Parameters: Reference to USART instance, Pointer to char_buffer array
     if (is_button_pressed(&button_history)){
@@ -344,10 +392,10 @@ void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection){
             pressShort(serial,char_buffer, MenuSelection);
         }else if (buttondelta <5000){                   // Long Press
             serial.write_array(buttonMessage3,12);
-            pressLong(serial, char_buffer, MenuSelection);
+            pressLong(serial, char_buffer, MenuSelection, Red, Green, Blue);
         }else{                                          // Very Long Press
             serial.write_array(buttonMessage4,17);
-            pressVlong(serial, char_buffer, MenuSelection);
+            pressVlong(serial, char_buffer, MenuSelection, Red, Green, Blue);
         }
         // Write the buffer containing the message to USART.
         serial.write_buffer();  
