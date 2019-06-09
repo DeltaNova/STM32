@@ -46,20 +46,20 @@ Buffer serial_rx; // USART1 RX Buffer (16 bytes)
 volatile uint32_t counter = 0;
 
 // Rotary Encoder
-volatile uint16_t encoder_count = 0;
-volatile uint16_t last_encoder_count = 0; 
+static uint16_t encoder_count = 0;
+static uint16_t last_encoder_count = 0; 
 
 // Rotary Encoder Button
-volatile uint16_t buttonPressStart = 0;
-volatile uint16_t buttonPressStop = 0;
-volatile uint8_t buttonPressed = 0;
 void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection);
+static uint16_t buttonPressStart = 0;
+static uint16_t buttonPressStop = 0;
+static uint8_t buttonPressed = 0;
 
-uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
-uint8_t buttonMessage2[]= "Short Press\n\r"; //Size 13
-uint8_t buttonMessage3[]= "Long Press\n\r"; //Size 12
-uint8_t buttonMessage4[]= "Very Long Press\n\r"; //Size 17
-uint8_t buttonMessage5[]= "Button Released\n\r"; //Size 17
+static uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
+static uint8_t buttonMessage2[]= "Short Press\n\r"; //Size 13
+static uint8_t buttonMessage3[]= "Long Press\n\r"; //Size 12
+static uint8_t buttonMessage4[]= "Very Long Press\n\r"; //Size 17
+static uint8_t buttonMessage5[]= "Button Released\n\r"; //Size 17
 
 // Button Debounce 
 void update_button(uint32_t *button_history);
@@ -68,14 +68,14 @@ void update_button(uint32_t *button_history);
 #define BUTTON_MASK 0b11111111000000000000000011111111
 // Timeout Reset Value (ms)for Idle state
 #define TIMEOUT 5000
-uint16_t idle = TIMEOUT;
+static uint16_t idle = TIMEOUT;
 // History of button state.
-uint32_t button_history = 0; 
+static uint32_t button_history = 0; 
 
 // Strings & Initial Values (Escape Chars 1 byte each_
-uint8_t test_message[] = "Waiting!\n\r";        //Size 10
-uint8_t idle_message[] = "\n\rIdle\n\r";        // Size 8
-uint8_t menu_message[] = "\n\rMenu\n\r";        // Size 8
+static uint8_t test_message[] = "Waiting!\n\r";        //Size 10
+static uint8_t idle_message[] = "\n\rIdle\n\r";        // Size 8
+static uint8_t menu_message[] = "\n\rMenu\n\r";        // Size 8
 
 enum class State{
     IDLE, 
