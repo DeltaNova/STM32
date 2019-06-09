@@ -55,11 +55,11 @@ static uint16_t last_encoder_count = 0;
 // Rotary Encoder Button
 static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
-static uint8_t buttonPressed = 0;
 void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
+void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
-
+void showMenu(Serial& serial, Value &Red, Value &Green, Value &Blue);
 
 
 // Button Debounce 
@@ -76,7 +76,13 @@ static uint32_t button_history = 0;
 // Strings & Initial Values (Escape Chars 1 byte each_
 static uint8_t test_message[] = "Waiting!\n\r";        //Size 10
 static uint8_t idle_message[] = "\n\rIdle\n\r";        // Size 8
-static uint8_t menu_message[] = "\n\rMenu\n\r";        // Size 8
+
+static uint8_t Menu_Header[] = "Menu";      // Size 4
+static uint8_t Menu0[] = "0: Exit";         // Size 7
+static uint8_t Menu1[] = "1: Red";          // Size 6
+static uint8_t Menu2[] = "2: Green";        // Size 8
+static uint8_t Menu3[] = "3: Blue";         // Size 7
+static uint8_t Menu4[] = "4: Set";          // Size 6
 
 enum class State{
     IDLE, 
@@ -203,12 +209,40 @@ int main(void) {
     }
 }
 
-void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection){
+void showMenu(Serial& serial, Value &Red, Value &Green, Value &Blue){
+    // Display Menu
+    serial.newline();
+    serial.write_array(Menu_Header,4);
+    serial.write_buffer();
+    serial.newline();
+    
+    serial.write_array(Menu0,7);
+    serial.write_buffer();
+    serial.newline();
+    
+    serial.write_array(Menu1,6);
+    serial.write_buffer();
+    serial.newline();
+    
+    serial.write_array(Menu2,8);
+    serial.write_buffer();
+    serial.newline();
+    
+    serial.write_array(Menu3,7);
+    serial.write_buffer();
+    serial.newline();
+    
+    serial.write_array(Menu4,6);
+    serial.write_buffer();
+    serial.newline();
+    
+    
+}
+void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Short Button Press Event
     switch(state){
         case State::IDLE:
-            serial.write_array(menu_message,8);
-            serial.write_buffer();
+            showMenu(serial,Red,Green,Blue);
             state = State::MENU;
             break;
         case State::MENU:
@@ -274,11 +308,11 @@ void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &R
     switch(state){
         case State::IDLE:
             // No alternative action, default to short press
-            pressShort(serial, char_buffer,MenuSelection);
+            pressShort(serial, char_buffer,MenuSelection, Red, Green, Blue);
             break;
         case State::MENU:
             // No alternative action, default to short press
-            pressShort(serial, char_buffer,MenuSelection);
+            pressShort(serial, char_buffer,MenuSelection, Red, Green, Blue);
             break;
         case State::RED:
             // Zero Red Value, but remain in R
@@ -305,7 +339,7 @@ void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &R
             state = State::BLUE;
             break;
         default:
-            pressShort(serial, char_buffer,MenuSelection); // Default to pressShort()
+            pressShort(serial, char_buffer,MenuSelection, Red, Green, Blue); // Default to pressShort()
             break;
     }
     
@@ -399,7 +433,7 @@ void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value
             #ifdef ENABLE_DEBUG_BUTTON_ACTION
             serial.write_array(buttonMessage2,13);
             #endif
-            pressShort(serial,char_buffer, MenuSelection);
+            pressShort(serial, char_buffer, MenuSelection, Red, Green, Blue);
         }else if (buttondelta <5000){                   // Long Press
             #ifdef ENABLE_DEBUG_BUTTON_ACTION
             serial.write_array(buttonMessage3,12);
