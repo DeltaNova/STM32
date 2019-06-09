@@ -59,6 +59,12 @@ void Serial::echo(){
     }
 }
 */
+
+void Serial::newline(){
+    // Write newline (LF & CR)
+    write(0x0A);
+    write(0x0d);    
+}
 void Serial::setup(){
     // USART1 using PA9 - Tx, PA10 - Rx
     // Baud 9600,N,8,1 without HW flow control

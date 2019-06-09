@@ -31,6 +31,8 @@ class Serial {
         void write_buffer(); 
         // Adds array contents to txbuffer
         void write_array(uint8_t *array, uint8_t array_length);
+        // Writes Newline characters (LF & CR)
+        void newline();
 
 
         /*
