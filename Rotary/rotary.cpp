@@ -420,9 +420,11 @@ void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value
         for(uint8_t i=0;i<10; i++){
             serial.write(char_buffer[i]);
         }
+        #endif
+        // Add a new line
         serial.write(0x0A); // LF
         serial.write(0x0D); // CR
-        #endif
+        
     }
 }
 void updateValue(Value &value, uint16_t dir, uint16_t delta){
