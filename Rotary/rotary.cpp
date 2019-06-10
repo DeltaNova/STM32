@@ -79,9 +79,9 @@ static uint8_t idle_message[] = "\n\rIdle\n\r";        // Size 8
 
 static uint8_t Menu_Header[] = "Menu";      // Size 4
 static uint8_t Menu0[] = "0: Exit";         // Size 7
-static uint8_t Menu1[] = "1: Red";          // Size 6
-static uint8_t Menu2[] = "2: Green";        // Size 8
-static uint8_t Menu3[] = "3: Blue";         // Size 7
+static uint8_t Menu1[] = "1: Red   ";       // Size 9
+static uint8_t Menu2[] = "2: Green ";       // Size 9
+static uint8_t Menu3[] = "3: Blue  ";       // Size 9
 static uint8_t Menu4[] = "4: Set";          // Size 6
 
 enum class State{
@@ -220,15 +220,15 @@ void showMenu(Serial& serial, Value &Red, Value &Green, Value &Blue){
     serial.write_buffer();
     serial.newline();
     
-    serial.write_array(Menu1,6);
+    serial.write_array(Menu1,9);
     serial.write_buffer();
     serial.newline();
     
-    serial.write_array(Menu2,8);
+    serial.write_array(Menu2,9);
     serial.write_buffer();
     serial.newline();
     
-    serial.write_array(Menu3,7);
+    serial.write_array(Menu3,9);
     serial.write_buffer();
     serial.newline();
     
