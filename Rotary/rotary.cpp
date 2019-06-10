@@ -40,6 +40,7 @@ struct Value {
 };
 void updateValue(Value &value, uint16_t dir, uint16_t delta);
 void ValueShow(Value& value, Serial& serial, char *char_buffer);
+void ValueShowMenu(Value& value, Serial& serial, char *char_buffer);
 void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection);
 // USART1
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
@@ -59,7 +60,7 @@ void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
-void showMenu(Serial& serial, Value &Red, Value &Green, Value &Blue);
+void showMenu(Serial& serial, char *char_buffer, Value &Red, Value &Green, Value &Blue);
 
 
 // Button Debounce 
@@ -209,7 +210,7 @@ int main(void) {
     }
 }
 
-void showMenu(Serial& serial, Value &Red, Value &Green, Value &Blue){
+void showMenu(Serial& serial, char *char_buffer, Value &Red, Value &Green, Value &Blue){
     // Display Menu
     serial.newline();
     serial.write_array(Menu_Header,4);
@@ -222,14 +223,17 @@ void showMenu(Serial& serial, Value &Red, Value &Green, Value &Blue){
     
     serial.write_array(Menu1,9);
     serial.write_buffer();
+    ValueShowMenu(Red,serial,char_buffer);    
     serial.newline();
     
     serial.write_array(Menu2,9);
     serial.write_buffer();
+    ValueShowMenu(Green,serial,char_buffer);  
     serial.newline();
     
     serial.write_array(Menu3,9);
     serial.write_buffer();
+    ValueShowMenu(Blue,serial,char_buffer);  
     serial.newline();
     
     serial.write_array(Menu4,6);
@@ -242,7 +246,7 @@ void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &
     // Short Button Press Event
     switch(state){
         case State::IDLE:
-            showMenu(serial,Red,Green,Blue);
+            showMenu(serial,char_buffer,Red,Green,Blue);
             state = State::MENU;
             break;
         case State::MENU:
@@ -268,6 +272,7 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
     // Change program flow based on selected menu option.
     switch(MenuSelection.value){
         case 0:     // Exit
+            idle = 0x01;        // Force Idle State
             state = State::IDLE;
             break;
         case 1:     // Red
@@ -479,9 +484,17 @@ void updateValue(Value &value, uint16_t dir, uint16_t delta){
     }
 }
 void ValueShow(Value& value, Serial& serial, char *char_buffer){
-    // Output Value
+    // Output Value (5 Digits)
     snprintf(char_buffer, 8, "%05u", value.value);
     for(uint8_t i=0;i<5; i++){
+        serial.write(char_buffer[i]);
+    }
+}
+
+void ValueShowMenu(Value& value, Serial& serial, char *char_buffer){
+    // Output Value (3 Digits for Menu)
+    snprintf(char_buffer, 8, "%03u", value.value);
+    for(uint8_t i=0;i<3; i++){
         serial.write(char_buffer[i]);
     }
 }
