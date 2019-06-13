@@ -240,7 +240,18 @@ void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Re
     serial.write_array(Menu4,6);
     serial.write_buffer();
     serial.newline();
-    serial.newline();
+    
+    // Leave a blank like between the  Menu and the Menu Selection Line
+    serial.newline();       
+    
+    // Add Menu Line Prefix
+    serial.write(0x4D);     // M
+    serial.write(0x3A);     // :
+    serial.write(0x20);     // SPACE
+    
+    // Reset the menuselection to zero each time menu is shown.
+    MenuSelection.value = MenuSelection.valueMin;      
+    ValueShowMenu(MenuSelection, serial, char_buffer);
     
 }
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
