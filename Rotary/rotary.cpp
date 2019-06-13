@@ -289,8 +289,7 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
             serial.write(0x3A);  // :
             serial.write(0x20);  // SPACE
             ValueShowMenu(Red,serial,char_buffer);
-            //serial.write(0x0A);  // Line Feed
-            //serial.write(0x0D);  // Carriage Return
+            //serial.newline();
             break;
         case 2:     // Green
             state = State::GREEN;
@@ -298,8 +297,7 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
             serial.write(0x3A);     // :
             serial.write(0x20);     // SPACE
             ValueShowMenu(Green,serial,char_buffer);
-            //serial.write(0x0A);   // Line Feed
-            //serial.write(0x0D);   // Carriage Return
+            //serial.newline();
             break;
         case 3:     // Blue
             state = State::BLUE;
@@ -307,20 +305,17 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
             serial.write(0x3A);     // :
             serial.write(0x20);     // SPACE
             ValueShowMenu(Blue,serial,char_buffer);
-            //serial.write(0x0A);   // Line Feed
-            //serial.write(0x0D);   // Carriage Return
+            //serial.newline();
             break;
         case 4:     // Set                            // TODO: Add in Set Action
             state = State::IDLE; // Return to IDLE after Set Action
             serial.write(0x49);  // I
-            serial.write(0x0A);  // Line Feed
-            serial.write(0x0D);  // Carriage Return
+            serial.newline();
             break;
         default:    // Default to Exit
             state = State::IDLE;
             serial.write(0x49);  // I
-            serial.write(0x0A);  // Line Feed
-            serial.write(0x0D);  // Carriage Return
+            serial.newline();
             break;
     }
 }
@@ -340,24 +335,21 @@ void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &R
             // Zero Red Value, but remain in R
             Red.value = Red.valueMin; 
             serial.write(0x5A);  // Z
-            serial.write(0x0A);  // Line Feed
-            serial.write(0x0D);  // Carriage Return
+            serial.newline();
             state = State::RED;
             break;
         case State::GREEN:
             // Zero Green Value, but remain in G
             Green.value = Green.valueMin; 
             serial.write(0x5A);  // Z
-            serial.write(0x0A);  // Line Feed
-            serial.write(0x0D);  // Carriage Return
+            serial.newline();
             state = State::GREEN;
             break;
         case State::BLUE:
             // Zero Blue Value, but remain in B
             Blue.value = Blue.valueMin; 
             serial.write(0x5A);  // Z
-            serial.write(0x0A);  // Line Feed
-            serial.write(0x0D);  // Carriage Return
+            serial.newline();
             state = State::BLUE;
             break;
         default:
