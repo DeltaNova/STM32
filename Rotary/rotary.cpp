@@ -41,7 +41,7 @@ struct Value {
 void updateValue(Value &value, uint16_t dir, uint16_t delta);
 void ValueShow(Value& value, Serial& serial, char *char_buffer);
 void ValueShowMenu(Value& value, Serial& serial, char *char_buffer);
-void ValueClearMenu(Serial& serial);
+
 void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 // USART1
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
@@ -288,7 +288,7 @@ void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &
 
 void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Change program flow based on selected menu option.
-    ValueClearMenu(serial);
+    serial.lineClear(3);
     switch(MenuSelection.value){
         case 0:     // Exit
             idle = 0x01;        // Force Idle State
@@ -512,14 +512,7 @@ void ValueShow(Value& value, Serial& serial, char *char_buffer){
         serial.write(char_buffer[i]);
     }
 }
-void ValueClearMenu(Serial& serial){                                            /// Deprecated - use serial.lineClear()
-    // Clear the value from the menu 
-    serial.write(0x0d);             // Carriage Return
-    for (uint8_t i=0;i<3; i++){
-        serial.write(0x20);         // Write Space
-    }
-    serial.write(0x0d);             // Carriage Return
-}
+
 void ValueShowMenu(Value& value, Serial& serial, char *char_buffer){
     // Output Value (3 Digits for Menu)
     snprintf(char_buffer, 8, "%03u", value.value);
