@@ -76,8 +76,8 @@ static uint16_t idle = TIMEOUT;
 static uint32_t button_history = 0; 
 
 // Strings & Initial Values (Escape Chars 1 byte each_
-static uint8_t test_message[] = "Waiting!\n\r";        //Size 10
-static uint8_t idle_message[] = "\n\rIdle\n\r";        // Size 8
+static uint8_t test_message[] = "Waiting!\n\r";         //Size 10
+static uint8_t idle_message[] = "Idle\n\r";             // Size 6
 
 static uint8_t Menu_Header[] = "Menu";      // Size 4
 static uint8_t Menu0[] = "0: Exit";         // Size 7
@@ -140,7 +140,8 @@ int main(void) {
         
         if (idle == 0x01){ // About to enter IDLE state
             // Print Idle Message Here
-            serial.write_array(idle_message,8);                                 
+            serial.lineClear(6);
+            serial.write_array(idle_message,6);                                 
             serial.write_buffer();
             // Count decremented to zero by the next Systick. 
             // Generating the message before getting to zero to prevent constant 
