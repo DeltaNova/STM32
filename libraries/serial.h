@@ -29,11 +29,17 @@ class Serial {
 
         // Sends contents of txbuffer
         void write_buffer(); 
+        
         // Adds array contents to txbuffer
         void write_array(uint8_t *array, uint8_t array_length);
+        
         // Writes Newline characters (LF & CR)
         void newline();
-
+        
+        // Clear line by jumping to the start, overwriting the desired number of
+        // of chars with spaces before jumping back to the start of the line. 
+        void lineClear(uint8_t numChars2Clear);
+    
 
         /*
         // Currently needs rewrite to declare buffers, causing library to fail compile.

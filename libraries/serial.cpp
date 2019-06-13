@@ -65,6 +65,17 @@ void Serial::newline(){
     write(0x0A);
     write(0x0d);    
 }
+
+void Serial::lineClear(uint8_t numChars2Clear){
+    // Clear the line by jumping to the start, overwriting the desired number of
+    // chars with spaces before jumping back to the start of the line. 
+    write(0x0d);                                // Carriage Return
+    for (uint8_t i=0;i<numChars2Clear; i++){
+        write(0x20);                            // Write Space
+    }
+    write(0x0d);                                // Carriage Return
+}
+
 void Serial::setup(){
     // USART1 using PA9 - Tx, PA10 - Rx
     // Baud 9600,N,8,1 without HW flow control
