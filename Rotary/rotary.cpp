@@ -254,12 +254,18 @@ void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &
             processMenuSelection(serial, char_buffer, MenuSelection, Red, Green, Blue);
             break;
         case State::RED:
+            serial.lineClear(6);
+            showMenu(serial,char_buffer,Red,Green,Blue);
             state = State::MENU;
             break;
         case State::GREEN:
+            serial.lineClear(6);
+            showMenu(serial,char_buffer,Red,Green,Blue);
             state = State::MENU;
             break;
         case State::BLUE:
+            serial.lineClear(6);
+            showMenu(serial,char_buffer,Red,Green,Blue);
             state = State::MENU;
             break;
         default:
@@ -501,6 +507,7 @@ void ValueShow(Value& value, Serial& serial, char *char_buffer){
         serial.write(char_buffer[i]);
     }
 }
+
 
 void ValueClearMenu(Serial& serial){
     // Clear the value from the menu 
