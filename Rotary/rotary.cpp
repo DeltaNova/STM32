@@ -61,7 +61,7 @@ void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
-void showMenu(Serial& serial, char *char_buffer, Value &Red, Value &Green, Value &Blue);
+void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 
 
 // Button Debounce 
@@ -211,8 +211,8 @@ int main(void) {
     }
 }
 
-void showMenu(Serial& serial, char *char_buffer, Value &Red, Value &Green, Value &Blue){
-    // Display Menu
+void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
+    // Display Menu with values for the colour variables.
     serial.newline();
     serial.write_array(Menu_Header,4);
     serial.write_buffer();
@@ -247,7 +247,7 @@ void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &
     // Short Button Press Event
     switch(state){
         case State::IDLE:
-            showMenu(serial,char_buffer,Red,Green,Blue);
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
             state = State::MENU;
             break;
         case State::MENU:
@@ -256,17 +256,17 @@ void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &
             break;
         case State::RED:
             serial.lineClear(6);
-            showMenu(serial,char_buffer,Red,Green,Blue);
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
             state = State::MENU;
             break;
         case State::GREEN:
             serial.lineClear(6);
-            showMenu(serial,char_buffer,Red,Green,Blue);
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
             state = State::MENU;
             break;
         case State::BLUE:
             serial.lineClear(6);
-            showMenu(serial,char_buffer,Red,Green,Blue);
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
             state = State::MENU;
             break;
         default:
@@ -373,6 +373,7 @@ void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &
     Red.value = Red.valueMin;
     Green.value = Green.valueMin;
     Blue.value = Blue.valueMin;
+    showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
     state = State::IDLE;
     
     //TODO: I plan to use a SET state to turn LED's on, UNSET here to turn off.
