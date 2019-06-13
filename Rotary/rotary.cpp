@@ -501,9 +501,7 @@ void ValueShow(Value& value, Serial& serial, char *char_buffer){
         serial.write(char_buffer[i]);
     }
 }
-
-
-void ValueClearMenu(Serial& serial){
+void ValueClearMenu(Serial& serial){                                            /// Deprecated - use serial.lineClear()
     // Clear the value from the menu 
     serial.write(0x0d);             // Carriage Return
     for (uint8_t i=0;i<3; i++){
