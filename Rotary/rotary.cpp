@@ -345,23 +345,44 @@ void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &R
         case State::RED:
             // Zero Red Value, but remain in R
             Red.value = Red.valueMin; 
-            serial.write(0x5A);  // Z
-            serial.newline();
-            state = State::RED;
+            
+            // Output Backspaces to clear previous value before overwriting.
+            for (uint8_t i=0;i<3; i++){
+                serial.write(0x08);
+            }
+            
+            // Show Reset Value  
+            ValueShowMenu(Red, serial, char_buffer);
+            
+            state = State::RED;         // Retain Current State
             break;
         case State::GREEN:
             // Zero Green Value, but remain in G
             Green.value = Green.valueMin; 
-            serial.write(0x5A);  // Z
-            serial.newline();
-            state = State::GREEN;
+
+            // Output Backspaces to clear previous value before overwriting.
+            for (uint8_t i=0;i<3; i++){
+                serial.write(0x08);
+            }
+            
+            // Show Reset Value  
+            ValueShowMenu(Green, serial, char_buffer);
+
+            state = State::GREEN;       // Retain Current State
             break;
         case State::BLUE:
             // Zero Blue Value, but remain in B
             Blue.value = Blue.valueMin; 
-            serial.write(0x5A);  // Z
-            serial.newline();
-            state = State::BLUE;
+            
+            // Output Backspaces to clear previous value before overwriting.
+            for (uint8_t i=0;i<3; i++){
+                serial.write(0x08);
+            }
+            
+            // Show Reset Value  
+            ValueShowMenu(Blue, serial, char_buffer);
+            
+            state = State::BLUE;        // Retain Current State
             break;
         default:
             pressShort(serial, char_buffer,MenuSelection, Red, Green, Blue); // Default to pressShort()
