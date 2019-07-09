@@ -194,13 +194,24 @@ int main(void) {
                     break;
             }
 
-            // Output Backspaces to clear previous value before overwriting.
-            for (uint8_t i=0;i<3; i++){
-                serial.write(0x08);
-            }  
+            // Only show value for specific states, fall through list.
+            // Should avoid the output of NullValue
+            switch(state){ 
+                case State::MENU:
+                case State::RED:
+                case State::GREEN:
+                case State::BLUE:
+                    // Output Backspaces to clear previous value before overwriting.
+                    for (uint8_t i=0;i<3; i++){
+                        serial.write(0x08);
+                    }  
 
-            // Output Updated Value
-            ValueShowMenu(V, serial, char_buffer);
+                    // Output Updated Value
+                    ValueShowMenu(V, serial, char_buffer);
+                    break;
+                default:
+                    break;
+            }
 
         }else{  // No change in encoder count
             if (is_button_down(&button_history)){
