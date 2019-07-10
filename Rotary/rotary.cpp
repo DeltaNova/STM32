@@ -221,7 +221,6 @@ int main(void) {
         }
     }
 }
-
 void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Display Menu with values for the colour variables.
     serial.newline();
@@ -296,7 +295,6 @@ void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &
     }
     
 }
-
 void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Change program flow based on selected menu option.
     serial.lineClear(3);
@@ -341,7 +339,6 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
             break;
     }
 }
-
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Long Button Press Event
     switch(state){
@@ -401,7 +398,6 @@ void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &R
     }
     
 }
-
 void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Very Long Button Press Event
     // Zero All Colour Values and return to Idle state.
@@ -410,6 +406,8 @@ void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &
     Blue.value = Blue.valueMin;
     showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
     state = State::IDLE;
+    
+ 
     
     //TODO: I plan to use a SET state to turn LED's on, UNSET here to turn off.
 }
@@ -457,6 +455,8 @@ uint8_t is_button_released(uint32_t *button_history){
     }
     return released;
 }
+
+
 void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){ 
     // Button Action from Polling
     // Parameters: Reference to USART instance, Pointer to char_buffer array
@@ -544,7 +544,6 @@ void ValueShow(Value& value, Serial& serial, char *char_buffer){
         serial.write(char_buffer[i]);
     }
 }
-
 void ValueShowMenu(Value& value, Serial& serial, char *char_buffer){
     // Output Value (3 Digits for Menu)
     snprintf(char_buffer, 8, "%03u", value.value);
@@ -552,7 +551,6 @@ void ValueShowMenu(Value& value, Serial& serial, char *char_buffer){
         serial.write(char_buffer[i]);
     }
 }
-
 uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count){
     // Returns the difference between two count values.
     
