@@ -400,12 +400,12 @@ void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &R
 }
 void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Very Long Button Press Event
-    // Zero All Colour Values and return to Idle state.
+    // Zero All Colour Values and return to Menu state.
     Red.value = Red.valueMin;
     Green.value = Green.valueMin;
     Blue.value = Blue.valueMin;
     showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
-    state = State::IDLE;
+    state = State::MENU;
     
  
     
