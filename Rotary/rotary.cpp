@@ -421,7 +421,20 @@ uint32_t read_button(void){
     }
     return button_state;
 }
-void update_button(uint32_t *button_history){   // Called by Systick every 1ms
+// Dev Note: update_button() needs to accept the read_button() function as a 
+//           parameter. This will allow update_button() to be used for 
+//           different buttons. The read_button functions will be hw specific.
+
+// Define a function pointer for the reading of a button. It will be used to
+// to allow different read functions to be used by update_button()
+typedef uint32_t (*readButtonFcn)(void);
+
+void update_button(uint32_t *button_history, readButtonFcn read_button){   // Called by Systick every 1ms
+    // Parameters
+    // button_history   - What the button has been doing
+    //                  - Value passed will relate to a particular button.
+    // read_button      - Reads the button status from hardware.
+    //                  - Function passed will read a particular button.
     // Bit shift button history to make room for new reading.
     *button_history = *button_history << 1;
     // Read current button state into history.
@@ -681,7 +694,7 @@ void toggleLed(){
 }
 void SysTick_Handler(void){
     counter++;
-    update_button(&button_history); // Log button state to debounce history
+    update_button(&button_history, read_button); // Log button state to debounce history
     if (ticks != 0){
         // Pre-decrement ticks. This avoids making a copy of the variable to 
         // decrement. This should be faster which is ideal for an interrupt
