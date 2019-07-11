@@ -546,6 +546,7 @@ pressType buttonAction2(){
     // Parameters: 
     // TODO: Add button_history as a parameter so function can be used with other buttons.
     //       The same goes for the buttonPressStart,buttonPressStop variables which again will be button dependant.
+    //       Define the duration values outside the function to allow easier adjustment.
     pressType press = pressType::NULL;
 
     if (is_button_pressed(&button_history)){
@@ -561,7 +562,7 @@ pressType buttonAction2(){
         // Check press time and select the message to load into the buffer.
         if (buttondelta < 1000){                        // Short Press
             press = pressType::SHORT;
-        }else if (buttondelta <5000){                   // Long Press
+        }else if (buttondelta < 5000){                   // Long Press
             press = pressType::LONG;
         }else{                                          // Very Long Press
             press = pressType::VLONG;
