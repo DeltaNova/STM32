@@ -533,6 +533,61 @@ void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value
         
     }
 }
+
+enum class pressType{
+    NULL,       // No Press Event
+    SHORT.      // Short Press
+    LONG,       // Long Press
+    VLONG,      // Very Long Press
+};
+
+pressType buttonAction2(){ 
+    // Button Action from Polling - Works out if and for how long a button was pressed.
+    // Parameters: 
+    // TODO: Add button_history as a parameter so function can be used with other buttons.
+    //       The same goes for the buttonPressStart,buttonPressStop variables which again will be button dependant.
+    pressType press = pressType::NULL;
+
+    if (is_button_pressed(&button_history)){
+        // Reset Press Duration Counters to current counter value
+        buttonPressStart = counter;
+        buttonPressStop = counter;
+    }
+    
+    if (is_button_released(&button_history)){
+        buttonPressStop = counter;
+        uint32_t buttondelta = get_upcounting_delta(buttonPressStart, buttonPressStop);
+
+        // Check press time and select the message to load into the buffer.
+        if (buttondelta < 1000){                        // Short Press
+            press = pressType::SHORT;
+        }else if (buttondelta <5000){                   // Long Press
+            press = pressType::LONG;
+        }else{                                          // Very Long Press
+            press = pressType::VLONG;
+        }       
+    }
+    return press;
+}
+
+void processButtonAction(pressType ButtonAction){
+    switch(ButtonAction){
+        case pressType::SHORT:
+            pressShort(serial, char_buffer, MenuSelection, Red, Green, Blue);
+            break;
+        case pressType::LONG:
+            pressLong(serial, char_buffer, MenuSelection, Red, Green, Blue);
+            break;
+        case pressType::VLONG:
+            pressVlong(serial, char_buffer, MenuSelection, Red, Green, Blue);
+            break;
+        case pressType::NULL:
+        default:
+            break;
+            
+    }
+}
+
 void updateValue(Value &value, uint16_t dir, uint16_t delta){
     // Apply the delta to current value.
     uint16_t i = 0;
