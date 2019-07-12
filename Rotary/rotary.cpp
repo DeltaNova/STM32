@@ -68,6 +68,7 @@ static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
 void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 pressType buttonAction2(uint32_t *button_history);
+void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
@@ -575,7 +576,7 @@ pressType buttonAction2(uint32_t *button_history){
     return press;
 }
 
-void processButtonAction(pressType ButtonAction){
+void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     switch(ButtonAction){
         case pressType::SHORT:
             pressShort(serial, char_buffer, MenuSelection, Red, Green, Blue);
