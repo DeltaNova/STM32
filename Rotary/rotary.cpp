@@ -485,8 +485,7 @@ uint8_t is_button_released(uint32_t *button_history){
 pressType buttonAction2(uint32_t *button_history){ 
     // Button Action from Polling - Works out if and for how long a button was pressed.
     // Parameters: 
-    // TODO: Add button_history as a parameter so function can be used with other buttons.
-    //       The same goes for the buttonPressStart,buttonPressStop variables which again will be button dependant.
+    // TODO: Add buttonPressStart,buttonPressStop as parameters to make function independant of buttons.
     //       The counter variable also needs to be passed.
     //       Define the duration values outside the function to allow easier adjustment.
     pressType press = pressType::IDLE;
