@@ -67,6 +67,7 @@ enum class pressType{
 static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
 void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
+pressType buttonAction2(uint32_t *button_history);
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
@@ -543,21 +544,22 @@ void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value
     }
 }
 
-pressType buttonAction2(){ 
+pressType buttonAction2(uint32_t *button_history){ 
     // Button Action from Polling - Works out if and for how long a button was pressed.
     // Parameters: 
     // TODO: Add button_history as a parameter so function can be used with other buttons.
     //       The same goes for the buttonPressStart,buttonPressStop variables which again will be button dependant.
+    //       The counter variable also needs to be passed.
     //       Define the duration values outside the function to allow easier adjustment.
     pressType press = pressType::IDLE;
 
-    if (is_button_pressed(&button_history)){
+    if (is_button_pressed(button_history)){
         // Reset Press Duration Counters to current counter value
         buttonPressStart = counter;
         buttonPressStop = counter;
     }
     
-    if (is_button_released(&button_history)){
+    if (is_button_released(button_history)){
         buttonPressStop = counter;
         uint32_t buttondelta = get_upcounting_delta(buttonPressStart, buttonPressStop);
 
