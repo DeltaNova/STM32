@@ -482,6 +482,13 @@ uint8_t is_button_released(uint32_t *button_history){
     return released;
 }
 
+
+uint32_t getSysTickCount(){
+    // Return the value of the global counter variable.
+    // The value is incremented by Systick
+    return counter;
+}
+
 pressType buttonAction(uint32_t *button_history){ 
     // Button Action from Polling - Works out if and for how long a button was pressed.
     // Parameters: 
@@ -489,15 +496,15 @@ pressType buttonAction(uint32_t *button_history){
     //       The counter variable also needs to be passed.
     //       Define the duration values outside the function to allow easier adjustment.
     pressType press = pressType::IDLE;
-
+    uint32_t count = getSysTickCount();
     if (is_button_pressed(button_history)){
         // Reset Press Duration Counters to current counter value
-        buttonPressStart = counter;
-        buttonPressStop = counter;
+        buttonPressStart = count;
+        buttonPressStop = count;
     }
     
     if (is_button_released(button_history)){
-        buttonPressStop = counter;
+        buttonPressStop = count;
         uint32_t buttondelta = get_upcounting_delta(buttonPressStart, buttonPressStop);
 
         // Check press time and select the message to load into the buffer.
