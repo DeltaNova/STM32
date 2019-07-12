@@ -66,7 +66,7 @@ enum class pressType{
 // Rotary Encoder Button
 static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
-void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
+//void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 pressType buttonAction2(uint32_t *button_history);
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
@@ -161,7 +161,11 @@ int main(void) {
         }
                
         // Assess what the button is doing and trigger appropritate action.
-        buttonAction(serial, char_buffer,MenuSelection,Red,Green,Blue);
+        //buttonAction(serial, char_buffer,MenuSelection,Red,Green,Blue);
+        
+        pressType p = buttonAction2(&button_history);
+        processButtonAction(p, serial, char_buffer, MenuSelection, Red, Green, Blue);
+        
         
         // Update Encoder Counts then check for any movement of the encoder.
         update_encoder_counts();
@@ -480,7 +484,7 @@ uint8_t is_button_released(uint32_t *button_history){
     return released;
 }
 
-
+/*
 void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){ 
     // Button Action from Polling
     // Parameters: Reference to USART instance, Pointer to char_buffer array
@@ -544,6 +548,7 @@ void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value
         
     }
 }
+*/
 
 pressType buttonAction2(uint32_t *button_history){ 
     // Button Action from Polling - Works out if and for how long a button was pressed.
