@@ -493,7 +493,6 @@ pressType buttonAction(uint32_t *button_history){
     // Button Action from Polling - Works out if and for how long a button was pressed.
     // Parameters: 
     // TODO: Add buttonPressStart,buttonPressStop as parameters to make function independant of buttons.
-    //       The counter variable also needs to be passed.
     //       Define the duration values outside the function to allow easier adjustment.
     pressType press = pressType::IDLE;
     uint32_t count = getSysTickCount();
