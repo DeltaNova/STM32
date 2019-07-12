@@ -15,7 +15,7 @@ extern volatile uint32_t ticks; // SysTick Library
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 ////////////////////////////////////////////////////////////////////////////////
 // Debugging Flags
-//#define ENABLE_DEBUG_BUTTON_ACTION // Comment out to disable debugging
+
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
@@ -66,7 +66,7 @@ enum class pressType{
 // Rotary Encoder Button
 static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
-//void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
+
 pressType buttonAction2(uint32_t *button_history);
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
@@ -161,8 +161,6 @@ int main(void) {
         }
                
         // Assess what the button is doing and trigger appropritate action.
-        //buttonAction(serial, char_buffer,MenuSelection,Red,Green,Blue);
-        
         pressType p = buttonAction2(&button_history);
         processButtonAction(p, serial, char_buffer, MenuSelection, Red, Green, Blue);
         
@@ -483,72 +481,6 @@ uint8_t is_button_released(uint32_t *button_history){
     }
     return released;
 }
-
-/*
-void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){ 
-    // Button Action from Polling
-    // Parameters: Reference to USART instance, Pointer to char_buffer array
-
-    #ifdef ENABLE_DEBUG_BUTTON_ACTION    
-    static uint8_t buttonMessage[]= "Button Pressed\n\r"; //Size 16
-    static uint8_t buttonMessage2[]= "Short Press\n\r"; //Size 13
-    static uint8_t buttonMessage3[]= "Long Press\n\r"; //Size 12
-    static uint8_t buttonMessage4[]= "Very Long Press\n\r"; //Size 17
-    static uint8_t buttonMessage5[]= "Button Released\n\r"; //Size 17
-    #endif
-    if (is_button_pressed(&button_history)){
-        // Reset Press Duration Counters to current counter value
-        buttonPressStart = counter;
-        buttonPressStop = counter;
-        #ifdef ENABLE_DEBUG_BUTTON_ACTION
-        
-        serial.write_array(buttonMessage,16); // Send Pressed Message
-        serial.write_buffer();
-        #endif
-    }
-    if (is_button_released(&button_history)){
-        buttonPressStop = counter;
-        uint32_t buttondelta = get_upcounting_delta(buttonPressStart, buttonPressStop);
-        #ifdef ENABLE_DEBUG_BUTTON_ACTION
-        // Send Released Message
-        serial.write_array(buttonMessage5,17);
-        serial.write_buffer();
-        #endif
-        // Check press time and select the message to load into the buffer.
-        if (buttondelta < 1000){                        // Short Press
-            #ifdef ENABLE_DEBUG_BUTTON_ACTION
-            serial.write_array(buttonMessage2,13);
-            #endif
-            pressShort(serial, char_buffer, MenuSelection, Red, Green, Blue);
-        }else if (buttondelta <5000){                   // Long Press
-            #ifdef ENABLE_DEBUG_BUTTON_ACTION
-            serial.write_array(buttonMessage3,12);
-            #endif
-            pressLong(serial, char_buffer, MenuSelection, Red, Green, Blue);
-        }else{                                          // Very Long Press
-            #ifdef ENABLE_DEBUG_BUTTON_ACTION
-            serial.write_array(buttonMessage4,17);
-            #endif
-            pressVlong(serial, char_buffer, MenuSelection, Red, Green, Blue);
-        }
-        #ifdef ENABLE_DEBUG_BUTTON_ACTION
-        // Write the buffer containing the message to USART.
-        serial.write_buffer();  
-        
-        // Debug Code to Print Length of button press
-        snprintf(char_buffer, 12, "%010lu", buttondelta);
-        for(uint8_t i=0;i<10; i++){
-            serial.write(char_buffer[i]);
-        }
-        // Add a new line
-        serial.write(0x0A); // LF
-        serial.write(0x0D); // CR
-        #endif
-
-        
-    }
-}
-*/
 
 pressType buttonAction2(uint32_t *button_history){ 
     // Button Action from Polling - Works out if and for how long a button was pressed.
