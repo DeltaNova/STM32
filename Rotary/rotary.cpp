@@ -513,6 +513,9 @@ pressType buttonAction(uint32_t *button_history){
 }
 
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
+    // Execute an action based on the button press duration.
+    // ButtonAction is the only required parameter for this function.
+    // Additional paramters are for passing to action functions.
     switch(ButtonAction){
         case pressType::SHORT:
             pressShort(serial, char_buffer, MenuSelection, Red, Green, Blue);
