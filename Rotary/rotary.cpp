@@ -67,7 +67,7 @@ enum class pressType{
 static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
 
-pressType buttonAction2(uint32_t *button_history);
+pressType buttonAction(uint32_t *button_history);
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
@@ -161,7 +161,7 @@ int main(void) {
         }
                
         // Assess what the button is doing and trigger appropritate action.
-        pressType p = buttonAction2(&button_history);
+        pressType p = buttonAction(&button_history);
         processButtonAction(p, serial, char_buffer, MenuSelection, Red, Green, Blue);
         
         
@@ -482,7 +482,7 @@ uint8_t is_button_released(uint32_t *button_history){
     return released;
 }
 
-pressType buttonAction2(uint32_t *button_history){ 
+pressType buttonAction(uint32_t *button_history){ 
     // Button Action from Polling - Works out if and for how long a button was pressed.
     // Parameters: 
     // TODO: Add buttonPressStart,buttonPressStop as parameters to make function independant of buttons.
