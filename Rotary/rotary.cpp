@@ -54,6 +54,15 @@ volatile uint32_t counter = 0;
 static uint16_t encoder_count = 0;
 static uint16_t last_encoder_count = 0; 
 
+
+enum class pressType{
+    IDLE,       // No Press Event
+    SHORT,      // Short Press
+    LONG,       // Long Press
+    VLONG,      // Very Long Press
+};
+
+
 // Rotary Encoder Button
 static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
@@ -534,20 +543,13 @@ void buttonAction(Serial& serial, char *char_buffer, Value &MenuSelection, Value
     }
 }
 
-enum class pressType{
-    NULL,       // No Press Event
-    SHORT.      // Short Press
-    LONG,       // Long Press
-    VLONG,      // Very Long Press
-};
-
 pressType buttonAction2(){ 
     // Button Action from Polling - Works out if and for how long a button was pressed.
     // Parameters: 
     // TODO: Add button_history as a parameter so function can be used with other buttons.
     //       The same goes for the buttonPressStart,buttonPressStop variables which again will be button dependant.
     //       Define the duration values outside the function to allow easier adjustment.
-    pressType press = pressType::NULL;
+    pressType press = pressType::IDLE;
 
     if (is_button_pressed(&button_history)){
         // Reset Press Duration Counters to current counter value
@@ -582,7 +584,7 @@ void processButtonAction(pressType ButtonAction){
         case pressType::VLONG:
             pressVlong(serial, char_buffer, MenuSelection, Red, Green, Blue);
             break;
-        case pressType::NULL:
+        case pressType::IDLE:
         default:
             break;
             
