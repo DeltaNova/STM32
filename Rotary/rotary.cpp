@@ -42,7 +42,9 @@ void updateValue(Value &value, uint16_t dir, uint16_t delta);
 void ValueShow(Value& value, Serial& serial, char *char_buffer);
 void ValueShowMenu(Value& value, Serial& serial, char *char_buffer);
 
-void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
+void processMenuSelection(Serial& serial, char *char_buffer,Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue);
+                          
 // USART1
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
 Buffer serial_rx; // USART1 RX Buffer (16 bytes)
@@ -79,12 +81,16 @@ struct Button{
 
 
 pressType buttonAction(uint32_t *button_history, Button &button);
-void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
-void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
-void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
-void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
-void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
-
+void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, 
+    Value &MenuSelection, Value &Red, Value &Green, Value &Blue);                     
+void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue);
+void pressLong(Serial& serial, char *char_buffer,  Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue);
+void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue);
+void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue);
 
 // Button Debounce 
 void update_button(uint32_t *button_history);
@@ -131,7 +137,7 @@ int main(void) {
     EncoderSetup();     // Setup Rotary Encoder
     EncoderButtonSetup(); // Setup the Rotary Encoder Button
     
-    // NOTE: char_buffer needs to be sized to be able to hold the longest message.
+    // NOTE: char_buffer needs to be sized to be able to hold longest message.
     char char_buffer[16];
     // Send a message to the terminal to indicate program is running.
     serial.write_array(test_message,10);
@@ -246,7 +252,8 @@ int main(void) {
         }
     }
 }
-void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
+void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue){
     // Display Menu with values for the colour variables.
     serial.newline();
     serial.write_array(Menu_Header,4);
@@ -289,7 +296,8 @@ void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Re
     ValueShowMenu(MenuSelection, serial, char_buffer);
     
 }
-void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
+void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue){
     // Short Button Press Event
     switch(state){
         case State::IDLE:
@@ -320,7 +328,8 @@ void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &
     }
     
 }
-void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
+void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue){
     // Change program flow based on selected menu option.
     serial.lineClear(3);
     switch(MenuSelection.value){
@@ -364,7 +373,8 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
             break;
     }
 }
-void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
+void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue){
     // Long Button Press Event
     switch(state){
         case State::IDLE:
@@ -418,12 +428,13 @@ void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &R
             state = State::BLUE;        // Retain Current State
             break;
         default:
-            pressShort(serial, char_buffer,MenuSelection, Red, Green, Blue); // Default to pressShort()
+            pressShort(serial, char_buffer,MenuSelection, Red, Green, Blue);
             break;
     }
     
 }
-void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
+void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue){
     // Very Long Button Press Event
     // Zero All Colour Values and return to Menu state.
     Red.value = Red.valueMin;
@@ -454,7 +465,8 @@ uint32_t read_button(void){
 // to allow different read functions to be used by update_button()
 typedef uint32_t (*readButtonFcn)(void);
 
-void update_button(uint32_t *button_history, readButtonFcn read_button){   // Called by Systick every 1ms
+void update_button(uint32_t *button_history, readButtonFcn read_button){ 
+    // Functiona called by Systick every 1ms
     // Parameters
     // button_history   - What the button has been doing
     //                  - Value passed will relate to a particular button.
@@ -502,12 +514,14 @@ uint32_t getSysTickCount(){
 }
 
 pressType buttonAction(uint32_t *button_history, Button &button){ 
-    // Button Action from Polling - Works out if and for how long a button was pressed.
+    // Button Action from Polling - Works out if and for how long button pressed.
     // Parameters: 
     // TODO: Add buttonPressStart,buttonPressStop as parameters to make function independant of buttons.
     //       Define the duration values outside the function to allow easier adjustment.
     pressType press = pressType::IDLE;
     uint32_t count = getSysTickCount();
+    uint32_t buttondelta;
+    
     if (is_button_pressed(button_history)){
         // Reset Press Duration Counters to current counter value
         button.pressStart = count;
@@ -516,7 +530,7 @@ pressType buttonAction(uint32_t *button_history, Button &button){
     
     if (is_button_released(button_history)){
         button.pressStop = count;
-        uint32_t buttondelta = get_upcounting_delta(button.pressStart, button.pressStop);
+        buttondelta = get_upcounting_delta(button.pressStart, button.pressStop);
 
         // Check press time and select the message to load into the buffer.
         if (buttondelta < button.shortPressMax){        // Short Press
@@ -530,7 +544,8 @@ pressType buttonAction(uint32_t *button_history, Button &button){
     return press;
 }
 
-void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
+void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, 
+    Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
     // Execute an action based on the button press duration.
     // ButtonAction is the only required parameter for this function.
     // Additional paramters are for passing to action functions.
@@ -712,7 +727,9 @@ void toggleLed(){
 }
 void SysTick_Handler(void){
     counter++;
-    update_button(&button_history, read_button); // Log button state to debounce history
+    
+    // Log button state to debounce history
+    update_button(&button_history, read_button); 
     if (ticks != 0){
         // Pre-decrement ticks. This avoids making a copy of the variable to 
         // decrement. This should be faster which is ideal for an interrupt
