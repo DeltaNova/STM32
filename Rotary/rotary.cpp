@@ -64,8 +64,8 @@ enum class pressType{
 
 
 // Rotary Encoder Button
-static uint16_t buttonPressStart = 0;
-static uint16_t buttonPressStop = 0;
+//static uint16_t buttonPressStart = 0;
+//static uint16_t buttonPressStop = 0;
 
 struct Button{
     // Store the SysTick Counter Value on press and release to enable
@@ -153,7 +153,8 @@ int main(void) {
     Value Red;
     Value Green;
     Value Blue;
-       
+    
+    Button B;               // Create a button instance   
 
     
     while(1){
@@ -172,7 +173,7 @@ int main(void) {
         }
                
         // Assess what the button is doing and trigger appropritate action.
-        pressType p = buttonAction(&button_history);
+        pressType p = buttonAction(&button_history,B);
         processButtonAction(p, serial, char_buffer, MenuSelection, Red, Green, Blue);
         
         
