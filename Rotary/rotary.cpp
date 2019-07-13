@@ -68,6 +68,17 @@ static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
 
 pressType buttonAction(uint32_t *button_history);
+struct Button{
+    // Store the SysTick Counter Value on press and release to enable
+    // calculation of press duration.
+    uint32_t pressStart = 0;
+    uint32_t pressStop = 0;
+    // The following values are based off a 1ms clock tick.
+    uint16_t shortPressMax = 1000;  // 1 Second
+    uint16_t longPressMax = 5000;   // 5 Seconds
+};
+
+
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
