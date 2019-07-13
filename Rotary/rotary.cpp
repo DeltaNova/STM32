@@ -151,7 +151,7 @@ int main(void) {
     Value Green;
     Value Blue;
     
-    Button B;               // Create a button instance   
+    Button B;               // Create an instance of the encoder button.
 
     
     while(1){
