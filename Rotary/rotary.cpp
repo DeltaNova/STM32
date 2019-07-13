@@ -56,19 +56,12 @@ volatile uint32_t counter = 0;
 static uint16_t encoder_count = 0;
 static uint16_t last_encoder_count = 0; 
 
-
 enum class pressType{
     IDLE,       // No Press Event
     SHORT,      // Short Press
     LONG,       // Long Press
     VLONG,      // Very Long Press
 };
-
-
-// Rotary Encoder Button
-//static uint16_t buttonPressStart = 0;
-//static uint16_t buttonPressStop = 0;
-
 struct Button{
     // Store the SysTick Counter Value on press and release to enable
     // calculation of press duration.
@@ -78,8 +71,6 @@ struct Button{
     uint16_t shortPressMax = 1000;  // 1 Second
     uint16_t longPressMax = 5000;   // 5 Seconds
 };
-
-
 pressType buttonAction(uint32_t *button_history, Button &button);
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, 
     Value &MenuSelection, Value &Red, Value &Green, Value &Blue);                     
@@ -457,9 +448,6 @@ uint32_t read_button(void){
     }
     return button_state;
 }
-// Dev Note: update_button() needs to accept the read_button() function as a 
-//           parameter. This will allow update_button() to be used for 
-//           different buttons. The read_button functions will be hw specific.
 
 // Define a function pointer for the reading of a button. It will be used to
 // to allow different read functions to be used by update_button()
@@ -505,19 +493,14 @@ uint8_t is_button_released(uint32_t *button_history){
     }
     return released;
 }
-
-
 uint32_t getSysTickCount(){
     // Return the value of the global counter variable.
     // The value is incremented by Systick
     return counter;
 }
-
 pressType buttonAction(uint32_t *button_history, Button &button){ 
     // Button Action from Polling - Works out if and for how long button pressed.
     // Parameters: 
-    // TODO: Add buttonPressStart,buttonPressStop as parameters to make function independant of buttons.
-    //       Define the duration values outside the function to allow easier adjustment.
     pressType press = pressType::IDLE;
     uint32_t count = getSysTickCount();
     uint32_t buttondelta;
