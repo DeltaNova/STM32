@@ -67,7 +67,6 @@ enum class pressType{
 static uint16_t buttonPressStart = 0;
 static uint16_t buttonPressStop = 0;
 
-pressType buttonAction(uint32_t *button_history);
 struct Button{
     // Store the SysTick Counter Value on press and release to enable
     // calculation of press duration.
@@ -79,6 +78,7 @@ struct Button{
 };
 
 
+pressType buttonAction(uint32_t *button_history, Button &button);
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, Value &Red, Value &Green, Value &Blue);
@@ -500,7 +500,7 @@ uint32_t getSysTickCount(){
     return counter;
 }
 
-pressType buttonAction(uint32_t *button_history){ 
+pressType buttonAction(uint32_t *button_history, Button &button){ 
     // Button Action from Polling - Works out if and for how long a button was pressed.
     // Parameters: 
     // TODO: Add buttonPressStart,buttonPressStop as parameters to make function independant of buttons.
@@ -509,18 +509,18 @@ pressType buttonAction(uint32_t *button_history){
     uint32_t count = getSysTickCount();
     if (is_button_pressed(button_history)){
         // Reset Press Duration Counters to current counter value
-        buttonPressStart = count;
-        buttonPressStop = count;
+        button.pressStart = count;
+        button.pressStop = count;
     }
     
     if (is_button_released(button_history)){
-        buttonPressStop = count;
-        uint32_t buttondelta = get_upcounting_delta(buttonPressStart, buttonPressStop);
+        button.pressStop = count;
+        uint32_t buttondelta = get_upcounting_delta(button.pressStart, button.pressStop);
 
         // Check press time and select the message to load into the buffer.
-        if (buttondelta < 1000){                        // Short Press
+        if (buttondelta < button.shortPressMax){        // Short Press
             press = pressType::SHORT;
-        }else if (buttondelta < 5000){                   // Long Press
+        }else if (buttondelta < button.longPressMax){   // Long Press
             press = pressType::LONG;
         }else{                                          // Very Long Press
             press = pressType::VLONG;
