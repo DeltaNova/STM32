@@ -24,6 +24,26 @@ typedef uint32_t (*readButtonFcn)();
 
 // Button Debounce 
 void update_button(uint32_t *button_history, readButtonFcn read_button);
+
+enum class pressType{
+    IDLE,       // No Press Event
+    SHORT,      // Short Press
+    LONG,       // Long Press
+    VLONG,      // Very Long Press
+};
+struct Button{
+    // Store the SysTick Counter Value on press and release to enable
+    // calculation of press duration.
+    uint32_t pressStart = 0;
+    uint32_t pressStop = 0;
+    // The following values are based off a 1ms clock tick.
+    uint16_t shortPressMax = 1000;  // 1 Second
+    uint16_t longPressMax = 5000;   // 5 Seconds
+};
+
+pressType buttonAction(uint32_t *button_history, Button &button, uint32_t count);
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Hardware Specific Functions
 // STM32F103 - Requires '#include "stm32f103xb.h"'

@@ -44,7 +44,43 @@ void update_button(uint32_t *button_history, readButtonFcn read_button){
     *button_history |= read_button();
 }
 
+pressType buttonAction(uint32_t *button_history, Button &button, uint32_t count){ 
+    // Button Action from Polling - Works out if and for how long button pressed.
+    // Parameters:
+    // button_history - Record of the press status over time
+    // button         - Struct holding parameters relating to the button.
+    // count          - count value of upwards only counter to time press length.
+    pressType press = pressType::IDLE;
+    uint32_t buttondelta;
+    
+    if (is_button_pressed(button_history)){
+        // Reset Press Duration Counters to current counter value
+        button.pressStart = count;
+        button.pressStop = count;
+    }
+    
+    if (is_button_released(button_history)){
+        button.pressStop = count;
+        
+        uint32_t buttondelta;
+        if (button.pressStop < button.pressStart){
+            // Counter has rolled over (at least once, multi rollover not handled)
+            buttondelta = ((0xFFFFFFFF - button.pressStart) + 1 + button.pressStop);
+        }else{
+            buttondelta = (button.pressStop - button.pressStart);
+        }
 
+        // Check press time and select the message to load into the buffer.
+        if (buttondelta < button.shortPressMax){        // Short Press
+            press = pressType::SHORT;
+        }else if (buttondelta < button.longPressMax){   // Long Press
+            press = pressType::LONG;
+        }else{                                          // Very Long Press
+            press = pressType::VLONG;
+        }       
+    }
+    return press;
+}
 ////////////////////////////////////////////////////////////////////////////////
 // Hardware Specific Functions
 // STM32F103
