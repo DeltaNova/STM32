@@ -6,6 +6,7 @@
 #include <stdio.h>              // Newlib-nano
 #include "clock.h"              // Setup system and peripheral clocks
 #include "buffer_class.h"       // Cicular Buffers
+#include "button.h"             // Button Library
 #include "serial.h"             // USART1 Setup & Functions
 #include "stm32f103xb.h"        // HW Specific Header
 #include "systick.h"            // SysTick Configuration
@@ -27,10 +28,6 @@ void EncoderButtonSetup();
 uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count);
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_encoder_counts();
-uint8_t is_button_up(uint32_t *button_history);
-uint8_t is_button_down(uint32_t *button_history);
-uint8_t is_button_pressed(uint32_t *button_history);
-uint8_t is_button_released(uint32_t *button_history);
 
 // Struct to hold a value with range limits
 struct Value {
@@ -86,8 +83,7 @@ void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection,
 // Button Debounce 
 void update_button(uint32_t *button_history);
 
-// BUTTON_MASK - Assuming 1ms history update allows for 16ms of switch bounce.
-#define BUTTON_MASK 0b11111111000000000000000011111111
+
 // Timeout Reset Value (ms)for Idle state
 #define TIMEOUT 5000
 static uint16_t idle = TIMEOUT;
@@ -465,34 +461,7 @@ void update_button(uint32_t *button_history, readButtonFcn read_button){
     // Read current button state into history.
     *button_history |= read_button();
 }
-uint8_t is_button_up(uint32_t *button_history){
-    // Returns true if button up
-    return(*button_history == 0x00000000); 
-}
-uint8_t is_button_down(uint32_t *button_history){
-    // Returns true if button down
-    return(*button_history == 0xFFFFFFFF);
-}
-uint8_t is_button_pressed(uint32_t *button_history){
-    // Returns true if pressed
-    uint8_t pressed = 0;
-    if ((*button_history & BUTTON_MASK) == 0b00000000000000000000000011111111){
-        pressed = 1;
-        // Set History to prevent retriggering from same press
-        *button_history = 0xFFFFFFFF; 
-    }
-    return pressed;
-}
-uint8_t is_button_released(uint32_t *button_history){
-    // Returns true if released
-    uint8_t released = 0;
-    if ((*button_history & BUTTON_MASK) == 0b11111111000000000000000000000000){
-        released = 1;
-        // Clear Histtory to prevent retriggering from same release
-        *button_history = 0x00000000; 
-    }
-    return released;
-}
+
 uint32_t getSysTickCount(){
     // Return the value of the global counter variable.
     // The value is incremented by Systick
