@@ -25,7 +25,7 @@ void toggleLed();
 void PC13_LED_Setup(); // Setup PC13 for output LED
 void EncoderSetup();
 void EncoderButtonSetup();
-uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count);
+
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_encoder_counts();
 
@@ -539,20 +539,7 @@ void ValueShowMenu(Value& value, Serial& serial, char *char_buffer){
         serial.write(char_buffer[i]);
     }
 }
-uint32_t get_upcounting_delta(uint32_t start_count, uint32_t stop_count){
-    // Returns the difference between two count values.
-    
-    // DEV NOTE: Count values need to be be from an upcounting only counter.
-    //           Decrementing counts can result in large deltas where only a
-    //           small delta exits in reality.
-    
-    if (stop_count < start_count){
-        // Counter has rolled over (at least once, multi rollover not handled)
-        return ((0xFFFFFFFF - start_count) + 1 + stop_count);
-    }else{
-        return (stop_count - start_count);
-    }
-}
+
 void EncoderButtonSetup(){
     // Button will be using PB6 and is wired in with a pullup resistor
     RCC->APB2ENR |= 0x00000009;     // Enable Clocks (AFIO, Port B)
