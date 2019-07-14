@@ -30,6 +30,21 @@ uint8_t is_button_released(uint32_t *button_history){
     return released;
 }
 
+
+void update_button(uint32_t *button_history, readButtonFcn read_button){ 
+    // Function called by Systick every 1ms
+    // Parameters
+    // button_history   - What the button has been doing
+    //                  - Value passed will relate to a particular button.
+    // read_button      - Reads the button status from hardware.
+    //                  - Function passed will read a particular button.
+    // Bit shift button history to make room for new reading.
+    *button_history = *button_history << 1;
+    // Read current button state into history.
+    *button_history |= read_button();
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Hardware Specific Functions
 // STM32F103

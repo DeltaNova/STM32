@@ -80,8 +80,7 @@ void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection,
 void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, 
     Value &Red, Value &Green, Value &Blue);
 
-// Button Debounce 
-void update_button(uint32_t *button_history);
+
 
 
 // Timeout Reset Value (ms)for Idle state
@@ -435,22 +434,9 @@ void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection,
     //TODO: I plan to use a SET state to turn LED's on, UNSET here to turn off.
 }
 
-// Define a function pointer for the reading of a button. It will be used to
-// to allow different read functions to be used by update_button()
-typedef uint32_t (*readButtonFcn)(void);
 
-void update_button(uint32_t *button_history, readButtonFcn read_button){ 
-    // Functiona called by Systick every 1ms
-    // Parameters
-    // button_history   - What the button has been doing
-    //                  - Value passed will relate to a particular button.
-    // read_button      - Reads the button status from hardware.
-    //                  - Function passed will read a particular button.
-    // Bit shift button history to make room for new reading.
-    *button_history = *button_history << 1;
-    // Read current button state into history.
-    *button_history |= read_button();
-}
+
+
 
 uint32_t getSysTickCount(){
     // Return the value of the global counter variable.
