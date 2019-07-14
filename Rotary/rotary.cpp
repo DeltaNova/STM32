@@ -14,6 +14,9 @@ extern volatile uint32_t ticks; // SysTick Library
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
+
+volatile uint32_t counter = 0;      // Systick incremented counter
+
 ////////////////////////////////////////////////////////////////////////////////
 // Debugging Flags
 
@@ -28,6 +31,9 @@ void EncoderButtonSetup();
 
 uint16_t get_diff(uint16_t count, uint16_t last_count);
 void update_encoder_counts();
+
+// Returns the current counter value of the SysTick incremented count.
+uint32_t getSysTickCount();         
 
 // Struct to hold a value with range limits
 struct Value {
@@ -46,13 +52,14 @@ void processMenuSelection(Serial& serial, char *char_buffer,Value &MenuSelection
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
 Buffer serial_rx; // USART1 RX Buffer (16 bytes)
 
-// Systick Counter
-volatile uint32_t counter = 0;
+
 
 // Rotary Encoder
 static uint16_t encoder_count = 0;
 static uint16_t last_encoder_count = 0; 
 
+// These button related functions are application specific and dont belong
+// in the button library.
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, 
     Value &MenuSelection, Value &Red, Value &Green, Value &Blue);                     
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, 
@@ -63,9 +70,6 @@ void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection,
     Value &Red, Value &Green, Value &Blue);
 void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, 
     Value &Red, Value &Green, Value &Blue);
-
-
-uint32_t getSysTickCount();
 
 // Timeout Reset Value (ms)for Idle state
 #define TIMEOUT 5000
@@ -94,7 +98,7 @@ enum class State{
     State state = State::IDLE;  // Holds current program state
 ////////////////////////////////////////////////////////////////////////////////
 // Main - Called by the startup code.
-int main(void) {
+int main() {
     ClockSetup();       // Setup System & Peripheral Clocks
     SysTick_Init();     // Enable SysTick
     
@@ -266,6 +270,28 @@ void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection,
     ValueShowMenu(MenuSelection, serial, char_buffer);
     
 }
+
+void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, 
+    Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
+    // Execute an action based on the button press duration.
+    // ButtonAction is the only required parameter for this function.
+    // Additional paramters are for passing to action functions.
+    switch(ButtonAction){
+        case pressType::SHORT:
+            pressShort(serial, char_buffer, MenuSelection, Red, Green, Blue);
+            break;
+        case pressType::LONG:
+            pressLong(serial, char_buffer, MenuSelection, Red, Green, Blue);
+            break;
+        case pressType::VLONG:
+            pressVlong(serial, char_buffer, MenuSelection, Red, Green, Blue);
+            break;
+        case pressType::IDLE:
+        default:
+            break;
+            
+    }
+}
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, 
     Value &Red, Value &Green, Value &Blue){
     // Short Button Press Event
@@ -418,41 +444,6 @@ void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection,
     //TODO: I plan to use a SET state to turn LED's on, UNSET here to turn off.
 }
 
-
-
-
-
-uint32_t getSysTickCount(){
-    // Return the value of the global counter variable.
-    // The value is incremented by Systick
-    return counter;
-}
-
-
-
-
-void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, 
-    Value &MenuSelection, Value &Red, Value &Green, Value &Blue){
-    // Execute an action based on the button press duration.
-    // ButtonAction is the only required parameter for this function.
-    // Additional paramters are for passing to action functions.
-    switch(ButtonAction){
-        case pressType::SHORT:
-            pressShort(serial, char_buffer, MenuSelection, Red, Green, Blue);
-            break;
-        case pressType::LONG:
-            pressLong(serial, char_buffer, MenuSelection, Red, Green, Blue);
-            break;
-        case pressType::VLONG:
-            pressVlong(serial, char_buffer, MenuSelection, Red, Green, Blue);
-            break;
-        case pressType::IDLE:
-        default:
-            break;
-            
-    }
-}
-
 void updateValue(Value &value, uint16_t dir, uint16_t delta){
     // Apply the delta to current value.
     uint16_t i = 0;
@@ -578,6 +569,11 @@ void update_encoder_counts(){
     // Read the hardware counter connected to the rotary encoder.
     last_encoder_count = encoder_count;     // Store previous encoder_count 
     encoder_count = (uint16_t)TIM3->CNT;    // Read latest HW counter value
+}
+uint32_t getSysTickCount(){
+    // Return the value of the global counter variable.
+    // The value is incremented by Systick
+    return counter;
 }
 void PC13_LED_Setup(){
     // Configure PC13 LED Indicator
