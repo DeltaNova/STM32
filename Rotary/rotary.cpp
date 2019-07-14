@@ -68,7 +68,9 @@ struct Button{
     uint16_t shortPressMax = 1000;  // 1 Second
     uint16_t longPressMax = 5000;   // 5 Seconds
 };
-pressType buttonAction(uint32_t *button_history, Button &button);
+
+pressType buttonAction(uint32_t *button_history, Button &button, uint32_t count);
+
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, 
     Value &MenuSelection, Value &Red, Value &Green, Value &Blue);                     
 void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, 
@@ -81,7 +83,7 @@ void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection,
     Value &Red, Value &Green, Value &Blue);
 
 
-
+uint32_t getSysTickCount();
 
 // Timeout Reset Value (ms)for Idle state
 #define TIMEOUT 5000
@@ -165,7 +167,7 @@ int main(void) {
         }
                
         // Assess what the button is doing and trigger appropritate action.
-        pressType p = buttonAction(&button_history,B);
+        pressType p = buttonAction(&button_history,B,getSysTickCount());
         processButtonAction(p, serial, char_buffer, MenuSelection, Red, Green, Blue);
         
         
@@ -443,11 +445,13 @@ uint32_t getSysTickCount(){
     // The value is incremented by Systick
     return counter;
 }
-pressType buttonAction(uint32_t *button_history, Button &button){ 
+
+
+
+pressType buttonAction(uint32_t *button_history, Button &button, uint32_t count){ 
     // Button Action from Polling - Works out if and for how long button pressed.
     // Parameters: 
     pressType press = pressType::IDLE;
-    uint32_t count = getSysTickCount();
     uint32_t buttondelta;
     
     if (is_button_pressed(button_history)){
