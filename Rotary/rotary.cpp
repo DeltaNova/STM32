@@ -434,16 +434,6 @@ void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection,
     
     //TODO: I plan to use a SET state to turn LED's on, UNSET here to turn off.
 }
-uint32_t readButtonPB6(void){
-    // Read the button state - Return 1 for pressed, 0 for released.
-    uint32_t button_state;
-    if (GPIOB->IDR & 0x00000040){   // PB6 High (Not Pressed)
-        button_state = 0;
-    }else{                          // PB6 Low (Pressed)
-        button_state = 1;
-    }
-    return button_state;
-}
 
 // Define a function pointer for the reading of a button. It will be used to
 // to allow different read functions to be used by update_button()

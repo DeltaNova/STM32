@@ -30,3 +30,17 @@ uint8_t is_button_released(uint32_t *button_history){
     return released;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Hardware Specific Functions
+// STM32F103
+
+uint32_t readButtonPB6(){
+    // Read the button state - Return 1 for pressed, 0 for released.
+    uint32_t button_state;
+    if (GPIOB->IDR & 0x00000040){   // PB6 High (Not Pressed)
+        button_state = 0;
+    }else{                          // PB6 Low (Pressed)
+        button_state = 1;
+    }
+    return button_state;
+}

@@ -2,7 +2,8 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-#include <stdint.h> // Fixed Width Integers
+#include <stdint.h>             // Fixed Width Integers
+#include "stm32f103xb.h"        // HW Specific Header STM32F103
     
     // BUTTON_MASK - Defines the period of time that is ignored for debouncing.
     //               Assuming 1ms history update allows for 16ms of switch bounce.
@@ -15,6 +16,11 @@ uint8_t is_button_up(uint32_t *button_history);
 uint8_t is_button_down(uint32_t *button_history);
 uint8_t is_button_pressed(uint32_t *button_history);
 uint8_t is_button_released(uint32_t *button_history);
+
+////////////////////////////////////////////////////////////////////////////////
+// Hardware Specific Functions
+// STM32F103 - Requires '#include "stm32f103xb.h"'
+uint32_t readButtonPB6();
 
 
 #endif
