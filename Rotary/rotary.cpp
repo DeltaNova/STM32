@@ -450,7 +450,10 @@ uint32_t getSysTickCount(){
 
 pressType buttonAction(uint32_t *button_history, Button &button, uint32_t count){ 
     // Button Action from Polling - Works out if and for how long button pressed.
-    // Parameters: 
+    // Parameters:
+    // button_history - Record of the press status over time
+    // button         - Struct holding parameters relating to the button.
+    // count          - count value of upwards only counter to time press length.
     pressType press = pressType::IDLE;
     uint32_t buttondelta;
     
@@ -462,7 +465,14 @@ pressType buttonAction(uint32_t *button_history, Button &button, uint32_t count)
     
     if (is_button_released(button_history)){
         button.pressStop = count;
-        buttondelta = get_upcounting_delta(button.pressStart, button.pressStop);
+        
+        uint32_t buttondelta;
+        if (button.pressStop < button.pressStart){
+            // Counter has rolled over (at least once, multi rollover not handled)
+            buttondelta = ((0xFFFFFFFF - button.pressStart) + 1 + button.pressStop);
+        }else{
+            buttondelta = (button.pressStop - button.pressStart);
+        }
 
         // Check press time and select the message to load into the buffer.
         if (buttondelta < button.shortPressMax){        // Short Press
