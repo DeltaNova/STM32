@@ -434,7 +434,7 @@ void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection,
     
     //TODO: I plan to use a SET state to turn LED's on, UNSET here to turn off.
 }
-uint32_t read_button(void){
+uint32_t readButtonPB6(void){
     // Read the button state - Return 1 for pressed, 0 for released.
     uint32_t button_state;
     if (GPIOB->IDR & 0x00000040){   // PB6 High (Not Pressed)
@@ -681,7 +681,7 @@ void SysTick_Handler(void){
     counter++;
     
     // Log button state to debounce history
-    update_button(&button_history, read_button); 
+    update_button(&button_history, readButtonPB6); 
     if (ticks != 0){
         // Pre-decrement ticks. This avoids making a copy of the variable to 
         // decrement. This should be faster which is ideal for an interrupt
