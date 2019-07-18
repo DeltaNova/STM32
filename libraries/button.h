@@ -4,6 +4,7 @@
 
 #include <stdint.h>             // Fixed Width Integers
 #include "stm32f103xb.h"        // HW Specific Header STM32F103
+
     
     // BUTTON_MASK - Defines the period of time that is ignored for debouncing.
     //               Assuming 1ms history update allows for 16ms of switch bounce.

@@ -62,7 +62,6 @@ pressType buttonAction(uint32_t *button_history, Button &button, uint32_t count)
     if (is_button_released(button_history)){
         button.pressStop = count;
         
-        uint32_t buttondelta;
         if (button.pressStop < button.pressStart){
             // Counter has rolled over (at least once, multi rollover not handled)
             buttondelta = ((0xFFFFFFFF - button.pressStart) + 1 + button.pressStop);
