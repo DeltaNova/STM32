@@ -15,9 +15,7 @@ extern volatile uint32_t ticks; // SysTick Library
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variables
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
-
 volatile uint32_t counter = 0;      // Systick incremented counter
-
 ////////////////////////////////////////////////////////////////////////////////
 // Debugging Flags
 
@@ -29,8 +27,6 @@ void toggleLed();
 void PC13_LED_Setup(); // Setup PC13 for output LED
 void EncoderSetup();
 void EncoderButtonSetup();
-
-
 void update_encoder_counts();
 
 // Returns the current counter value of the SysTick incremented count.
