@@ -5,6 +5,7 @@
 #include <stdint.h>             // Enable fixed width integers
 #include <stdio.h>              // Newlib-nano
 #include "clock.h"              // Setup system and peripheral clocks
+#include "count.h"              // Count Related Functions
 #include "buffer_class.h"       // Cicular Buffers
 #include "button.h"             // Button Library
 #include "serial.h"             // USART1 Setup & Functions
@@ -29,7 +30,7 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 void EncoderSetup();
 void EncoderButtonSetup();
 
-uint16_t getCountDiff(uint16_t count, uint16_t last_count);
+
 void update_encoder_counts();
 
 // Returns the current counter value of the SysTick incremented count.
@@ -527,42 +528,7 @@ void EncoderSetup(){
     TIM3->EGR |= 0x0001;            // Reinitialise Counter & Update Registers
     TIM3->CR1 |= 0x00001;           // Enable Timer 3
 }
-uint16_t getCountDiff(uint16_t count, uint16_t last_count){
-    // This function assumes a count range of 0x0000 to 0xFFFF with roll over
-    // and roll under.
-    
-    // Note: It will not work correctly if the count is scaled before use.
-    
-    // A window is used to assess the difference between the count and 
-    // last_count values. Values inside or outside of the window determine how 
-    // the diff is calculated. Multiple rollover not handled.
-    uint16_t diff;
-    if (count > last_count){
-        if (count < 0x8000){
-            return (count - last_count);            // Increment
-        }else{ // (count >= 0x8000)
-            if (last_count > (count-0x4000)){
-                return (count - last_count);        // Increment
-            }else{ // (last_count <= (count-0x4000))
-                // Count Roll Under Condition
-                diff = (0xFFFF - count);
-                return(last_count + diff);          // Decrement
-            }
-        }
-    }else{ // (count <= last count)
-        if (last_count < 0x8000){
-            return(last_count - count);             // Decrement
-        }else{ // (last_count >= 0x8000)
-            if (count > (last_count - 0x4000)){
-                return(last_count - count);         // Decrement
-            }else{ //(count <= (last_count - 0x4000))
-                // Count Roll Over Condition
-                diff = 0xFFFF - last_count;
-                return (count + diff);              // Increment
-            }
-        }
-    }
-}
+
 void update_encoder_counts(){
     // Read the hardware counter connected to the rotary encoder.
     last_encoder_count = encoder_count;     // Store previous encoder_count 
