@@ -29,7 +29,7 @@ void PC13_LED_Setup(); // Setup PC13 for output LED
 void EncoderSetup();
 void EncoderButtonSetup();
 
-uint16_t get_diff(uint16_t count, uint16_t last_count);
+uint16_t getCountDiff(uint16_t count, uint16_t last_count);
 void update_encoder_counts();
 
 // Returns the current counter value of the SysTick incremented count.
@@ -51,8 +51,6 @@ void processMenuSelection(Serial& serial, char *char_buffer,Value &MenuSelection
 // USART1
 Buffer serial_tx; // USART1 TX Buffer (16 bytes)
 Buffer serial_rx; // USART1 RX Buffer (16 bytes)
-
-
 
 // Rotary Encoder
 static uint16_t encoder_count = 0;
@@ -169,7 +167,7 @@ int main() {
             // Direction Encoder Moved
             uint16_t dir = (TIM3->CR1 & 0x0010); 
             // Ammount Encoder Moved
-            uint16_t delta = get_diff(encoder_count,last_encoder_count);
+            uint16_t delta = getCountDiff(encoder_count,last_encoder_count);
             
             // Select the value to be adjusted based on the program state.
             switch(state){
@@ -529,7 +527,7 @@ void EncoderSetup(){
     TIM3->EGR |= 0x0001;            // Reinitialise Counter & Update Registers
     TIM3->CR1 |= 0x00001;           // Enable Timer 3
 }
-uint16_t get_diff(uint16_t count, uint16_t last_count){
+uint16_t getCountDiff(uint16_t count, uint16_t last_count){
     // This function assumes a count range of 0x0000 to 0xFFFF with roll over
     // and roll under.
     
