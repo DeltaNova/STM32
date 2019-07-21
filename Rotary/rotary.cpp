@@ -19,7 +19,7 @@ volatile uint32_t counter = 0;      // Systick incremented counter
 
 ////////////////////////////////////////////////////////////////////////////////
 // WS2812 Variables
-// Used by DMA1_Channel5_IRQHandler
+// Used by DMA1_Channel5_IRQHandler & writeLED
 static uint8_t currentLED = 0;      // Tracks LED write progress
 // Points to the colour sequence being sent. Used to allow DMA_ISR to load
 // data into buffer.
@@ -180,7 +180,7 @@ int main() {
     while(1){
                         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);
+        
         
         if (idle == 0x01){ // About to enter IDLE state
             // Print Idle Message Here
@@ -834,6 +834,7 @@ void toggleLed(){
             setAllRGB(128,0,0,pixels);                                          // DEBUG
         }
         flash = 1001;
+        writeLED(pixels,NUM_LEDS, DMA_Buffer);                                 // DEBUG
         
     }
 }
