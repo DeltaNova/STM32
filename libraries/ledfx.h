@@ -8,8 +8,8 @@
 
 
 
-#ifndef WS2812_H
-#define WS2812_H
+#ifndef LEDFX_H
+#define LEDFX_H
 
 static uint8_t currentLED = 0;      // Tracks LED write progress
 // Points to the colour sequence being sent. Used to allow DMA_ISR to load
@@ -370,4 +370,4 @@ int getRandomNumber(int min, int max){
     return min + static_cast<int>((max - min + 1) * (std::rand() * fraction));
 }
 
-#endif // WS2812_H
+#endif // LEDFX_H
