@@ -82,6 +82,7 @@ static uint8_t Menu1[] = "1: Red   ";       // Size 9
 static uint8_t Menu2[] = "2: Green ";       // Size 9
 static uint8_t Menu3[] = "3: Blue  ";       // Size 9
 static uint8_t Menu4[] = "4: Set";          // Size 6
+static uint8_t Menu5[] = "5: Clear";        // Size 8
 
 enum class State{
     IDLE, 
@@ -89,6 +90,8 @@ enum class State{
     RED, 
     GREEN, 
     BLUE,
+    SET,
+    CLEAR,
 };
     State state = State::IDLE;  // Holds current program state
 ////////////////////////////////////////////////////////////////////////////////
@@ -138,13 +141,14 @@ int main() {
     Value V;                // Used to simply output of selected value.
     Value NullValue;        // Create instance of Value Struct
     Value MenuSelection;    // Holds the current and range of menu selections.
-    MenuSelection.valueMax = 4; 
+    MenuSelection.valueMax = 5; 
     // Menu Options:
     // 0 Exit
     // 1 Red
     // 2 Green
     // 3 Blue
     // 4 Set
+    // 5 Clear
     
     // Values of RGB colour settings
     Value Red;
@@ -272,6 +276,10 @@ void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection,
     serial.newline();
     
     serial.write_array(Menu4,6);
+    serial.write_buffer();
+    serial.newline();
+    
+    serial.write_array(Menu5,8);
     serial.write_buffer();
     serial.newline();
     
