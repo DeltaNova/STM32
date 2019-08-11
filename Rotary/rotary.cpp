@@ -383,10 +383,21 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
             ValueShowMenu(Blue,serial,char_buffer);
             //serial.newline();
             break;
-        case 4:     // Set                            // TODO: Add in Set Action
-            state = State::IDLE; // Return to IDLE after Set Action
-            serial.write(0x49);  // I
-            serial.newline();
+        case 4:     // Set LEDs based on colour values                          
+            state = State::SET;    
+            setAllRGB(Red.value,Green.value,Blue.value,pixels);
+            writeLED(pixels,NUM_LEDS, DMA_Buffer);
+            serial.lineClear(6);
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
+            state = State::MENU;
+            break;
+        case 5:     // Clear LEDs (Turn Off)
+            state = State::CLEAR;
+            setAllRGB(0,0,0,pixels);
+            writeLED(pixels,NUM_LEDS, DMA_Buffer);
+            serial.lineClear(6);
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
+            state = State::MENU;
             break;
         default:    // Default to Exit
             state = State::IDLE;
