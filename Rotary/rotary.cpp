@@ -17,8 +17,6 @@ extern volatile uint32_t ticks; // SysTick Library
 // Global Variables
 volatile uint32_t flash = 0;        // Used for PC13 LED Flash Toggle Interval
 volatile uint32_t counter = 0;      // Systick incremented counter
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // Function Declarations
 extern "C" void USART1_IRQHandler(void);
@@ -137,7 +135,6 @@ int main() {
     serial.write_array(test_message,10);
     serial.write_buffer();
     
-    
     Value V;                // Used to simply output of selected value.
     Value NullValue;        // Create instance of Value Struct
     Value MenuSelection;    // Holds the current and range of menu selections.
@@ -156,12 +153,10 @@ int main() {
     Value Blue;
     
     Button B;               // Create an instance of the encoder button.
-
     
     while(1){
                         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
-        
         
         if (idle == 0x01){ // About to enter IDLE state
             // Print Idle Message Here
@@ -296,7 +291,6 @@ void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection,
     // Reset the menuselection to zero each time menu is shown.
     MenuSelection.value = MenuSelection.valueMin;      
     ValueShowMenu(MenuSelection, serial, char_buffer);
-    
 }
 
 void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buffer, 
@@ -593,7 +587,6 @@ uint32_t getSysTickCount(){
     // The value is incremented by Systick
     return counter;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Common Program Functions
