@@ -178,7 +178,6 @@ int main() {
         pressType p = buttonAction(&button_history,B,getSysTickCount());
         processButtonAction(p, serial, char_buffer, MenuSelection, Red, Green, Blue);
         
-        
         // Update Encoder Counts then check for any movement of the encoder.
         update_encoder_counts();
         if ((encoder_count/4) != (last_encoder_count/4)) {  
@@ -214,7 +213,10 @@ int main() {
                     updateValue(Blue,dir,delta);
                     V = Blue;
                     break;
-                    
+                case State::SET:
+                    break;
+                case State::CLEAR:
+                    break;  
                 default:
                     updateValue(NullValue,dir, delta);
                     V = NullValue;
@@ -318,38 +320,7 @@ void processButtonAction(pressType ButtonAction, Serial& serial, char *char_buff
             
     }
 }
-void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, 
-    Value &Red, Value &Green, Value &Blue){
-    // Short Button Press Event
-    switch(state){
-        case State::IDLE:
-            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
-            state = State::MENU;
-            break;
-        case State::MENU:
-            // Button Press to Process Menu Selection
-            processMenuSelection(serial, char_buffer, MenuSelection, Red, Green, Blue);
-            break;
-        case State::RED:
-            serial.lineClear(6);
-            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
-            state = State::MENU;
-            break;
-        case State::GREEN:
-            serial.lineClear(6);
-            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
-            state = State::MENU;
-            break;
-        case State::BLUE:
-            serial.lineClear(6);
-            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
-            state = State::MENU;
-            break;
-        default:
-            break;
-    }
-    
-}
+
 void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelection, 
     Value &Red, Value &Green, Value &Blue){
     // Change program flow based on selected menu option.
@@ -406,6 +377,47 @@ void processMenuSelection(Serial& serial, char *char_buffer, Value &MenuSelectio
             break;
     }
 }
+
+void pressShort(Serial& serial, char *char_buffer, Value &MenuSelection, 
+    Value &Red, Value &Green, Value &Blue){
+    // Short Button Press Event
+    switch(state){
+        case State::IDLE:
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
+            state = State::MENU;
+            break;
+        case State::MENU:
+            // Button Press to Process Menu Selection
+            processMenuSelection(serial, char_buffer, MenuSelection, Red, Green, Blue);
+            break;
+        case State::RED:
+            serial.lineClear(6);
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
+            state = State::MENU;
+            break;
+        case State::GREEN:
+            serial.lineClear(6);
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
+            state = State::MENU;
+            break;
+        case State::BLUE:
+            serial.lineClear(6);
+            showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
+            state = State::MENU;
+            break;
+        case State::SET:
+            // State not used in this context
+            state = State::MENU;
+            break;
+        case State::CLEAR:
+            // State not used in this context
+            state = State::MENU;
+            break;
+        default:
+            break;
+    }
+    
+}
 void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection, 
     Value &Red, Value &Green, Value &Blue){
     // Long Button Press Event
@@ -459,6 +471,14 @@ void pressLong(Serial& serial, char *char_buffer, Value &MenuSelection,
             ValueShowMenu(Blue, serial, char_buffer);
             
             state = State::BLUE;        // Retain Current State
+            break;
+        case State::SET:
+            // State not used in this context
+            state = State::MENU;
+            break;
+        case State::CLEAR:
+            // State not used in this context
+            state = State::MENU;
             break;
         default:
             pressShort(serial, char_buffer,MenuSelection, Red, Green, Blue);
