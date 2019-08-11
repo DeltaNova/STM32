@@ -464,10 +464,6 @@ void pressVlong(Serial& serial, char *char_buffer, Value &MenuSelection,
     Blue.value = Blue.valueMin;
     showMenu(serial,char_buffer,MenuSelection, Red,Green,Blue);
     state = State::MENU;
-    
- 
-    
-    //TODO: I plan to use a SET state to turn LED's on, UNSET here to turn off.
 }
 
 void updateValue(Value &value, uint16_t dir, uint16_t delta){
@@ -585,14 +581,10 @@ void toggleLed(){
         // Get LED Status
         if (GPIOC->ODR & 0x00002000){ // If Set
             GPIOC->BSRR |= 0x20000000; // Reset
-            setAllRGB(0,0,0,pixels);                                            // DEBUG
         }else{                        // If Not Set
             GPIOC->BSRR |= 0x00002000; // Set
-            setAllRGB(128,0,0,pixels);                                          // DEBUG
         }
         flash = 1001;
-        writeLED(pixels,NUM_LEDS, DMA_Buffer);                                 // DEBUG
-        
     }
 }
 void SysTick_Handler(void){
