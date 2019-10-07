@@ -1,5 +1,5 @@
 // rotary.cpp
-// Program to use a rotart encoder
+// Program to use a rotary encoder
 //  
 ////////////////////////////////////////////////////////////////////////////////
 #include <stdint.h>             // Enable fixed width integers
@@ -28,7 +28,10 @@ void EncoderButtonSetup();
 void update_encoder_counts();
 
 // Returns the current counter value of the SysTick incremented count.
-uint32_t getSysTickCount();         
+uint32_t getSysTickCount();
+// Next Scheduled Execution event based on SysTickCount
+uint32_t NextExecution = 0;         
+void effects(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint32_t speedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]);
 
 // Struct to hold a value with range limits
 struct Value {
@@ -158,6 +161,8 @@ int main() {
                         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         
+        effects(50,50,50,pixels, 1000, DMA_Buffer);      // LED Effects
+        
         if (idle == 0x01){ // About to enter IDLE state
             // Print Idle Message Here
             serial.lineClear(6);
@@ -245,6 +250,36 @@ int main() {
         }
     }
 }
+
+void effects(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint32_t speedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]){
+    // LED Effects Test Code
+    if (getSysTickCount() >= NextExecution){
+        // Time to Execure Effect
+        //TODO: Add code to fetch the current effect and select it.
+        //TODO: Add code to fetch the state of the current effect.
+        
+        // Colour Wipe Effect
+        static uint8_t i=0;     // Executes once.
+        
+        if (i < NUM_LEDS){
+            setPixelRGB(R,G,B,i,array);
+            writeLED(array, NUM_LEDS, Buffer);
+            i++;
+            // TODO: Update Effect Status
+            NextExecution = getSysTickCount() + speedDelay;
+        }else{
+            i = 0;
+            // TODO: Clear/ Don't set if next effect not required.
+            //       Could also have an effects enabled flag to check along with
+            //       the Next Execution time.
+            NextExecution = getSysTickCount() + speedDelay;
+            
+            // TODO: Update Effect Status
+            // TODO: Select Next Effect
+        }
+    }
+}
+
 void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, 
     Value &Red, Value &Green, Value &Blue){
     // Display Menu with values for the colour variables.
