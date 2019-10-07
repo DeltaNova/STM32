@@ -14,7 +14,7 @@ extern "C" void DMA1_Channel5_IRQHandler();
 
 
 void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]);
-
+void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]);
 //void DMA1_Channel5_IRQHandler();
 
 void loadColour(uint8_t *colour, uint8_t *array, uint8_t offset);

@@ -170,6 +170,16 @@ void setAllRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3]){
             array[i][2] = B;   
     }
 }
+
+void setPixelRGB(uint8_t R, uint8_t G, uint8_t B, uint8_t pixel, uint8_t (&array)[NUM_LEDS][3]){
+    // pixel is the LED position in the string
+    // R,G,B are individual colour values.
+    // array is the array which holds the data for all the pixels in the string.
+    array[pixel][0] = R;
+    array[pixel][1] = G;
+    array[pixel][2] = B;
+    }
+
 void writeLED(uint8_t (*colour)[3], uint8_t length, uint8_t *buffer){
     /*
     // Setup the transfer of colour information to the LEDS.
