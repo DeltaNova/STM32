@@ -31,7 +31,9 @@ void update_encoder_counts();
 uint32_t getSysTickCount();
 // Next Scheduled Execution event based on SysTickCount
 uint32_t NextExecution = 0;         
-void effects(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint32_t speedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]);
+void effects();
+void colourWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint32_t speedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]);
+uint8_t currentEffect = 0;
 
 // Struct to hold a value with range limits
 struct Value {
@@ -161,7 +163,7 @@ int main() {
                         // Triggers Every Second
         toggleLed();    // Toggle LED (PC13) to indicate loop operational
         
-        effects(50,50,50,pixels, 1000, DMA_Buffer);      // LED Effects
+        effects();      // LED Effects
         
         if (idle == 0x01){ // About to enter IDLE state
             // Print Idle Message Here
@@ -251,34 +253,54 @@ int main() {
     }
 }
 
-void effects(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint32_t speedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]){
+void effects(){
     // LED Effects Test Code
+    
+    // TODO: Add function to handle rollover of Systick count when checking next execution time.
     if (getSysTickCount() >= NextExecution){
         // Time to Execure Effect
-        //TODO: Add code to fetch the current effect and select it.
-        //TODO: Add code to fetch the state of the current effect.
-        
-        // Colour Wipe Effect
+
+        // Select Effect based on currentEffect variable
+        switch(currentEffect){
+            case 0:
+                colourWipe(50,0,0,pixels, 1000, DMA_Buffer); // Colour Wipe Effect
+                break;
+            case 1:
+                colourWipe(0,50,0,pixels, 1000, DMA_Buffer); // Colour Wipe Effect
+                break;
+            case 2:    
+                colourWipe(0,0,50,pixels, 1000, DMA_Buffer); // Colour Wipe Effect
+                break;
+            default:
+                currentEffect = 0;
+                break;
+        }
+    }
+}
+
+void colourWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint32_t speedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]){
+// Colour Wipe Effect
         static uint8_t i=0;     // Executes once.
         
         if (i < NUM_LEDS){
             setPixelRGB(R,G,B,i,array);
             writeLED(array, NUM_LEDS, Buffer);
             i++;
-            // TODO: Update Effect Status
+            // Set the execution time for the next stage of the effect.
             NextExecution = getSysTickCount() + speedDelay;
         }else{
+            // Sequence has run through length of LED string.
+            // Reset variable.
             i = 0;
-            // TODO: Clear/ Don't set if next effect not required.
-            //       Could also have an effects enabled flag to check along with
-            //       the Next Execution time.
-            NextExecution = getSysTickCount() + speedDelay;
             
-            // TODO: Update Effect Status
-            // TODO: Select Next Effect
+            // Select Next Effect Sequence
+            currentEffect++;
+            
+            // Nothing else to do. Allow next effect to execute as soon as possible.
+            NextExecution = getSysTickCount();            
         }
-    }
 }
+
 
 void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, 
     Value &Red, Value &Green, Value &Blue){
