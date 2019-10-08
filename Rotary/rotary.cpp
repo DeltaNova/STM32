@@ -263,13 +263,13 @@ void effects(){
         // Select Effect based on currentEffect variable
         switch(currentEffect){
             case 0:
-                colourWipe(50,0,0,pixels, 1000, DMA_Buffer); // Colour Wipe Effect
+                colourWipe(50,0,0,pixels, 300, DMA_Buffer); // Colour Wipe Effect
                 break;
             case 1:
-                colourWipe(0,50,0,pixels, 1000, DMA_Buffer); // Colour Wipe Effect
+                colourWipe(0,50,0,pixels, 300, DMA_Buffer); // Colour Wipe Effect
                 break;
             case 2:    
-                colourWipe(0,0,50,pixels, 1000, DMA_Buffer); // Colour Wipe Effect
+                colourWipe(0,0,50,pixels, 300, DMA_Buffer); // Colour Wipe Effect
                 break;
             default:
                 currentEffect = 0;
