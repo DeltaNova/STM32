@@ -33,6 +33,7 @@ uint32_t getSysTickCount();
 uint32_t NextExecution = 0;         
 void effects();
 void colourWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], uint32_t speedDelay, uint8_t (&Buffer)[2*BYTES_PER_LED]);
+void RGBLoop(uint8_t (&array)[NUM_LEDS][3], uint8_t (&Buffer)[2*BYTES_PER_LED]);
 uint8_t currentEffect = 0;
 
 // Struct to hold a value with range limits
@@ -271,6 +272,9 @@ void effects(){
             case 2:    
                 colourWipe(0,0,50,pixels, 300, DMA_Buffer); // Colour Wipe Effect
                 break;
+            case 3:
+                RGBLoop(pixels,DMA_Buffer); 
+                break;
             default:
                 currentEffect = 0;
                 break;
@@ -301,6 +305,60 @@ void colourWipe(uint8_t R, uint8_t G, uint8_t B, uint8_t (&array)[NUM_LEDS][3], 
         }
 }
 
+void RGBLoop(uint8_t (&array)[NUM_LEDS][3], uint8_t (&Buffer)[2*BYTES_PER_LED]){
+    static uint8_t i = 0; // 0 Fade In, 1 Fade Out
+    static uint8_t j = 0; // Selects Colour to Fade In/Out
+    static uint8_t k = 0; // Brightness of colour during fading.
+    
+    if ( j < 3){
+        if (i == 0){ // FADE IN
+            if (k <= 255){
+                switch(j) { 
+                    case 0: setAllRGB(k,0,0,array); break;
+                    case 1: setAllRGB(0,k,0,array); break;
+                    case 2: setAllRGB(0,0,k,array); break;
+                }
+            
+                if (k != 255){ // Increment k until max brightness
+                    k++;
+                }else{  // Once at full brightness swich to fade out mode.
+                    i = 1;
+                }
+            }
+            
+        }else{ // i = 1 // FADE OUT
+            if (k >= 0){
+                switch(j) { 
+                    case 0: setAllRGB(k,0,0,array); break;
+                    case 1: setAllRGB(0,k,0,array); break;
+                    case 2: setAllRGB(0,0,k,array); break;
+                }
+                if (k != 0){ // Decrement k until min brightness
+                    k--;
+                }else{ // Once at min brightness...
+                    i = 0;  // Switch to Fade in mode.
+                    j++;    // Select Next colour
+                }
+            }
+        }
+        
+        // Write current effect state
+        writeLED(array,NUM_LEDS,Buffer);
+        // Set the execution time for the next stage of the effect.
+        NextExecution = getSysTickCount() + 3;
+                
+    }else{ // j = 3+
+        // Sequence complete, Reset Variables
+        i = 0;
+        j = 0;
+        k = 0;
+        
+        // Select Next Effect
+        currentEffect++;
+        // Nothing else to do. Allow next effect to execute as soon as possible.
+        NextExecution  = getSysTickCount();
+    }
+}
 
 void showMenu(Serial& serial, char *char_buffer, Value &MenuSelection, 
     Value &Red, Value &Green, Value &Blue){
